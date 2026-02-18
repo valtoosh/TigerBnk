@@ -102,8 +102,50 @@ export async function submitKyc(kycData: {
   return kycRequest("/api/v1/kyc/submit", "POST", kycData);
 }
 
-export async function getKycStatus(): Promise<any> {
-  return kycRequest("/api/v1/kyc/status", "GET");
+export async function getKycStatus(): Promise<{
+  status: string;
+  verified: boolean;
+  rawData?: any;
+}> {
+  try {
+    await ensureConnected();
+    const userInfo = await callRpc("GetUserInfo", {});
+
+    const emailVerified = userInfo?.EmailVerified === true;
+    const userLevel = userInfo?.UserLevel ?? 0;
+
+    const verified =
+      userLevel > 0 ||
+      userInfo?.KYCStatus === "verified" ||
+      userInfo?.KYCStatus === "approved" ||
+      userInfo?.IsVerified === true ||
+      emailVerified;
+
+    let status = "pending";
+    if (verified) {
+      status = "verified";
+    } else if (emailVerified) {
+      status = "email_verified";
+    }
+
+    return {
+      status,
+      verified,
+      rawData: userInfo,
+    };
+  } catch (err: any) {
+    console.error("[BurjX] GetUserInfo KYC check failed:", err.message);
+    try {
+      const result = await kycRequest("/api/v1/kyc/status", "GET");
+      return {
+        status: result?.status || "pending",
+        verified: result?.status === "verified" || result?.status === "approved",
+        rawData: result,
+      };
+    } catch {
+      return { status: "unknown", verified: false };
+    }
+  }
 }
 
 export async function getAccountBalance(): Promise<{

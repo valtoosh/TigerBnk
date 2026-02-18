@@ -112,8 +112,21 @@ export async function registerRoutes(
 
   app.get("/api/auth/me", authenticateToken, async (req, res) => {
     try {
-      const user = await storage.getUser((req as any).userId);
+      const userId = (req as any).userId;
+      let user = await storage.getUser(userId);
       if (!user) return res.status(404).json({ message: "User not found" });
+
+      if (user.kycStatus !== "verified" && user.country === "AE") {
+        try {
+          const kycResult = await burjxService.getKycStatus();
+          if (kycResult.verified) {
+            await storage.updateUser(userId, { kycStatus: "verified" });
+            user = (await storage.getUser(userId))!;
+          }
+        } catch {
+        }
+      }
+
       const { passwordHash: _, ...safeUser } = user;
       return res.json(safeUser);
     } catch (err) {
@@ -128,8 +141,22 @@ export async function registerRoutes(
 
   // User routes
   app.get("/api/user/profile", authenticateToken, async (req, res) => {
-    const user = await storage.getUser((req as any).userId);
+    const userId = (req as any).userId;
+    let user = await storage.getUser(userId);
     if (!user) return res.status(404).json({ message: "User not found" });
+
+    if (user.kycStatus !== "verified" && user.country === "AE") {
+      try {
+        const kycResult = await burjxService.getKycStatus();
+        if (kycResult.verified && user.kycStatus !== "verified") {
+          await storage.updateUser(userId, { kycStatus: "verified" });
+          user = (await storage.getUser(userId))!;
+        }
+      } catch (err: any) {
+        console.log("[Profile] BurjX KYC check skipped:", err.message);
+      }
+    }
+
     const { passwordHash: _, ...safeUser } = user;
     return res.json(safeUser);
   });
@@ -413,10 +440,14 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/burjx/kyc/status", authenticateToken, async (_req, res) => {
+  app.get("/api/burjx/kyc/status", authenticateToken, async (req, res) => {
     try {
-      const status = await burjxService.getKycStatus();
-      return res.json(status);
+      const kycResult = await burjxService.getKycStatus();
+      const userId = (req as any).userId;
+      if (kycResult.verified) {
+        await storage.updateUser(userId, { kycStatus: "verified" });
+      }
+      return res.json(kycResult);
     } catch (err: any) {
       return res.status(500).json({ message: "Failed to get KYC status", error: err.message });
     }
