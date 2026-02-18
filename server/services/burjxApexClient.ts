@@ -1,5 +1,4 @@
 import WebSocket from "ws";
-import { HttpsProxyAgent } from "https-proxy-agent";
 
 const WS_ENDPOINT = "wss://api.burjx.alphaprod.net/wsgateway";
 
@@ -31,33 +30,6 @@ const MAX_RECONNECT_ATTEMPTS = 5;
 const BASE_RECONNECT_DELAY = 2000;
 let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
 let isReconnecting = false;
-
-function buildProxyUrl(): string | undefined {
-  const rawUrl = process.env.QUOTAGUARD_URL;
-  if (!rawUrl) return undefined;
-
-  if (rawUrl.startsWith("http://") || rawUrl.startsWith("https://")) {
-    return rawUrl;
-  }
-
-  const user = process.env.QUOTAGUARD_USER;
-  const pass = process.env.QUOTAGUARD_PASS;
-
-  if (user && pass) {
-    return `http://${user}:${pass}@${rawUrl}`;
-  }
-
-  return `http://${rawUrl}`;
-}
-
-function getProxyAgent(): HttpsProxyAgent<string> | undefined {
-  const proxyUrl = buildProxyUrl();
-  if (!proxyUrl) {
-    console.warn("[BurjX] QUOTAGUARD_URL not set, connecting without proxy");
-    return undefined;
-  }
-  return new HttpsProxyAgent(proxyUrl);
-}
 
 function createFrame(session: ApexSession, methodName: string, payload: any): string {
   session.sequenceNumber++;
@@ -129,11 +101,7 @@ export async function connect(): Promise<void> {
   await disconnect();
 
   return new Promise((resolve, reject) => {
-    const agent = getProxyAgent();
-    const wsOptions: WebSocket.ClientOptions = {};
-    if (agent) wsOptions.agent = agent;
-
-    const ws = new WebSocket(WS_ENDPOINT, wsOptions);
+    const ws = new WebSocket(WS_ENDPOINT);
 
     session = {
       ws,

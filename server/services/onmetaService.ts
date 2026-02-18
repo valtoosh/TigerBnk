@@ -1,18 +1,16 @@
-const ONMETA_BASE_URL = "https://api.onmeta.in";
-const ONMETA_STAGING_URL = "https://stg-api.onmeta.in";
+const ONMETA_PROD_URL = "https://stg.api.onmeta.in";
 
 const INTERNAL_SETTLEMENT_TOKEN = "USDT";
 const INTERNAL_SETTLEMENT_NETWORK = "polygon";
 
 function getBaseUrl(): string {
-  return process.env.NODE_ENV === "production" ? ONMETA_BASE_URL : ONMETA_STAGING_URL;
+  return ONMETA_PROD_URL;
 }
 
 function getHeaders(): Record<string, string> {
   return {
     "Content-Type": "application/json",
     "x-api-key": process.env.ONMETA_API_KEY || "",
-    "x-client-id": process.env.ONMETA_CLIENT_ID || "",
   };
 }
 
@@ -54,18 +52,13 @@ export async function customerLogin(data: {
   name?: string;
   country: string;
 }): Promise<{ token: string; customerId: string; kycRequired: boolean }> {
-  const countryCode = data.country === "IN" ? "IN" : data.country === "PH" ? "PH" : "ID";
-
-  const result = await onmetaRequest("/v2/customer/login", "POST", {
+  const result = await onmetaRequest("/v1/users/login", "POST", {
     email: data.email,
-    phone: data.phone,
-    name: data.name,
-    countryCode,
   });
 
   return {
     token: result.data?.token || result.token || "",
-    customerId: result.data?.customerId || result.customerId || "",
+    customerId: result.data?.customerId || result.customerId || result.data?.userId || "",
     kycRequired: result.data?.kycRequired ?? result.kycRequired ?? true,
   };
 }
@@ -80,7 +73,7 @@ export async function submitKyc(
     country: string;
   }
 ): Promise<{ status: string; message: string }> {
-  const result = await onmetaRequest("/v2/customer/kyc", "POST", kycData, authToken);
+  const result = await onmetaRequest("/v1/users/upload/kyc", "POST", kycData, authToken);
   return {
     status: result.data?.status || result.status || "submitted",
     message: result.data?.message || result.message || "Verification submitted",
@@ -91,7 +84,7 @@ export async function getKycStatus(authToken: string): Promise<{
   status: string;
   verified: boolean;
 }> {
-  const result = await onmetaRequest("/v2/customer/kyc/status", "GET", undefined, authToken);
+  const result = await onmetaRequest("/v1/users/kyc/status", "GET", undefined, authToken);
   const status = result.data?.status || result.status || "pending";
   return {
     status,
@@ -108,7 +101,7 @@ export async function getQuotation(params: {
   fee: number;
   totalAmount: number;
 }> {
-  const endpoint = params.type === "deposit" ? "/v2/quotation" : "/v2/offramp/quotation";
+  const endpoint = params.type === "deposit" ? "/v1/onramp/quote" : "/v1/offramp/quote";
 
   const result = await onmetaRequest(endpoint, "POST", {
     fiatCurrency: params.currency,
@@ -144,18 +137,17 @@ export async function createDepositOrder(
     reference?: string;
   };
 }> {
-  const result = await onmetaRequest("/v2/order/create", "POST", {
+  const result = await onmetaRequest("/v1/onramp/order", "POST", {
     fiatCurrency: params.currency,
     fiatAmount: params.amount,
     cryptoCurrency: INTERNAL_SETTLEMENT_TOKEN,
     network: INTERNAL_SETTLEMENT_NETWORK,
-    walletAddress: "internal",
     paymentMethod: params.paymentMethod,
   }, authToken);
 
   const data = result.data || result;
   return {
-    orderId: data.orderId || data.orderCode || "",
+    orderId: data.orderId || data.orderCode || data.id || "",
     status: data.status || "created",
     paymentUrl: data.paymentUrl || data.redirectUrl,
     paymentDetails: data.paymentDetails || {
@@ -179,7 +171,7 @@ export async function createWithdrawalOrder(
   orderId: string;
   status: string;
 }> {
-  const result = await onmetaRequest("/v2/offramp/order/create", "POST", {
+  const result = await onmetaRequest("/v1/offramp/order", "POST", {
     fiatCurrency: params.currency,
     fiatAmount: params.amount,
     cryptoCurrency: INTERNAL_SETTLEMENT_TOKEN,
@@ -189,7 +181,7 @@ export async function createWithdrawalOrder(
 
   const data = result.data || result;
   return {
-    orderId: data.orderId || data.orderCode || "",
+    orderId: data.orderId || data.orderCode || data.id || "",
     status: data.status || "created",
   };
 }
@@ -198,7 +190,7 @@ export async function getOrderStatus(
   authToken: string,
   orderId: string
 ): Promise<{ status: string; completedAt?: string }> {
-  const result = await onmetaRequest(`/v2/order/${orderId}/status`, "GET", undefined, authToken);
+  const result = await onmetaRequest(`/v1/orders/${orderId}`, "GET", undefined, authToken);
   const data = result.data || result;
   return {
     status: data.status || "unknown",
@@ -212,7 +204,7 @@ export async function getOrderHistory(
   limit: number = 20
 ): Promise<{ orders: any[]; total: number }> {
   const result = await onmetaRequest(
-    `/v2/orders?page=${page}&limit=${limit}`,
+    `/v1/orders?page=${page}&limit=${limit}`,
     "GET",
     undefined,
     authToken
@@ -235,7 +227,7 @@ export async function addBankAccount(
     country: string;
   }
 ): Promise<{ bankAccountId: string; status: string }> {
-  const result = await onmetaRequest("/v2/customer/bank-account", "POST", bankData, authToken);
+  const result = await onmetaRequest("/v1/users/bank-account", "POST", bankData, authToken);
   const data = result.data || result;
   return {
     bankAccountId: data.bankAccountId || data.id || "",
@@ -244,7 +236,7 @@ export async function addBankAccount(
 }
 
 export async function getBankAccounts(authToken: string): Promise<any[]> {
-  const result = await onmetaRequest("/v2/customer/bank-accounts", "GET", undefined, authToken);
+  const result = await onmetaRequest("/v1/users/bank-accounts", "GET", undefined, authToken);
   return result.data?.accounts || result.accounts || result.data || [];
 }
 
