@@ -1,4 +1,4 @@
-const ONMETA_PROD_URL = "https://stg.api.onmeta.in";
+const ONMETA_PROD_URL = "https://api.platform.onmeta.in";
 
 const INTERNAL_SETTLEMENT_TOKEN = "USDT";
 const INTERNAL_SETTLEMENT_NETWORK = "polygon";
@@ -11,6 +11,7 @@ function getHeaders(): Record<string, string> {
   return {
     "Content-Type": "application/json",
     "x-api-key": process.env.ONMETA_API_KEY || "",
+    "x-client-id": process.env.ONMETA_CLIENT_ID || "",
   };
 }
 
