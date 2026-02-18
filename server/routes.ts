@@ -4,6 +4,10 @@ import { storage } from "./storage";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { registerSchema, loginSchema, sendMoneySchema } from "@shared/schema";
+import { getExchangeRates, getFeePercent, convertCurrency } from "./services/exchangeRateService";
+import * as burjxService from "./services/burjxService";
+import * as burjxOnramp from "./services/burjxOnrampService";
+import * as onmetaService from "./services/onmetaService";
 
 const JWT_SECRET = process.env.SESSION_SECRET!;
 if (!JWT_SECRET) {
@@ -25,44 +29,6 @@ function authenticateToken(req: Request, res: Response, next: NextFunction) {
   } catch {
     return res.status(401).json({ message: "Invalid token" });
   }
-}
-
-const exchangeRateCache: { rates: Record<string, number>; lastFetch: number } = {
-  rates: {},
-  lastFetch: 0,
-};
-
-async function getExchangeRates(): Promise<Record<string, number>> {
-  const now = Date.now();
-  if (now - exchangeRateCache.lastFetch < 10 * 60 * 1000 && Object.keys(exchangeRateCache.rates).length > 0) {
-    return exchangeRateCache.rates;
-  }
-
-  try {
-    const response = await fetch("https://open.er-api.com/v6/latest/AED");
-    const data = await response.json();
-    if (data.rates) {
-      exchangeRateCache.rates = data.rates;
-      exchangeRateCache.lastFetch = now;
-      return data.rates;
-    }
-  } catch (err) {
-    console.error("Failed to fetch exchange rates:", err);
-  }
-
-  return exchangeRateCache.rates || { AED: 1, USD: 0.2722, INR: 22.78, PHP: 15.25, GBP: 0.2166, IDR: 4327 };
-}
-
-function getFeePercent(from: string, to: string): number {
-  if (from === to) return 0;
-  const majorCorridors = [
-    ["USD", "INR"], ["AED", "INR"], ["GBP", "INR"],
-    ["AED", "PHP"], ["USD", "PHP"],
-  ];
-  for (const [a, b] of majorCorridors) {
-    if ((from === a && to === b) || (from === b && to === a)) return 0.99;
-  }
-  return 1.5;
 }
 
 export async function registerRoutes(
@@ -241,23 +207,13 @@ export async function registerRoutes(
       const senderBalance = parseFloat(sender.balance as string);
       if (senderBalance < amount) return res.status(400).json({ message: "Insufficient balance" });
 
-      let convertedAmount = amount;
-      let fee = 0;
       const fromCur = currency || sender.currency;
       const toCur = toCurrency || recipient.currency;
-
-      if (fromCur !== toCur) {
-        const rates = await getExchangeRates();
-        const fromRate = rates[fromCur] || 1;
-        const toRate = rates[toCur] || 1;
-        const rate = toRate / fromRate;
-        const feePercent = getFeePercent(fromCur, toCur);
-        fee = amount * (feePercent / 100);
-        convertedAmount = (amount - fee) * rate;
-      }
+      const { convertedAmount, fee } = await convertCurrency(amount, fromCur, toCur);
+      const finalAmount = fromCur !== toCur ? convertedAmount : amount;
 
       await storage.updateUserBalance(userId, (-amount).toString());
-      await storage.updateUserBalance(recipient.id, convertedAmount.toFixed(2));
+      await storage.updateUserBalance(recipient.id, finalAmount.toFixed(2));
 
       await storage.createTransaction({
         userId,
@@ -274,7 +230,7 @@ export async function registerRoutes(
       await storage.createTransaction({
         userId: recipient.id,
         type: "receive",
-        amount: convertedAmount.toFixed(2),
+        amount: finalAmount.toFixed(2),
         currency: toCur,
         recipientId: userId,
         recipientName: sender.fullName,
@@ -283,29 +239,22 @@ export async function registerRoutes(
         status: "completed",
       });
 
-      return res.json({ success: true, convertedAmount, fee });
+      return res.json({ success: true, convertedAmount: finalAmount, fee });
     } catch (err: any) {
       console.error("Send error:", err);
       return res.status(500).json({ message: "Transfer failed" });
     }
   });
 
-  // Exchange rate routes
+  // Exchange rate routes (using service)
   app.get("/api/exchange-rate", async (req, res) => {
     try {
       const from = (req.query.from as string) || "AED";
       const to = (req.query.to as string) || "USD";
       const amount = parseFloat(req.query.amount as string) || 1;
 
-      const rates = await getExchangeRates();
-      const fromRate = rates[from] || 1;
-      const toRate = rates[to] || 1;
-      const rate = toRate / fromRate;
-      const feePercent = getFeePercent(from, to);
-      const fee = amount * (feePercent / 100);
-      const convertedAmount = (amount - fee) * rate;
-
-      return res.json({ rate, convertedAmount, fee, feePercent });
+      const result = await convertCurrency(amount, from, to);
+      return res.json(result);
     } catch (err) {
       return res.status(500).json({ message: "Failed to fetch exchange rate" });
     }
@@ -335,6 +284,403 @@ export async function registerRoutes(
       return res.json({ score, tier });
     } catch (err) {
       return res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // ==========================================
+  // BurjX API Routes (UAE - AED)
+  // ==========================================
+
+  app.get("/api/burjx/status", authenticateToken, async (_req, res) => {
+    try {
+      const status = await burjxService.getConnectionStatus();
+      return res.json(status);
+    } catch (err: any) {
+      return res.json({ connected: false, authenticated: false, userId: null, error: err.message });
+    }
+  });
+
+  app.post("/api/burjx/connect", authenticateToken, async (_req, res) => {
+    try {
+      const session = await burjxService.authenticateUser();
+      return res.json({ success: true, userId: session.userId, accountId: session.accountId });
+    } catch (err: any) {
+      console.error("[BurjX] Connect error:", err);
+      return res.status(500).json({ message: "Failed to connect to payment provider", error: err.message });
+    }
+  });
+
+  app.get("/api/burjx/account", authenticateToken, async (_req, res) => {
+    try {
+      const balance = await burjxService.getAccountBalance();
+      return res.json(balance);
+    } catch (err: any) {
+      return res.status(500).json({ message: "Failed to get account info", error: err.message });
+    }
+  });
+
+  app.post("/api/burjx/deposit", authenticateToken, async (req, res) => {
+    try {
+      const userId = (req as any).userId;
+      const { amount } = req.body;
+
+      if (!amount || amount < 10) {
+        return res.status(400).json({ message: "Minimum deposit is 10 AED" });
+      }
+
+      const ticket = await burjxOnramp.createDepositTicket(amount);
+
+      await storage.createTransaction({
+        userId,
+        type: "deposit",
+        amount: amount.toString(),
+        currency: "AED",
+        source: "BurjX Bank Transfer",
+        description: `Deposit via bank transfer (Ref: ${ticket.ticketId})`,
+        status: "pending",
+      });
+
+      return res.json({
+        success: true,
+        ticket,
+        message: "Bank transfer details generated. Please complete the transfer to fund your account.",
+      });
+    } catch (err: any) {
+      console.error("[BurjX] Deposit error:", err);
+      return res.status(500).json({ message: "Failed to create deposit", error: err.message });
+    }
+  });
+
+  app.get("/api/burjx/deposits", authenticateToken, async (_req, res) => {
+    try {
+      const tickets = await burjxOnramp.getDepositTickets();
+      return res.json(tickets);
+    } catch (err: any) {
+      return res.status(500).json({ message: "Failed to get deposits", error: err.message });
+    }
+  });
+
+  app.get("/api/burjx/deposit/:ticketId/status", authenticateToken, async (req, res) => {
+    try {
+      const result = await burjxOnramp.getDepositStatus(req.params.ticketId);
+      return res.json(result);
+    } catch (err: any) {
+      return res.status(500).json({ message: "Failed to check deposit status", error: err.message });
+    }
+  });
+
+  app.post("/api/burjx/withdraw", authenticateToken, async (req, res) => {
+    try {
+      const userId = (req as any).userId;
+      const { amount, iban, bankName, accountHolderName } = req.body;
+
+      if (!amount || amount < 10) {
+        return res.status(400).json({ message: "Minimum withdrawal is 10 AED" });
+      }
+      if (!iban) {
+        return res.status(400).json({ message: "IBAN is required" });
+      }
+      if (!accountHolderName) {
+        return res.status(400).json({ message: "Account holder name is required" });
+      }
+
+      const user = await storage.getUser(userId);
+      if (!user) return res.status(404).json({ message: "User not found" });
+
+      const balance = parseFloat(user.balance as string);
+      if (balance < amount) {
+        return res.status(400).json({ message: "Insufficient balance" });
+      }
+
+      const result = await burjxOnramp.createWithdrawal({ amount, iban, bankName, accountHolderName });
+
+      await storage.updateUserBalance(userId, (-amount).toString());
+
+      await storage.createTransaction({
+        userId,
+        type: "send",
+        amount: amount.toString(),
+        currency: "AED",
+        source: "BurjX Withdrawal",
+        description: `Withdrawal to bank (IBAN: ...${iban.slice(-4)})`,
+        status: "pending",
+      });
+
+      return res.json({ success: true, ...result });
+    } catch (err: any) {
+      console.error("[BurjX] Withdraw error:", err);
+      return res.status(500).json({ message: "Withdrawal failed", error: err.message });
+    }
+  });
+
+  app.get("/api/burjx/kyc/status", authenticateToken, async (_req, res) => {
+    try {
+      const status = await burjxService.getKycStatus();
+      return res.json(status);
+    } catch (err: any) {
+      return res.status(500).json({ message: "Failed to get KYC status", error: err.message });
+    }
+  });
+
+  app.post("/api/burjx/kyc/submit", authenticateToken, async (req, res) => {
+    try {
+      const result = await burjxService.submitKyc(req.body);
+      return res.json(result);
+    } catch (err: any) {
+      console.error("[BurjX] KYC submit error:", err);
+      return res.status(500).json({ message: "KYC submission failed", error: err.message });
+    }
+  });
+
+  // ==========================================
+  // OnMeta API Routes (India, Philippines, Indonesia)
+  // ==========================================
+
+  app.post("/api/onmeta/login", authenticateToken, async (req, res) => {
+    try {
+      const userId = (req as any).userId;
+      const user = await storage.getUser(userId);
+      if (!user) return res.status(404).json({ message: "User not found" });
+
+      const result = await onmetaService.customerLogin({
+        email: user.email,
+        phone: user.phone || undefined,
+        name: user.fullName,
+        country: user.country,
+      });
+
+      return res.json(result);
+    } catch (err: any) {
+      console.error("[OnMeta] Login error:", err);
+      return res.status(500).json({ message: "Failed to connect to payment provider", error: err.message });
+    }
+  });
+
+  app.get("/api/onmeta/kyc/status", authenticateToken, async (req, res) => {
+    try {
+      const authToken = req.headers["x-onmeta-token"] as string;
+      if (!authToken) return res.status(400).json({ message: "OnMeta token required" });
+
+      const status = await onmetaService.getKycStatus(authToken);
+      return res.json(status);
+    } catch (err: any) {
+      return res.status(500).json({ message: "Failed to get KYC status", error: err.message });
+    }
+  });
+
+  app.post("/api/onmeta/kyc/submit", authenticateToken, async (req, res) => {
+    try {
+      const authToken = req.headers["x-onmeta-token"] as string;
+      if (!authToken) return res.status(400).json({ message: "OnMeta token required" });
+
+      const result = await onmetaService.submitKyc(authToken, req.body);
+      return res.json(result);
+    } catch (err: any) {
+      console.error("[OnMeta] KYC submit error:", err);
+      return res.status(500).json({ message: "KYC submission failed", error: err.message });
+    }
+  });
+
+  app.get("/api/onmeta/payment-methods", authenticateToken, async (req, res) => {
+    try {
+      const userId = (req as any).userId;
+      const user = await storage.getUser(userId);
+      if (!user) return res.status(404).json({ message: "User not found" });
+
+      const methods = onmetaService.getSupportedPaymentMethods(user.country);
+      return res.json(methods.map(m => ({
+        id: m,
+        label: onmetaService.getPaymentMethodLabel(m),
+      })));
+    } catch (err: any) {
+      return res.status(500).json({ message: "Failed to get payment methods" });
+    }
+  });
+
+  app.post("/api/onmeta/quotation", authenticateToken, async (req, res) => {
+    try {
+      const { currency, amount, type } = req.body;
+      const result = await onmetaService.getQuotation({
+        currency: currency || "INR",
+        amount: amount || 0,
+        type: type || "deposit",
+      });
+      return res.json(result);
+    } catch (err: any) {
+      return res.status(500).json({ message: "Failed to get quotation", error: err.message });
+    }
+  });
+
+  app.post("/api/onmeta/deposit", authenticateToken, async (req, res) => {
+    try {
+      const userId = (req as any).userId;
+      const authToken = req.headers["x-onmeta-token"] as string;
+      if (!authToken) return res.status(400).json({ message: "OnMeta token required" });
+
+      const user = await storage.getUser(userId);
+      if (!user) return res.status(404).json({ message: "User not found" });
+
+      const { amount, paymentMethod } = req.body;
+      if (!amount || amount < 50) {
+        return res.status(400).json({ message: "Minimum deposit varies by currency" });
+      }
+
+      const order = await onmetaService.createDepositOrder(authToken, {
+        currency: user.currency,
+        amount,
+        paymentMethod: paymentMethod || "bank_transfer",
+      });
+
+      await storage.createTransaction({
+        userId,
+        type: "deposit",
+        amount: amount.toString(),
+        currency: user.currency,
+        source: `OnMeta ${onmetaService.getPaymentMethodLabel(paymentMethod || "bank_transfer")}`,
+        description: `Deposit via ${onmetaService.getPaymentMethodLabel(paymentMethod || "bank_transfer")} (Ref: ${order.orderId})`,
+        status: "pending",
+      });
+
+      return res.json({
+        success: true,
+        order,
+        message: "Payment initiated. Please complete the payment to fund your account.",
+      });
+    } catch (err: any) {
+      console.error("[OnMeta] Deposit error:", err);
+      return res.status(500).json({ message: "Deposit failed", error: err.message });
+    }
+  });
+
+  app.post("/api/onmeta/withdraw", authenticateToken, async (req, res) => {
+    try {
+      const userId = (req as any).userId;
+      const authToken = req.headers["x-onmeta-token"] as string;
+      if (!authToken) return res.status(400).json({ message: "OnMeta token required" });
+
+      const user = await storage.getUser(userId);
+      if (!user) return res.status(404).json({ message: "User not found" });
+
+      const { amount, bankAccountId } = req.body;
+      if (!amount || amount < 50) {
+        return res.status(400).json({ message: "Minimum withdrawal varies by currency" });
+      }
+
+      const balance = parseFloat(user.balance as string);
+      if (balance < amount) {
+        return res.status(400).json({ message: "Insufficient balance" });
+      }
+
+      const order = await onmetaService.createWithdrawalOrder(authToken, {
+        currency: user.currency,
+        amount,
+        bankAccountId,
+      });
+
+      await storage.updateUserBalance(userId, (-amount).toString());
+
+      await storage.createTransaction({
+        userId,
+        type: "send",
+        amount: amount.toString(),
+        currency: user.currency,
+        source: "OnMeta Withdrawal",
+        description: `Withdrawal to bank (Ref: ${order.orderId})`,
+        status: "pending",
+      });
+
+      return res.json({ success: true, ...order });
+    } catch (err: any) {
+      console.error("[OnMeta] Withdraw error:", err);
+      return res.status(500).json({ message: "Withdrawal failed", error: err.message });
+    }
+  });
+
+  app.get("/api/onmeta/orders", authenticateToken, async (req, res) => {
+    try {
+      const authToken = req.headers["x-onmeta-token"] as string;
+      if (!authToken) return res.status(400).json({ message: "OnMeta token required" });
+
+      const page = parseInt(req.query.page as string) || 1;
+      const result = await onmetaService.getOrderHistory(authToken, page);
+      return res.json(result);
+    } catch (err: any) {
+      return res.status(500).json({ message: "Failed to get orders", error: err.message });
+    }
+  });
+
+  app.get("/api/onmeta/order/:orderId/status", authenticateToken, async (req, res) => {
+    try {
+      const authToken = req.headers["x-onmeta-token"] as string;
+      if (!authToken) return res.status(400).json({ message: "OnMeta token required" });
+
+      const result = await onmetaService.getOrderStatus(authToken, req.params.orderId);
+      return res.json(result);
+    } catch (err: any) {
+      return res.status(500).json({ message: "Failed to get order status", error: err.message });
+    }
+  });
+
+  app.post("/api/onmeta/bank-account", authenticateToken, async (req, res) => {
+    try {
+      const authToken = req.headers["x-onmeta-token"] as string;
+      if (!authToken) return res.status(400).json({ message: "OnMeta token required" });
+
+      const result = await onmetaService.addBankAccount(authToken, req.body);
+      return res.json(result);
+    } catch (err: any) {
+      return res.status(500).json({ message: "Failed to add bank account", error: err.message });
+    }
+  });
+
+  app.get("/api/onmeta/bank-accounts", authenticateToken, async (req, res) => {
+    try {
+      const authToken = req.headers["x-onmeta-token"] as string;
+      if (!authToken) return res.status(400).json({ message: "OnMeta token required" });
+
+      const accounts = await onmetaService.getBankAccounts(authToken);
+      return res.json(accounts);
+    } catch (err: any) {
+      return res.status(500).json({ message: "Failed to get bank accounts", error: err.message });
+    }
+  });
+
+  // ==========================================
+  // Provider routing - auto-selects BurjX or OnMeta based on country
+  // ==========================================
+
+  app.get("/api/payment-provider", authenticateToken, async (req, res) => {
+    try {
+      const userId = (req as any).userId;
+      const user = await storage.getUser(userId);
+      if (!user) return res.status(404).json({ message: "User not found" });
+
+      let provider: string;
+      let paymentMethods: { id: string; label: string }[] = [];
+
+      if (user.country === "AE") {
+        provider = "burjx";
+        paymentMethods = [{ id: "bank_transfer", label: "Bank Transfer (AED)" }];
+      } else if (["IN", "PH", "ID"].includes(user.country)) {
+        provider = "onmeta";
+        const methods = onmetaService.getSupportedPaymentMethods(user.country);
+        paymentMethods = methods.map(m => ({
+          id: m,
+          label: onmetaService.getPaymentMethodLabel(m),
+        }));
+      } else {
+        provider = "manual";
+        paymentMethods = [{ id: "bank_transfer", label: "Bank Transfer" }];
+      }
+
+      return res.json({
+        provider,
+        country: user.country,
+        currency: user.currency,
+        paymentMethods,
+      });
+    } catch (err) {
+      return res.status(500).json({ message: "Failed to determine payment provider" });
     }
   });
 
