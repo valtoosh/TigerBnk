@@ -32,8 +32,26 @@ const BASE_RECONNECT_DELAY = 2000;
 let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
 let isReconnecting = false;
 
+function buildProxyUrl(): string | undefined {
+  const rawUrl = process.env.QUOTAGUARD_URL;
+  if (!rawUrl) return undefined;
+
+  if (rawUrl.startsWith("http://") || rawUrl.startsWith("https://")) {
+    return rawUrl;
+  }
+
+  const user = process.env.QUOTAGUARD_USER;
+  const pass = process.env.QUOTAGUARD_PASS;
+
+  if (user && pass) {
+    return `http://${user}:${pass}@${rawUrl}`;
+  }
+
+  return `http://${rawUrl}`;
+}
+
 function getProxyAgent(): HttpsProxyAgent<string> | undefined {
-  const proxyUrl = process.env.QUOTAGUARD_URL;
+  const proxyUrl = buildProxyUrl();
   if (!proxyUrl) {
     console.warn("[BurjX] QUOTAGUARD_URL not set, connecting without proxy");
     return undefined;
