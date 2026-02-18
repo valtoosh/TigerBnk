@@ -10,8 +10,7 @@ function getBaseUrl(): string {
 function getHeaders(): Record<string, string> {
   return {
     "Content-Type": "application/json",
-    "x-api-key": process.env.ONMETA_API_KEY || "",
-    "x-client-id": process.env.ONMETA_CLIENT_ID || "",
+    "x-api-key": process.env.ONMETA_CLIENT_ID || "",
   };
 }
 
@@ -58,9 +57,9 @@ export async function customerLogin(data: {
   });
 
   return {
-    token: result.data?.token || result.token || "",
-    customerId: result.data?.customerId || result.customerId || result.data?.userId || "",
-    kycRequired: result.data?.kycRequired ?? result.kycRequired ?? true,
+    token: result.data?.accessToken || result.data?.token || result.token || "",
+    customerId: result.data?.userId || result.data?.customerId || result.customerId || "",
+    kycRequired: result.data?.kycRequired ?? result.kycRequired ?? false,
   };
 }
 
