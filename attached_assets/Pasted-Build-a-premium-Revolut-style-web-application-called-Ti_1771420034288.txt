@@ -1,0 +1,190 @@
+Build a premium Revolut-style web application called "TigerPayX Web" using React + Vite + Express.js + PostgreSQL. This is a web version of an existing mobile app, and it must replicate the same backend APIs, flows, and integrations exactly.
+
+Design & UI/UX
+Design inspiration: Revolut web app — clean, minimal, premium feel with smooth animations
+Color scheme: Primary orange (#FF9800), white backgrounds, dark text, subtle grays for borders/cards
+Typography: Inter or similar modern sans-serif font
+Layout: Responsive sidebar navigation on desktop, bottom nav on mobile. Dashboard-first layout
+Animations: Smooth page transitions, skeleton loaders, micro-interactions on buttons/cards
+Dark mode: Support light and dark themes
+Cards: Frosted glass or subtle elevation with rounded corners (12-16px)
+No emojis anywhere in the UI
+Core Architecture
+Frontend: React 18+ with Vite, TailwindCSS, Framer Motion for animations, TanStack React Query for data fetching
+Backend: Express.js with TypeScript
+Database: PostgreSQL with Drizzle ORM
+Auth: JWT-based authentication with bcrypt password hashing, stored in httpOnly cookies
+Session: Express sessions with SESSION_SECRET environment variable
+User Modes
+The app has two modes (Individual and Merchant). Build Individual mode only for now. The user can switch modes later.
+
+Screens & Features to Build
+1. Authentication
+Login screen: Email + password, clean centered card layout
+Register screen: Full name, email, phone, password, country selector (UAE, India, Philippines, Indonesia)
+Biometric: Not applicable for web — skip this
+Password Reset: Email-based reset code flow (if SendGrid is configured)
+2. Home / Dashboard
+Large balance display at top (AED amount, formatted with commas)
+Quick action buttons: Add Money, Send, Request, Pay
+Recent transactions list (last 5-10)
+"Roar Score" credit score card (gamified, 0-850 scale, with tier: Cub/Tiger/Alpha/Apex)
+TigerPayX Pay section showing recent contacts
+3. Add Money (Deposit)
+This is country-dependent:
+
+For UAE users:
+
+Uses BurjX integration via WebSocket APEX protocol
+Payment methods: Bank Transfer, Credit/Debit Card
+Flow: Enter amount → Confirm details → Show bank transfer instructions (account name, bank, IBAN, SWIFT, reference code) → Poll for payment confirmation
+No processing fee
+Minimum deposit: AED 10
+Creates deposit ticket via CreateDepositTicket APEX RPC call with:
+AssetId: 104 (AED - UAE Dirham, ProductType: NationalCurrency)
+DepositInfo includes PaymentMethod, Currency, KYT/Travel Rule data (OriginatorName, BeneficiaryName, etc.)
+Polls GetDepositTickets every 5 seconds to check ticket status
+Only credits balance when status is "FullyProcessed" or "Accepted"
+Duplicate deposit protection using ticket numbers
+For India users:
+
+Uses OnMeta integration
+Supports UPI and bank transfer
+WebView-based flow (use iframe on web)
+For Philippines/Indonesia users:
+
+Uses OnMeta integration
+Supports GCash, PayMaya, GrabPay, bank transfers
+Local payment method selection
+4. Send Money
+Send to TigerPayX users (internal instant transfer — "TigerPayX Pay")
+Search by email or phone
+Live currency exchange display (Remitly/TapTap Send style)
+"You send" / "Recipient gets" with live conversion
+Supported currencies: AED, INR, PHP, USD, GBP, IDR with country flags
+Fee structure: 0% same currency, 0.99% major corridors (USD/AED/GBP→INR, AED/USD→PHP), 1.5% other corridors
+Exchange rates fetched from open.er-api.com with 10-minute cache
+Send button shows conversion (e.g., "Send AED 100 → INR 2,446")
+5. Activity / Transaction History
+Unified transaction list from multiple sources:
+Local TigerPayX transactions
+BurjX deposits/withdrawals (via APEX WebSocket)
+OnMeta order history
+Filters: All, Added (deposits/received), Sent (withdrawals/sent), Pending
+Green for incoming, red for outgoing
+Source provider tracking (BurjX, OnMeta, TigerPayX)
+6. Cards Screen
+Placeholder for future virtual/physical card management
+Show "Coming Soon" with nice illustration
+7. Profile / Settings
+User info display and edit
+Country/region display
+KYC verification status
+Biometric toggle (hidden on web)
+Push notification preferences
+Logout
+8. KYC Verification
+UAE (BurjX KYC):
+
+Native multi-step form (NOT WebView):
+Personal Info: name, DOB, nationality, Emirates ID
+Address & Details: country, city, address, source of funds
+Document Upload: Emirates ID or Passport photo
+Selfie Verification
+Submits to backend which forwards to BurjX KYC API (kyc.burjx.com)
+Status checking via polling
+India (OnMeta KYC):
+
+OnMeta KYC widget integration
+9. Withdraw Money
+UAE users:
+
+BurjX withdrawal via APEX protocol
+IBAN validation
+1-3 business days processing
+Backend API Endpoints to Replicate
+Auth
+POST /api/auth/register — Register new user
+POST /api/auth/login — Login, returns JWT
+GET /api/auth/me — Get current user (Bearer token)
+POST /api/auth/forgot-password — Send reset code
+POST /api/auth/reset-password — Reset with code
+User
+GET /api/user/profile — Get user profile
+PUT /api/user/profile — Update profile
+POST /api/user/deposit — Credit balance (amount, source, description)
+Transactions
+GET /api/transactions — Get user transactions
+POST /api/transactions/send — Send money to another user
+POST /api/transactions/history — Aggregated history from all providers
+Exchange Rates
+GET /api/exchange-rate?from=X&to=Y&amount=Z — Live exchange rate
+GET /api/supported-currencies — List supported currencies
+BurjX Integration (UAE)
+POST /api/burjx/kyc-submit — Submit KYC documents
+GET /api/burjx/kyc-submission-status?email= — Check KYC status
+POST /api/burjx/onramp/authenticate — Authenticate with BurjX APEX
+POST /api/burjx/onramp/user-info — Get BurjX user info
+POST /api/burjx/onramp/create-deposit — Create deposit ticket (AssetId: 104 for AED)
+POST /api/burjx/onramp/get-deposit-ticket — Get specific deposit ticket
+POST /api/burjx/onramp/deposit-tickets — List deposit tickets
+POST /api/burjx/onramp/create-withdraw — Create withdrawal
+OnMeta Integration (India/Philippines/Indonesia)
+POST /api/onmeta/kyc-init — Initialize KYC
+POST /api/onmeta/order — Create on-ramp order
+GET /api/onmeta/order-status — Check order status
+Roar Score
+GET /api/roar-score — Get user's credit score
+Score tiers: Cub (0-300), Tiger (301-550), Alpha (551-700), Apex (701-850)
+BurjX APEX WebSocket Integration Details
+WebSocket URL: wss://api.burjx.alphaprod.net/wsgateway
+
+Protocol: JSON frames with structure { m: 0, i: sequenceNumber, n: "MethodName", o: JSON.stringify(payload) }
+
+Authentication: WebAuthenticateUser with test credentials from environment variables BURJX_TEST_EMAIL and BURJX_TEST_PASSWORD
+
+Key RPC methods used:
+
+WebAuthenticateUser — Returns UserId, SessionToken, AccountId
+GetUserAccounts — Get account IDs
+GetUserInfo / SetUserInfo — User profile
+GetProducts — List all products (AED = ProductId 104, type NationalCurrency)
+CreateDepositTicket — Create fiat deposit (AssetId: 104, includes KYT Travel Rule data)
+GetDepositTickets — List/poll deposit tickets
+GetDepositTicket — Get single ticket by RequestCode
+Session management: In-memory per user email, 30-minute TTL, auto-reinitialize on expiry
+
+BurjX KYC API Details
+Base URL: https://kyc.burjx.com
+Auth: Bearer token from APEX session + headers: x-api-key, x-api-secret, user-id
+Proxy: Route through QuotaGuard Static proxy (environment variables: QUOTAGUARD_URL, QUOTAGUARD_USER, QUOTAGUARD_PASS) to avoid Cloudflare blocking
+
+Environment Variables Required
+DATABASE_URL — PostgreSQL connection string
+SESSION_SECRET — Express session secret
+BURJX_API_KEY — BurjX API key
+BURJX_API_SECRET — BurjX API secret  
+BURJX_TEST_EMAIL — BurjX test account email
+BURJX_TEST_PASSWORD — BurjX test account password
+DFNS_AUTH_TOKEN — DFNS wallet service token
+DFNS_CREDENTIAL_ID — DFNS credential
+DFNS_PRIVATE_KEY — DFNS private key
+ONMETA_API_KEY — OnMeta API key
+ONMETA_CLIENT_ID — OnMeta client ID
+QUOTAGUARD_URL — Static proxy URL
+QUOTAGUARD_USER — Proxy username
+QUOTAGUARD_PASS — Proxy password
+Database Schema (Drizzle ORM)
+Match the schema from the mobile app — key tables:
+
+users — id, email, phone, fullName, passwordHash, country, balance, roarScore, role, kycStatus, createdAt
+transactions — id, userId, type (send/receive/deposit/withdrawal), amount, currency, recipientId, source, description, status, createdAt
+contacts — id, userId, contactUserId, nickname
+password_reset_codes — id, userId, code, expiresAt
+Important Rules
+Never expose crypto/blockchain terminology — present everything as traditional banking (wallets = accounts, tokens = balance, etc.)
+AED deposits use Product/Asset ID 104 (UAE Dirham, NationalCurrency) — NOT crypto product IDs
+No processing fees on deposits — show "Free" where fee would appear
+Rate limiting: 20 auth requests per 15 min, 100 API requests per minute
+All financial amounts: Format with 2 decimal places and comma separators
+Country-based feature routing: UAE → BurjX, India → OnMeta, Philippines/Indonesia → OnMeta
