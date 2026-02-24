@@ -78,10 +78,6 @@ function AppContent() {
   }
 
   if (location === "/auth" || location.startsWith("/auth?")) {
-    if (user) {
-      if (user.role === "merchant") return <MerchantComingSoon />;
-      return <AuthenticatedLayout />;
-    }
     return <AuthPage />;
   }
 

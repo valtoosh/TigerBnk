@@ -36,7 +36,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     queryClient.setQueryData(["/api/auth/me"], data.user);
   }, []);
 
-  const register = useCallback(async (data: { fullName: string; email: string; phone?: string; password: string; country: string }) => {
+  const register = useCallback(async (data: { fullName: string; email: string; phone?: string; password: string; country: string; accountType?: string }) => {
     const res = await apiRequest("POST", "/api/auth/register", data);
     const result = await res.json();
     queryClient.setQueryData(["/api/auth/me"], result.user);
