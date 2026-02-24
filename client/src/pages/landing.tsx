@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Link } from "wouter";
-import logoImg from "@assets/tgbnk_1771913028352.png";
+import logoImg from "@assets/Group_95_1771930128528.png";
 import heroImg from "@assets/hero1_1771913028351.png";
 
 const ORANGE = "#FF4D00";

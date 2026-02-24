@@ -20,7 +20,7 @@ import Cards from "@/pages/cards";
 import Profile from "@/pages/profile";
 import LandingPage from "@/pages/landing";
 import MerchantComingSoon from "@/pages/merchant-coming-soon";
-import logoImg from "@assets/tgbnk_1771913028352.png";
+import logoImg from "@assets/Group_95_1771930128528.png";
 
 function DashboardRouter() {
   return (

@@ -1,4 +1,5 @@
 import { useLocation, Link } from "wouter";
+
 import {
   Sidebar,
   SidebarContent,
@@ -13,7 +14,7 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/lib/auth";
 import { Home, Send, Plus, Clock, CreditCard, User } from "lucide-react";
-import logoImg from "@assets/tgbnk_1771913028352.png";
+import logoImg from "@assets/Group_95_1771930128528.png";
 
 const navItems = [
   { title: "Home", path: "/dashboard", icon: Home },

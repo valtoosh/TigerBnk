@@ -13,7 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { COUNTRIES, loginSchema, registerSchema } from "@shared/schema";
 import { Eye, EyeOff, ArrowRight, ArrowLeft, Building2, User } from "lucide-react";
 import { Link, useLocation, useSearch } from "wouter";
-import logoImg from "@assets/tgbnk_1771913028352.png";
+import logoImg from "@assets/Group_95_1771930128528.png";
 
 const ORANGE = "#FF4D00";
 
