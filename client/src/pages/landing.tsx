@@ -124,13 +124,13 @@ function HeroSection() {
           </motion.div>
         </div>
 
-        <motion.div variants={fadeUp} className="hidden lg:flex justify-center">
+        <motion.div variants={fadeUp} className="flex justify-center">
           <div className="relative">
             <div className="absolute inset-0 blur-[60px] opacity-30" style={{ background: `radial-gradient(circle, ${ORANGE}50 0%, transparent 70%)` }} />
             <img
               src={heroImg}
               alt="TigerBnk"
-              className="relative w-full max-w-lg rounded-2xl"
+              className="relative w-full max-w-[280px] sm:max-w-sm lg:max-w-lg rounded-2xl"
               data-testid="img-hero"
             />
           </div>
