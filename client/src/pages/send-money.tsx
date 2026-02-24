@@ -93,7 +93,7 @@ export default function SendMoney() {
             <p className="text-sm text-muted-foreground mb-6">
               {formatCurrency(numAmount, fromCurrency)} has been sent successfully
             </p>
-            <Button onClick={() => navigate("/")} data-testid="button-back-home">Back to Home</Button>
+            <Button onClick={() => navigate("/dashboard")} data-testid="button-back-home">Back to Home</Button>
           </CardContent>
         </Card>
       </motion.div>

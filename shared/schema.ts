@@ -85,6 +85,7 @@ export const registerSchema = z.object({
   phone: z.string().optional(),
   password: z.string().min(6, "Password must be at least 6 characters"),
   country: z.enum(["AE", "IN", "PH", "ID"]),
+  accountType: z.enum(["individual", "merchant"]).default("individual"),
 });
 
 export const sendMoneySchema = z.object({

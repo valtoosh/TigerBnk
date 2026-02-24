@@ -6,11 +6,9 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { MobileNav } from "@/components/mobile-nav";
-import { ThemeProvider, useTheme } from "@/components/theme-provider";
+import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Moon, Sun } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
 import NotFound from "@/pages/not-found";
 import AuthPage from "@/pages/auth";
@@ -21,25 +19,18 @@ import AddMoney from "@/pages/add-money";
 import Cards from "@/pages/cards";
 import Profile from "@/pages/profile";
 import LandingPage from "@/pages/landing";
+import MerchantComingSoon from "@/pages/merchant-coming-soon";
+import logoImg from "@assets/tgbnk_1771913028352.png";
 
-function ThemeToggle() {
-  const { theme, toggleTheme } = useTheme();
-  return (
-    <Button size="icon" variant="ghost" onClick={toggleTheme} data-testid="button-theme-toggle">
-      {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-    </Button>
-  );
-}
-
-function Router() {
+function DashboardRouter() {
   return (
     <Switch>
-      <Route path="/" component={Dashboard} />
-      <Route path="/send" component={SendMoney} />
-      <Route path="/activity" component={Activity} />
-      <Route path="/add-money" component={AddMoney} />
-      <Route path="/cards" component={Cards} />
-      <Route path="/profile" component={Profile} />
+      <Route path="/dashboard" component={Dashboard} />
+      <Route path="/dashboard/send" component={SendMoney} />
+      <Route path="/dashboard/activity" component={Activity} />
+      <Route path="/dashboard/add-money" component={AddMoney} />
+      <Route path="/dashboard/cards" component={Cards} />
+      <Route path="/dashboard/profile" component={Profile} />
       <Route component={NotFound} />
     </Switch>
   );
@@ -60,14 +51,15 @@ function AuthenticatedLayout() {
         <div className="flex flex-col flex-1 min-w-0">
           <header className="flex items-center justify-between gap-4 p-3 border-b sticky top-0 z-50 bg-background/95 backdrop-blur-sm">
             <SidebarTrigger className="hidden md:flex" data-testid="button-sidebar-toggle" />
-            <div className="md:hidden">
-              <p className="text-sm font-semibold">TigerPayX</p>
+            <div className="md:hidden flex items-center gap-2">
+              <img src={logoImg} alt="TigerBnk" className="w-6 h-6 rounded" />
+              <p className="text-sm font-semibold">TigerBnk</p>
             </div>
-            <ThemeToggle />
+            <div />
           </header>
           <main className="flex-1 overflow-y-auto">
             <div className="max-w-2xl mx-auto p-4 pb-24 md:pb-6 md:p-6">
-              <Router />
+              <DashboardRouter />
             </div>
           </main>
         </div>
@@ -81,15 +73,23 @@ function AppContent() {
   const { user, isLoading } = useAuth();
   const [location] = useLocation();
 
-  if (location === "/landing") {
+  if (location === "/" || location === "/landing") {
     return <LandingPage />;
+  }
+
+  if (location === "/auth" || location.startsWith("/auth?")) {
+    if (user) {
+      if (user.role === "merchant") return <MerchantComingSoon />;
+      return <AuthenticatedLayout />;
+    }
+    return <AuthPage />;
   }
 
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="space-y-4 text-center">
-          <Skeleton className="w-14 h-14 rounded-md mx-auto" />
+          <img src={logoImg} alt="TigerBnk" className="w-14 h-14 rounded-xl mx-auto" />
           <Skeleton className="w-32 h-5 mx-auto" />
           <Skeleton className="w-24 h-3 mx-auto" />
         </div>
@@ -99,6 +99,18 @@ function AppContent() {
 
   if (!user) {
     return <AuthPage />;
+  }
+
+  if (user.role === "merchant") {
+    return <MerchantComingSoon />;
+  }
+
+  if (location.startsWith("/dashboard")) {
+    return <AuthenticatedLayout />;
+  }
+
+  if (location === "/merchant") {
+    return <MerchantComingSoon />;
   }
 
   return <AuthenticatedLayout />;

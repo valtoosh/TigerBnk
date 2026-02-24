@@ -12,15 +12,16 @@ import {
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/lib/auth";
-import { Home, Send, Plus, Clock, CreditCard, User, Shield } from "lucide-react";
+import { Home, Send, Plus, Clock, CreditCard, User } from "lucide-react";
+import logoImg from "@assets/tgbnk_1771913028352.png";
 
 const navItems = [
-  { title: "Home", path: "/", icon: Home },
-  { title: "Add Money", path: "/add-money", icon: Plus },
-  { title: "Send", path: "/send", icon: Send },
-  { title: "Activity", path: "/activity", icon: Clock },
-  { title: "Cards", path: "/cards", icon: CreditCard },
-  { title: "Profile", path: "/profile", icon: User },
+  { title: "Home", path: "/dashboard", icon: Home },
+  { title: "Add Money", path: "/dashboard/add-money", icon: Plus },
+  { title: "Send", path: "/dashboard/send", icon: Send },
+  { title: "Activity", path: "/dashboard/activity", icon: Clock },
+  { title: "Cards", path: "/dashboard/cards", icon: CreditCard },
+  { title: "Profile", path: "/dashboard/profile", icon: User },
 ];
 
 export function AppSidebar() {
@@ -38,11 +39,9 @@ export function AppSidebar() {
     <Sidebar>
       <SidebarHeader className="p-4">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-md bg-primary flex items-center justify-center">
-            <Shield className="w-5 h-5 text-primary-foreground" />
-          </div>
+          <img src={logoImg} alt="TigerBnk" className="w-9 h-9 rounded-md" data-testid="img-sidebar-logo" />
           <div>
-            <p className="text-sm font-semibold">TigerPayX</p>
+            <p className="text-sm font-semibold">TigerBnk</p>
             <p className="text-[10px] text-muted-foreground">Digital Wallet</p>
           </div>
         </div>

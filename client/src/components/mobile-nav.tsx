@@ -2,11 +2,11 @@ import { useLocation, Link } from "wouter";
 import { Home, Send, Plus, Clock, User } from "lucide-react";
 
 const navItems = [
-  { title: "Home", path: "/", icon: Home },
-  { title: "Send", path: "/send", icon: Send },
-  { title: "Add", path: "/add-money", icon: Plus },
-  { title: "Activity", path: "/activity", icon: Clock },
-  { title: "Profile", path: "/profile", icon: User },
+  { title: "Home", path: "/dashboard", icon: Home },
+  { title: "Send", path: "/dashboard/send", icon: Send },
+  { title: "Add", path: "/dashboard/add-money", icon: Plus },
+  { title: "Activity", path: "/dashboard/activity", icon: Clock },
+  { title: "Profile", path: "/dashboard/profile", icon: User },
 ];
 
 export function MobileNav() {

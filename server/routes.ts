@@ -46,7 +46,7 @@ export async function registerRoutes(
         return res.status(400).json({ message: parsed.error.errors[0].message });
       }
 
-      const { email, password, fullName, phone, country } = parsed.data;
+      const { email, password, fullName, phone, country, accountType } = parsed.data;
 
       const existing = await storage.getUserByEmail(email);
       if (existing) {
@@ -56,8 +56,9 @@ export async function registerRoutes(
       const passwordHash = await bcrypt.hash(password, 12);
       const currencyMap: Record<string, string> = { AE: "AED", IN: "INR", PH: "PHP", ID: "IDR" };
       const currency = currencyMap[country] || "AED";
+      const role = accountType || "individual";
 
-      const user = await storage.createUser({ email, phone, fullName, passwordHash, country, currency });
+      const user = await storage.createUser({ email, phone, fullName, passwordHash, country, currency, role });
       const token = generateToken(user.id);
 
       res.cookie("token", token, {

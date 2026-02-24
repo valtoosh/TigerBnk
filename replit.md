@@ -1,7 +1,7 @@
-# TigerPayX Web
+# TigerBnk Web
 
 ## Overview
-Premium fintech web application (Revolut-style) with JWT authentication, digital wallet, money transfers, and currency exchange. Integrated with real payment providers: BurjX (UAE/AED) and OnMeta (India/Philippines/Indonesia). Built with React + Vite + Express.js + PostgreSQL.
+Premium fintech web application (Revolut-style) branded as TigerBnk, with JWT authentication, digital wallet, money transfers, and currency exchange. Dark theme (#0B0B0B bg, #FF4D00 orange accent) throughout. Two account types: Individual (full platform access) and Merchant (coming soon page). Integrated with real payment providers: BurjX (UAE/AED) and OnMeta (India/Philippines/Indonesia). Built with React + Vite + Express.js + PostgreSQL.
 
 ## Tech Stack
 - Frontend: React 18, Vite, TailwindCSS, Framer Motion, TanStack React Query, Wouter
@@ -12,7 +12,7 @@ Premium fintech web application (Revolut-style) with JWT authentication, digital
 - UI: Shadcn components, Lucide icons
 
 ## Project Structure
-- `client/src/pages/` - Auth, Dashboard, SendMoney, Activity, AddMoney, Cards, Profile
+- `client/src/pages/` - Landing, Auth, Dashboard, SendMoney, Activity, AddMoney, Cards, Profile, MerchantComingSoon
 - `client/src/components/` - AppSidebar, MobileNav, ThemeProvider, UI components
 - `client/src/lib/` - Auth context, query client utils
 - `server/` - Express routes, DB storage, seed data
@@ -93,20 +93,41 @@ Premium fintech web application (Revolut-style) with JWT authentication, digital
 - Email: demo@tigerpay.com, Password: demo123
 
 ## Design
-- Premium indigo/slate color palette with light backgrounds
+- Dark theme globally (#0B0B0B bg, #FF4D00 orange accent)
 - Inter font family
 - Card-based layout with subtle elevation
 - Smooth animations via Framer Motion
+- Logo: tgbnk.png (tiger emblem), Hero image: hero1.png
+
+## Routing
+- `/` - Landing page (public, no auth required)
+- `/auth` - Sign In / Sign Up page (supports ?mode=login or ?mode=register)
+- `/dashboard` - Main dashboard (Individual users, auth required)
+- `/dashboard/send` - Send money
+- `/dashboard/activity` - Transaction history
+- `/dashboard/add-money` - Add money
+- `/dashboard/cards` - Cards
+- `/dashboard/profile` - Profile
+- `/merchant` - Merchant coming soon page
+
+## Account Types
+- Individual: Full platform access (dashboard, wallet, transfers)
+- Merchant: Shows "Coming Soon" page after signup; role saved as 'merchant' in users table
 
 ## Landing Page (TigerBnk)
-- Route: /landing (public, no auth required)
-- Dark theme (#0B0B0B bg, #FF4D00 orange accent)
-- 7 sections: Hero, Problem, Solution, Roar Score, How It Works, Social Proof, Final CTA
+- Route: / (public, no auth required)
+- 7 sections: Hero (with hero1.png), Problem, Solution, Roar Score, How It Works, Social Proof, Final CTA
 - Early access form saves to `early_access_submissions` table via POST /api/early-access
+- Sign In / Sign Up buttons in navbar link to /auth
 - Uses react-hook-form + zod validation, Framer Motion animations
-- Designed as standalone branded page separate from main app theme
 
 ## Recent Changes
+- 2026-02-24: Made landing page the root route (/), added Sign In/Sign Up to navbar
+- 2026-02-24: Added account type selector (Individual/Merchant) to registration
+- 2026-02-24: Applied dark theme (#0B0B0B/#FF4D00) globally to entire platform
+- 2026-02-24: Added hero1.png and tgbnk.png logo throughout
+- 2026-02-24: Created MerchantComingSoon page for merchant users
+- 2026-02-24: Moved dashboard routes under /dashboard prefix
 - 2026-02-24: Added TigerBnk landing page with all 7 sections and early access form
 - 2026-02-18: Initial MVP build with all core features
 - 2026-02-18: Integrated BurjX APEX WebSocket client for UAE/AED deposits/withdrawals

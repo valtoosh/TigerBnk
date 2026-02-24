@@ -186,7 +186,7 @@ export default function AddMoney() {
             <p className="text-sm text-muted-foreground mb-6">
               {formatCurrency(parseFloat(amount), currency)} has been added to your account
             </p>
-            <Button onClick={() => navigate("/")} data-testid="button-back-home">Back to Home</Button>
+            <Button onClick={() => navigate("/dashboard")} data-testid="button-back-home">Back to Home</Button>
           </CardContent>
         </Card>
       </motion.div>
@@ -320,7 +320,7 @@ export default function AddMoney() {
 
         <div className="text-center">
           <p className="text-xs text-muted-foreground">Your balance will be updated once the payment is confirmed</p>
-          <Button variant="outline" className="mt-4" onClick={() => navigate("/")} data-testid="button-done-processing">
+          <Button variant="outline" className="mt-4" onClick={() => navigate("/dashboard")} data-testid="button-done-processing">
             Done
           </Button>
         </div>

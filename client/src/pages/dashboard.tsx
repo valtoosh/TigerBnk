@@ -40,8 +40,8 @@ export default function Dashboard() {
   const recentTx = transactions?.slice(0, 5) || [];
 
   const quickActions = [
-    { icon: Plus, label: "Add Money", color: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400", onClick: () => navigate("/add-money") },
-    { icon: Send, label: "Send", color: "bg-primary/10 text-primary", onClick: () => navigate("/send") },
+    { icon: Plus, label: "Add Money", color: "bg-emerald-500/10 text-emerald-600", onClick: () => navigate("/dashboard/add-money") },
+    { icon: Send, label: "Send", color: "bg-primary/10 text-primary", onClick: () => navigate("/dashboard/send") },
     { icon: ArrowDownLeft, label: "Request", color: "bg-amber-500/10 text-amber-600 dark:text-amber-400", onClick: () => {} },
     { icon: CreditCard, label: "Pay", color: "bg-violet-500/10 text-violet-600 dark:text-violet-400", onClick: () => {} },
   ];
@@ -120,7 +120,7 @@ export default function Dashboard() {
       <motion.div variants={fadeUp}>
         <div className="flex items-center justify-between gap-4 mb-3 flex-wrap">
           <h3 className="text-sm font-semibold">Recent Transactions</h3>
-          <Button variant="ghost" size="sm" onClick={() => navigate("/activity")} data-testid="button-view-all-transactions">
+          <Button variant="ghost" size="sm" onClick={() => navigate("/dashboard/activity")} data-testid="button-view-all-transactions">
             View All
           </Button>
         </div>

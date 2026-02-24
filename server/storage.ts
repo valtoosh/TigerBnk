@@ -6,7 +6,7 @@ import { eq, desc, and, or, sql } from "drizzle-orm";
 export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
-  createUser(user: { email: string; phone?: string; fullName: string; passwordHash: string; country: string; currency: string }): Promise<User>;
+  createUser(user: { email: string; phone?: string; fullName: string; passwordHash: string; country: string; currency: string; role?: string }): Promise<User>;
   updateUserBalance(userId: number, amount: string): Promise<void>;
   updateUser(userId: number, data: Partial<User>): Promise<User | undefined>;
   getTransactions(userId: number): Promise<Transaction[]>;
@@ -26,7 +26,7 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-  async createUser(data: { email: string; phone?: string; fullName: string; passwordHash: string; country: string; currency: string }): Promise<User> {
+  async createUser(data: { email: string; phone?: string; fullName: string; passwordHash: string; country: string; currency: string; role?: string }): Promise<User> {
     const initials = data.fullName.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
     const [user] = await db.insert(users).values({
       email: data.email,
@@ -35,6 +35,7 @@ export class DatabaseStorage implements IStorage {
       passwordHash: data.passwordHash,
       country: data.country,
       currency: data.currency,
+      role: data.role || "individual",
       avatarInitials: initials,
     }).returning();
     return user;

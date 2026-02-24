@@ -9,6 +9,9 @@ import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Link } from "wouter";
+import logoImg from "@assets/tgbnk_1771913028352.png";
+import heroImg from "@assets/hero1_1771913028351.png";
 
 const ORANGE = "#FF4D00";
 const BG = "#0B0B0B";
@@ -42,16 +45,19 @@ const landingInputClass = "!bg-white/5 !border-white/10 !text-white placeholder:
 function Navbar() {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-[#0B0B0B]/80 border-b border-white/5" data-testid="nav-landing">
-      <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
         <div className="flex items-center gap-2" data-testid="text-logo">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: ORANGE }}>
-            <span className="text-white font-bold text-sm">T</span>
-          </div>
+          <img src={logoImg} alt="TigerBnk" className="w-8 h-8 rounded-lg" />
           <span className="text-white font-bold text-xl tracking-tight">TigerBnk</span>
         </div>
-        <Button asChild className="hidden sm:inline-flex rounded-full" style={{ background: ORANGE, color: "white" }} data-testid="link-nav-cta">
-          <a href="#early-access">Get Early Access</a>
-        </Button>
+        <div className="flex items-center gap-3">
+          <Button asChild variant="ghost" className="!text-white/70 hidden sm:inline-flex" data-testid="link-nav-signin">
+            <Link href="/auth?mode=login">Sign In</Link>
+          </Button>
+          <Button asChild className="rounded-full" style={{ background: ORANGE, color: "white" }} data-testid="link-nav-signup">
+            <Link href="/auth?mode=register">Sign Up</Link>
+          </Button>
+        </div>
       </div>
     </nav>
   );
@@ -60,22 +66,12 @@ function Navbar() {
 function HeroSection() {
   const { ref, isInView } = useAnimateInView();
 
-  const stats = [
-    { value: "800+", label: "Merchants" },
-    { value: "$20M+", label: "Processed" },
-    { value: "$1.5M", label: "Deployed" },
-  ];
-
   return (
-    <section ref={ref} className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20" data-testid="section-hero">
+    <section ref={ref} className="relative min-h-screen flex items-center overflow-hidden pt-20" data-testid="section-hero">
       <div className="absolute inset-0">
         <div
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full opacity-20 blur-[120px] animate-pulse"
+          className="absolute top-1/2 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full opacity-15 blur-[120px]"
           style={{ background: `radial-gradient(circle, ${ORANGE}40 0%, transparent 70%)` }}
-        />
-        <div
-          className="absolute top-1/4 right-1/4 w-[400px] h-[400px] rounded-full opacity-10 blur-[100px]"
-          style={{ background: `radial-gradient(circle, ${ORANGE}30 0%, transparent 70%)` }}
         />
       </div>
 
@@ -83,43 +79,61 @@ function HeroSection() {
         initial="hidden"
         animate={isInView ? "visible" : "hidden"}
         variants={stagger}
-        className="relative z-10 max-w-5xl mx-auto px-6 text-center"
+        className="relative z-10 max-w-7xl mx-auto px-6 w-full grid lg:grid-cols-2 gap-12 items-center"
       >
-        <motion.div variants={fadeUp} className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 bg-white/5 mb-8" data-testid="text-badge">
-          <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: ORANGE }} />
-          <span className="text-white/60 text-sm">Now accepting early access applications</span>
-        </motion.div>
+        <div>
+          <motion.div variants={fadeUp} className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 bg-white/5 mb-8" data-testid="text-badge">
+            <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: ORANGE }} />
+            <span className="text-white/60 text-sm">Now accepting early access applications</span>
+          </motion.div>
 
-        <motion.h1 variants={fadeUp} className="text-5xl sm:text-6xl lg:text-7xl font-bold text-white leading-[1.1] tracking-tight mb-6" data-testid="text-hero-headline">
-          Financial OS for{" "}
-          <span className="bg-clip-text text-transparent" style={{ backgroundImage: `linear-gradient(135deg, ${ORANGE}, #FF8C00)` }}>
-            Global Merchants
-          </span>
-        </motion.h1>
+          <motion.h1 variants={fadeUp} className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-[1.1] tracking-tight mb-6" data-testid="text-hero-headline">
+            Financial OS for{" "}
+            <span className="bg-clip-text text-transparent" style={{ backgroundImage: `linear-gradient(135deg, ${ORANGE}, #FF8C00)` }}>
+              Global Merchants
+            </span>
+          </motion.h1>
 
-        <motion.p variants={fadeUp} className="text-lg sm:text-xl text-white/50 max-w-2xl mx-auto mb-10 leading-relaxed" data-testid="text-hero-subheadline">
-          Turn payment flow into instant settlement, portable credit, and programmable capital.
-        </motion.p>
+          <motion.p variants={fadeUp} className="text-lg text-white/50 max-w-lg mb-10 leading-relaxed" data-testid="text-hero-subheadline">
+            Turn payment flow into instant settlement, portable credit, and programmable capital.
+          </motion.p>
 
-        <motion.div variants={fadeUp} className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
-          <Button asChild size="lg" className="rounded-full text-base font-semibold" style={{ background: ORANGE, color: "white" }} data-testid="link-hero-cta">
-            <a href="#early-access" className="inline-flex items-center gap-2">
-              Get Early Access
-              <ArrowRight className="w-4 h-4" />
-            </a>
-          </Button>
-          <Button asChild variant="outline" size="lg" className="rounded-full text-base font-semibold !text-white/70 !border-white/10 !bg-transparent" data-testid="link-hero-secondary">
-            <a href="#how-it-works">See How It Works</a>
-          </Button>
-        </motion.div>
+          <motion.div variants={fadeUp} className="flex flex-col sm:flex-row items-start gap-4 mb-12">
+            <Button asChild size="lg" className="rounded-full text-base font-semibold" style={{ background: ORANGE, color: "white" }} data-testid="link-hero-cta">
+              <Link href="/auth?mode=register" className="inline-flex items-center gap-2">
+                Get Started
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" size="lg" className="rounded-full text-base font-semibold !text-white/70 !border-white/10 !bg-transparent" data-testid="link-hero-secondary">
+              <a href="#how-it-works">See How It Works</a>
+            </Button>
+          </motion.div>
 
-        <motion.div variants={fadeUp} className="flex items-center justify-center gap-8 sm:gap-16">
-          {stats.map((stat) => (
-            <div key={stat.label} className="text-center">
-              <div className="text-2xl sm:text-3xl font-bold text-white" data-testid={`text-stat-${stat.label.toLowerCase()}`}>{stat.value}</div>
-              <div className="text-sm text-white/40 mt-1" data-testid={`text-stat-label-${stat.label.toLowerCase()}`}>{stat.label}</div>
-            </div>
-          ))}
+          <motion.div variants={fadeUp} className="flex items-center gap-8 sm:gap-12">
+            {[
+              { value: "800+", label: "Merchants" },
+              { value: "$20M+", label: "Processed" },
+              { value: "$1.5M", label: "Deployed" },
+            ].map((stat) => (
+              <div key={stat.label} className="text-center">
+                <div className="text-xl sm:text-2xl font-bold text-white" data-testid={`text-stat-${stat.label.toLowerCase()}`}>{stat.value}</div>
+                <div className="text-xs text-white/40 mt-1">{stat.label}</div>
+              </div>
+            ))}
+          </motion.div>
+        </div>
+
+        <motion.div variants={fadeUp} className="hidden lg:flex justify-center">
+          <div className="relative">
+            <div className="absolute inset-0 blur-[60px] opacity-30" style={{ background: `radial-gradient(circle, ${ORANGE}50 0%, transparent 70%)` }} />
+            <img
+              src={heroImg}
+              alt="TigerBnk"
+              className="relative w-full max-w-lg rounded-2xl"
+              data-testid="img-hero"
+            />
+          </div>
         </motion.div>
       </motion.div>
     </section>
@@ -550,9 +564,7 @@ function Footer() {
     <footer className="border-t border-white/5 py-8" data-testid="footer-landing">
       <div className="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded flex items-center justify-center" style={{ background: ORANGE }}>
-            <span className="text-white font-bold text-xs">T</span>
-          </div>
+          <img src={logoImg} alt="TigerBnk" className="w-6 h-6 rounded" />
           <span className="text-white/40 text-sm" data-testid="text-footer-copyright">TigerBnk &copy; {new Date().getFullYear()}</span>
         </div>
         <p className="text-white/20 text-xs" data-testid="text-footer-tagline">Financial infrastructure for the next generation of global commerce.</p>
@@ -589,7 +601,7 @@ export default function LandingPage() {
     ogDesc.setAttribute("content", "Turn payment flow into instant settlement, portable credit, and programmable capital.");
 
     return () => {
-      document.title = "TigerPayX";
+      document.title = "TigerBnk";
     };
   }, []);
 
