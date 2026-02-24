@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { registerSchema, loginSchema, sendMoneySchema } from "@shared/schema";
+import { registerSchema, loginSchema, sendMoneySchema, insertEarlyAccessSchema } from "@shared/schema";
 import { getExchangeRates, getFeePercent, convertCurrency } from "./services/exchangeRateService";
 import * as burjxService from "./services/burjxService";
 import * as burjxOnramp from "./services/burjxOnrampService";
@@ -673,6 +673,24 @@ export async function registerRoutes(
       return res.json(accounts);
     } catch (err: any) {
       return res.status(500).json({ message: "Failed to get bank accounts", error: err.message });
+    }
+  });
+
+  // ==========================================
+  // Early Access (Landing Page)
+  // ==========================================
+
+  app.post("/api/early-access", async (req, res) => {
+    try {
+      const parsed = insertEarlyAccessSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ message: parsed.error.errors[0].message });
+      }
+      const submission = await storage.createEarlyAccess(parsed.data);
+      return res.json({ success: true, id: submission.id });
+    } catch (err: any) {
+      console.error("Early access error:", err);
+      return res.status(500).json({ message: "Submission failed" });
     }
   });
 

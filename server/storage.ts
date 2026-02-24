@@ -1,6 +1,6 @@
 import { db } from "./db";
-import { users, transactions, contacts, passwordResetCodes } from "@shared/schema";
-import type { User, InsertUser, Transaction, InsertTransaction } from "@shared/schema";
+import { users, transactions, contacts, passwordResetCodes, earlyAccessSubmissions } from "@shared/schema";
+import type { User, InsertUser, Transaction, InsertTransaction, InsertEarlyAccess, EarlyAccessSubmission } from "@shared/schema";
 import { eq, desc, and, or, sql } from "drizzle-orm";
 
 export interface IStorage {
@@ -12,6 +12,7 @@ export interface IStorage {
   getTransactions(userId: number): Promise<Transaction[]>;
   createTransaction(tx: InsertTransaction): Promise<Transaction>;
   getUserContacts(userId: number): Promise<User[]>;
+  createEarlyAccess(data: InsertEarlyAccess): Promise<EarlyAccessSubmission>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -69,6 +70,11 @@ export class DatabaseStorage implements IStorage {
     return db.select().from(users).where(
       sql`${users.id} = ANY(${contactIds})`
     );
+  }
+
+  async createEarlyAccess(data: InsertEarlyAccess): Promise<EarlyAccessSubmission> {
+    const [submission] = await db.insert(earlyAccessSubmissions).values(data).returning();
+    return submission;
   }
 }
 

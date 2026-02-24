@@ -47,6 +47,23 @@ export const passwordResetCodes = pgTable("password_reset_codes", {
   expiresAt: timestamp("expires_at").notNull(),
 });
 
+export const earlyAccessSubmissions = pgTable("early_access_submissions", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  name: text("name").notNull(),
+  email: text("email").notNull(),
+  country: text("country").notNull(),
+  monthlyVolume: text("monthly_volume").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertEarlyAccessSchema = createInsertSchema(earlyAccessSubmissions).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type EarlyAccessSubmission = typeof earlyAccessSubmissions.$inferSelect;
+export type InsertEarlyAccess = z.infer<typeof insertEarlyAccessSchema>;
+
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   balance: true,

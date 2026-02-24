@@ -98,7 +98,16 @@ Premium fintech web application (Revolut-style) with JWT authentication, digital
 - Card-based layout with subtle elevation
 - Smooth animations via Framer Motion
 
+## Landing Page (TigerBnk)
+- Route: /landing (public, no auth required)
+- Dark theme (#0B0B0B bg, #FF4D00 orange accent)
+- 7 sections: Hero, Problem, Solution, Roar Score, How It Works, Social Proof, Final CTA
+- Early access form saves to `early_access_submissions` table via POST /api/early-access
+- Uses react-hook-form + zod validation, Framer Motion animations
+- Designed as standalone branded page separate from main app theme
+
 ## Recent Changes
+- 2026-02-24: Added TigerBnk landing page with all 7 sections and early access form
 - 2026-02-18: Initial MVP build with all core features
 - 2026-02-18: Integrated BurjX APEX WebSocket client for UAE/AED deposits/withdrawals
 - 2026-02-18: Integrated OnMeta REST API for India/Philippines/Indonesia payments

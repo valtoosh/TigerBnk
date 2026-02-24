@@ -11,6 +11,7 @@ import { AuthProvider, useAuth } from "@/lib/auth";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useLocation } from "wouter";
 import NotFound from "@/pages/not-found";
 import AuthPage from "@/pages/auth";
 import Dashboard from "@/pages/dashboard";
@@ -19,6 +20,7 @@ import Activity from "@/pages/activity";
 import AddMoney from "@/pages/add-money";
 import Cards from "@/pages/cards";
 import Profile from "@/pages/profile";
+import LandingPage from "@/pages/landing";
 
 function ThemeToggle() {
   const { theme, toggleTheme } = useTheme();
@@ -77,6 +79,11 @@ function AuthenticatedLayout() {
 
 function AppContent() {
   const { user, isLoading } = useAuth();
+  const [location] = useLocation();
+
+  if (location === "/landing") {
+    return <LandingPage />;
+  }
 
   if (isLoading) {
     return (
