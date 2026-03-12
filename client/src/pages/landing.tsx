@@ -776,7 +776,7 @@ function TransparencyCard() {
     { icon: "RU", iconBg: "#2563eb", title: "RUB Settlement",    sub: "to Sberbank",            status: "Pending",    positive: false },
     { icon: "KY", iconBg: "#0891b2", title: "KYC Submitted",     sub: "Steven Kirk, London UK", status: "Completed",  positive: true  },
     { icon: "US", iconBg: "#7c3aed", title: "USD Deposit (ACH)", sub: "$500,000 from J. Kirk",  status: "Credited",   positive: true  },
-    { icon: "PY", iconBg: "#0284c7", title: "+$500 PYUSD",       sub: "from U80a\u2026 7D0a",    status: "Confirming", positive: false },
+    { icon: "PY", iconBg: "#0284c7", title: "+$500 PYUSD",       sub: "from U80a\u20267D0a",     status: "Confirming", positive: false },
   ];
 
   const allRows = [...rows, ...rows];
@@ -806,7 +806,7 @@ function TransparencyCard() {
       >
         <motion.div
           animate={{ y: ["0%", "-50%"] }}
-          transition={{ duration: 22, ease: "linear", repeat: Infinity }}
+          transition={{ duration: 20, ease: "linear", repeat: Infinity }}
         >
           {allRows.map((row, i) => (
             <div
