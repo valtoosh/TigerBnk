@@ -609,10 +609,10 @@ function CurrencyCard() {
         </div>
       </div>
 
-      <div className="mx-8 mb-8 overflow-hidden rounded-lg py-2 px-4" style={{ ...INSET_SHADOW, backgroundColor: "#f8f8f7" }}>
+      <div className={`mx-8 mb-8 overflow-hidden py-2 px-4 ${INSET_STYLE}`} style={INSET_SHADOW}>
         <motion.div
           animate={{ x: ["0%", "-50%"] }}
-          transition={{ duration: 24, ease: "linear", repeat: Infinity }}
+          transition={{ duration: 24, ease, repeat: Infinity }}
           className="flex gap-10 whitespace-nowrap"
         >
           {[...MARKETS, ...MARKETS].map((m, i) => (
