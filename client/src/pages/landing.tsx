@@ -250,115 +250,136 @@ function ProblemSection() {
   );
 }
 
-/* ─── Settlement Pipeline Animation ─── */
+/* ─── Shared focus-market data ─── */
+const MARKETS = [
+  { flag: "🇦🇪", code: "AED", country: "UAE",         rate: "3.6725", dir: 1  },
+  { flag: "🇮🇳", code: "INR", country: "India",       rate: "83.42",  dir: 1  },
+  { flag: "🇵🇰", code: "PKR", country: "Pakistan",    rate: "278.50", dir: -1 },
+  { flag: "🇭🇰", code: "HKD", country: "Hong Kong",   rate: "7.8210", dir: 1  },
+  { flag: "🇮🇩", code: "IDR", country: "Indonesia",   rate: "15820",  dir: -1 },
+  { flag: "🇨🇳", code: "CNY", country: "China",       rate: "7.2340", dir: 1  },
+  { flag: "🇷🇺", code: "RUB", country: "Russia",      rate: "92.10",  dir: -1 },
+];
+
+/* ─── Settlement Pipeline Card ─── */
 function SettlementCard() {
   const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: false, amount: 0.4 });
-  const [activeStep, setActiveStep] = useState(-1);
-  const [txCount, setTxCount] = useState(1284);
-  const steps = ["Payment Initiated", "AML Check", "FX Conversion", "Settled"];
+  const inView = useInView(ref, { once: false, amount: 0.3 });
+  const [step, setStep] = useState(0);
+  const [txIdx, setTxIdx] = useState(0);
+
+  const steps = [
+    { label: "Initiated",  icon: "→" },
+    { label: "Verified",   icon: "✓" },
+    { label: "Converted",  icon: "↔" },
+    { label: "Settled",    icon: "✓" },
+  ];
+
+  const txs = [
+    { from: "🇵🇰 PKR", to: "🇦🇪 AED", amt: "250,000",  out: "3,312.50"  },
+    { from: "🇮🇳 INR", to: "🇭🇰 HKD", amt: "1,200,000", out: "11,320.00" },
+    { from: "🇨🇳 CNY", to: "🇦🇪 AED", amt: "80,000",   out: "40,360.00" },
+    { from: "🇮🇩 IDR", to: "🇮🇳 INR", amt: "50,000,000", out: "266,120.00" },
+  ];
 
   useEffect(() => {
-    if (!inView) { setActiveStep(-1); return; }
-    let i = 0;
-    const advance = () => {
-      setActiveStep(i);
-      i = (i + 1) % steps.length;
-      if (i === 0) setTxCount((n) => n + 1);
-    };
-    advance();
-    const id = setInterval(advance, 900);
+    if (!inView) { setStep(0); return; }
+    const id = setInterval(() => {
+      setStep((s) => {
+        if (s >= steps.length - 1) { setTxIdx((t) => (t + 1) % txs.length); return 0; }
+        return s + 1;
+      });
+    }, 1100);
     return () => clearInterval(id);
   }, [inView]);
+
+  const tx = txs[txIdx];
 
   return (
     <motion.div
       ref={ref}
       {...animateIn}
-      className="md:col-span-2 rounded-2xl bg-white border border-gray-100 hover:shadow-xl transition-shadow duration-300 overflow-hidden"
+      className="md:col-span-2 rounded-2xl bg-white border border-gray-100 hover:shadow-lg transition-shadow duration-500 overflow-hidden"
     >
-      <div className="p-8 pb-0">
-        <h3 className="text-xl font-bold text-gray-900 mb-2">Instant Settlement.</h3>
+      <div className="p-8 pb-6">
+        <div className="flex items-center gap-2 mb-3">
+          <span className="relative flex h-1.5 w-1.5">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-green-500" />
+          </span>
+          <span className="text-[11px] text-gray-400 font-medium tracking-wide uppercase">Live Network</span>
+        </div>
+        <h3 className="text-xl font-bold text-gray-900 mb-1.5">Instant Settlement.</h3>
         <p className="text-gray-400 text-sm leading-relaxed">
-          Get paid instantly. No more waiting 2–7 days for funds to clear. Settlement happens in real-time.
+          Real-time cross-border settlement across UAE, India, Pakistan, Hong Kong, Indonesia, China &amp; Russia.
         </p>
       </div>
 
-      {/* Visual area */}
-      <div className="relative p-8 pt-6">
-        {/* Live indicator */}
-        <div className="flex items-center gap-2 mb-6">
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
-          </span>
-          <span className="text-xs text-gray-400 font-medium">Live — {txCount.toLocaleString()} transactions today</span>
-        </div>
+      {/* Transaction display */}
+      <div className="mx-8 mb-6 rounded-xl bg-gray-950 p-5">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={txIdx}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.5, ease }}
+            className="flex items-center justify-between"
+          >
+            <div>
+              <p className="text-[11px] text-gray-500 mb-1 font-medium">Sending</p>
+              <p className="text-white font-bold text-lg">{tx.from} {tx.amt}</p>
+            </div>
+            <motion.div
+              animate={{ x: [0, 4, 0] }}
+              transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
+            >
+              <ArrowRight className="w-5 h-5 text-gray-600" />
+            </motion.div>
+            <div className="text-right">
+              <p className="text-[11px] text-gray-500 mb-1 font-medium">Received</p>
+              <p className="font-bold text-lg" style={{ color: "#4ade80" }}>{tx.to} {tx.out}</p>
+            </div>
+          </motion.div>
+        </AnimatePresence>
+      </div>
 
-        {/* Pipeline steps */}
+      {/* Step progress */}
+      <div className="px-8 pb-8">
         <div className="flex items-center gap-0">
-          {steps.map((step, i) => (
-            <div key={step} className="flex items-center flex-1 last:flex-none">
-              <motion.div
-                animate={{
-                  backgroundColor: activeStep >= i ? "#111827" : "#f9fafb",
-                  borderColor: activeStep >= i ? "#111827" : "#e5e7eb",
-                  color: activeStep >= i ? "#ffffff" : "#9ca3af",
-                  scale: activeStep === i ? 1.05 : 1,
-                }}
-                transition={{ duration: 0.3 }}
-                className="flex flex-col items-center px-4 py-3 rounded-xl border text-center min-w-[110px] relative"
-              >
+          {steps.map((s, i) => (
+            <div key={s.label} className="flex items-center flex-1 last:flex-none">
+              <div className="flex flex-col items-center gap-1.5 flex-1">
                 <motion.div
-                  animate={{ opacity: activeStep >= i ? 1 : 0.4 }}
-                  className="text-xs font-semibold leading-tight"
+                  animate={{
+                    backgroundColor: step >= i ? "#111827" : "#f3f4f6",
+                    scale: step === i ? 1.12 : 1,
+                  }}
+                  transition={{ duration: 0.4, ease }}
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold"
+                  style={{ color: step >= i ? "#fff" : "#d1d5db" }}
                 >
-                  {step}
+                  {step > i ? "✓" : s.icon}
                 </motion.div>
-                {activeStep === i && (
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: "100%" }}
-                    transition={{ duration: 0.85, ease: "linear" }}
-                    className="absolute bottom-0 left-0 h-[2px] rounded-full"
-                    style={{ background: ORANGE }}
-                  />
-                )}
-                {activeStep > i && (
-                  <CheckCircle2 className="w-3 h-3 mt-1 text-green-400" />
-                )}
-              </motion.div>
+                <motion.span
+                  animate={{ opacity: step >= i ? 1 : 0.35 }}
+                  transition={{ duration: 0.4 }}
+                  className="text-[10px] font-medium text-gray-500 text-center"
+                >
+                  {s.label}
+                </motion.span>
+              </div>
               {i < steps.length - 1 && (
-                <motion.div
-                  animate={{ opacity: activeStep > i ? 1 : 0.2 }}
-                  className="flex-1 h-px mx-1"
-                  style={{ background: activeStep > i ? ORANGE : "#e5e7eb" }}
-                />
+                <div className="flex-1 h-px mb-5 mx-1 bg-gray-100 overflow-hidden relative">
+                  <motion.div
+                    className="absolute inset-y-0 left-0 h-full"
+                    style={{ background: ORANGE }}
+                    animate={{ width: step > i ? "100%" : "0%" }}
+                    transition={{ duration: 0.5, ease }}
+                  />
+                </div>
               )}
             </div>
-          ))}
-        </div>
-
-        {/* Bottom: simulated tx rows */}
-        <div className="mt-6 space-y-2 overflow-hidden" style={{ maxHeight: 90 }}>
-          {[
-            { id: "TXN-8821", amt: "+$12,400.00", flag: "🇺🇸" },
-            { id: "TXN-8820", amt: "+€5,230.00", flag: "🇪🇺" },
-            { id: "TXN-8819", amt: "+£2,100.00", flag: "🇬🇧" },
-          ].map((tx, i) => (
-            <motion.div
-              key={tx.id}
-              initial={{ opacity: 0, x: -8 }}
-              animate={inView ? { opacity: 1, x: 0 } : { opacity: 0, x: -8 }}
-              transition={{ delay: 0.3 + i * 0.12, duration: 0.4 }}
-              className="flex items-center justify-between px-4 py-2 rounded-lg bg-gray-50 border border-gray-100"
-            >
-              <div className="flex items-center gap-2">
-                <span className="text-base">{tx.flag}</span>
-                <span className="text-xs text-gray-500 font-mono">{tx.id}</span>
-              </div>
-              <span className="text-xs font-semibold text-green-600">{tx.amt}</span>
-            </motion.div>
           ))}
         </div>
       </div>
@@ -366,59 +387,66 @@ function SettlementCard() {
   );
 }
 
-/* ─── Transaction Transparency Animation ─── */
+/* ─── Transaction Transparency Card ─── */
 function TransparencyCard() {
   const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: false, amount: 0.4 });
+  const inView = useInView(ref, { once: false, amount: 0.3 });
 
-  const allRows = [
-    { label: "USD Deposit (ACH)", sub: "$500,000 from J. Kirk", status: "Processing", dot: "bg-gray-400", badge: "text-gray-500 bg-gray-50 border-gray-200" },
-    { label: "EUR Account", sub: "Steven Kirk, Berlin, DE", status: "✓ Ready", dot: "bg-green-500", badge: "text-green-700 bg-green-50 border-green-200" },
-    { label: "KYC Submitted", sub: "Steven Kirk, London, UK", status: "⟳ In Review", dot: "bg-amber-400", badge: "text-amber-700 bg-amber-50 border-amber-200" },
-    { label: "GBP Transfer", sub: "to x710...B1Qz", status: "✓ Sent", dot: "bg-green-500", badge: "text-green-700 bg-green-50 border-green-200" },
-    { label: "INR Collection", sub: "Razorpay gateway", status: "✓ Settled", dot: "bg-green-500", badge: "text-green-700 bg-green-50 border-green-200" },
+  const rows = [
+    { flag: "🇦🇪", label: "AED Deposit",     amt: "+AED 36,725",   status: "Settled",    green: true  },
+    { flag: "🇮🇳", label: "INR Collection",  amt: "+₹8,34,200",    status: "Processing", green: false },
+    { flag: "🇵🇰", label: "PKR Transfer",    amt: "+PKR 278,500",  status: "Sent",       green: true  },
+    { flag: "🇭🇰", label: "HKD Payment",     amt: "+HK$78,210",    status: "Settled",    green: true  },
+    { flag: "🇮🇩", label: "IDR Payout",      amt: "+Rp 158,200K",  status: "In Review",  green: false },
+    { flag: "🇨🇳", label: "CNY Exchange",    amt: "+¥72,340",      status: "Settled",    green: true  },
+    { flag: "🇷🇺", label: "RUB Settlement",  amt: "+₽92,100",      status: "Processing", green: false },
   ];
-  const [offset, setOffset] = useState(0);
-  const visible = allRows.slice(offset, offset + 3);
+
+  const [topIdx, setTopIdx] = useState(0);
 
   useEffect(() => {
     if (!inView) return;
-    const id = setInterval(() => setOffset((o) => (o + 1) % allRows.length), 1800);
+    const id = setInterval(() => setTopIdx((i) => (i + 1) % rows.length), 2000);
     return () => clearInterval(id);
   }, [inView]);
+
+  const visible = [rows[topIdx % rows.length], rows[(topIdx + 1) % rows.length], rows[(topIdx + 2) % rows.length]];
 
   return (
     <motion.div
       ref={ref}
       {...animateIn}
-      transition={{ duration: 0.5, ease, delay: 0.1 }}
-      className="rounded-2xl bg-white border border-gray-100 hover:shadow-xl transition-shadow duration-300 overflow-hidden"
+      transition={{ duration: 0.6, ease, delay: 0.1 }}
+      className="rounded-2xl bg-white border border-gray-100 hover:shadow-lg transition-shadow duration-500 overflow-hidden"
     >
-      <div className="p-8 pb-4">
-        <h3 className="text-xl font-bold text-gray-900 mb-2">Transaction Transparency.</h3>
+      <div className="p-8 pb-5">
+        <h3 className="text-xl font-bold text-gray-900 mb-1.5">Transaction Transparency.</h3>
         <p className="text-gray-400 text-sm leading-relaxed">
-          Track payments, customers and onchain transactions.
+          Track every payment across all 7 markets in real time.
         </p>
       </div>
-      <div className="px-8 pb-8 space-y-2">
+      <div className="px-8 pb-8 space-y-2.5" style={{ minHeight: 176 }}>
         <AnimatePresence mode="popLayout">
-          {visible.map((item) => (
+          {visible.map((row, i) => (
             <motion.div
-              key={item.label + offset}
-              initial={{ opacity: 0, y: 10 }}
+              key={row.label + topIdx + i}
+              layout
+              initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.35 }}
-              className="flex items-center justify-between p-3 rounded-xl bg-gray-50 border border-gray-100"
+              exit={{ opacity: 0, y: -12, scale: 0.97 }}
+              transition={{ duration: 0.45, ease }}
+              className="flex items-center justify-between px-4 py-3 rounded-xl bg-gray-50 border border-gray-100"
             >
               <div className="flex items-center gap-3">
-                <span className={`w-2 h-2 rounded-full flex-shrink-0 ${item.dot}`} />
-                <div>
-                  <p className="text-sm text-gray-800 font-medium leading-tight">{item.label}</p>
-                  <p className="text-xs text-gray-400 mt-0.5">{item.sub}</p>
-                </div>
+                <span className="text-xl leading-none">{row.flag}</span>
+                <span className="text-sm font-medium text-gray-700">{row.label}</span>
               </div>
-              <span className={`text-xs font-semibold px-2 py-1 rounded-md border ${item.badge}`}>{item.status}</span>
+              <div className="flex items-center gap-2.5">
+                <span className="text-xs font-semibold text-gray-800">{row.amt}</span>
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${row.green ? "bg-green-50 text-green-600" : "bg-amber-50 text-amber-600"}`}>
+                  {row.status}
+                </span>
+              </div>
             </motion.div>
           ))}
         </AnimatePresence>
@@ -430,75 +458,83 @@ function TransparencyCard() {
 /* ─── Roar Score Card ─── */
 function RoarScoreCard() {
   const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: false, amount: 0.4 });
-  const score = useCounter(742, 1800, 300, inView);
+  const inView = useInView(ref, { once: false, amount: 0.3 });
+
   const profiles = [
-    { name: "TigerBnk Pro", score: 742, pct: 74 },
-    { name: "Global Trade Co.", score: 820, pct: 88 },
-    { name: "StartupPay Ltd.", score: 619, pct: 57 },
+    { name: "Dubai Exports LLC",  country: "🇦🇪", score: 812, pct: 85 },
+    { name: "Mumbai Tech Pvt.",   country: "🇮🇳", score: 756, pct: 76 },
+    { name: "HK Capital Ltd.",    country: "🇭🇰", score: 891, pct: 93 },
+    { name: "Jakarta Retail Co.", country: "🇮🇩", score: 634, pct: 55 },
   ];
-  const [profileIdx, setProfileIdx] = useState(0);
+  const [idx, setIdx] = useState(0);
 
   useEffect(() => {
     if (!inView) return;
-    const id = setInterval(() => setProfileIdx((i) => (i + 1) % profiles.length), 2800);
+    const id = setInterval(() => setIdx((i) => (i + 1) % profiles.length), 3000);
     return () => clearInterval(id);
   }, [inView]);
 
-  const profile = profiles[profileIdx];
-  const label = profile.pct >= 75 ? "Excellent" : profile.pct >= 60 ? "Good" : "Fair";
+  const profile = profiles[idx];
+  const score = useCounter(profile.score, 1400, 300, inView);
+  const label = profile.pct >= 80 ? "Excellent" : profile.pct >= 65 ? "Good" : "Fair";
+  const labelStyle = profile.pct >= 80
+    ? { bg: "#f0fdf4", text: "#16a34a", border: "#bbf7d0" }
+    : profile.pct >= 65
+    ? { bg: "#fffbeb", text: "#d97706", border: "#fde68a" }
+    : { bg: "#fef2f2", text: "#dc2626", border: "#fecaca" };
 
   return (
     <motion.div
       ref={ref}
       {...animateIn}
-      transition={{ duration: 0.5, ease, delay: 0.15 }}
-      className="rounded-2xl bg-white border border-gray-100 hover:shadow-xl transition-shadow duration-300 overflow-hidden"
+      transition={{ duration: 0.6, ease, delay: 0.15 }}
+      className="rounded-2xl bg-white border border-gray-100 hover:shadow-lg transition-shadow duration-500 overflow-hidden"
     >
-      <div className="p-8 pb-4">
-        <h3 className="text-xl font-bold text-gray-900 mb-2">Roar Score Credit.</h3>
+      <div className="p-8 pb-5">
+        <h3 className="text-xl font-bold text-gray-900 mb-1.5">Roar Score Credit.</h3>
         <p className="text-gray-400 text-sm leading-relaxed">
-          A 300–900 credit score built automatically from your business activity. No paperwork required.
+          Business credit scores built automatically from payment activity.
         </p>
       </div>
       <div className="px-8 pb-8">
         <AnimatePresence mode="wait">
           <motion.div
-            key={profileIdx}
-            initial={{ opacity: 0, y: 8 }}
+            key={idx}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.4 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.5, ease }}
           >
-            <div className="flex items-end justify-between mb-3">
+            <div className="flex items-end justify-between mb-4">
               <div>
-                <p className="text-xs text-gray-400 font-medium mb-1">{profile.name}</p>
-                <div className="text-5xl font-black text-gray-900 tabular-nums">{score > profile.score ? profile.score : score}</div>
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  <span className="text-base">{profile.country}</span>
+                  <span className="text-xs text-gray-400 font-medium">{profile.name}</span>
+                </div>
+                <div className="text-6xl font-black text-gray-900 tabular-nums leading-none">
+                  {Math.min(score, profile.score)}
+                </div>
               </div>
               <span
-                className="px-3 py-1 rounded-full text-xs font-bold border"
-                style={{
-                  background: profile.pct >= 75 ? "#f0fdf4" : profile.pct >= 60 ? "#fffbeb" : "#fef2f2",
-                  color: profile.pct >= 75 ? "#16a34a" : profile.pct >= 60 ? "#d97706" : "#dc2626",
-                  borderColor: profile.pct >= 75 ? "#bbf7d0" : profile.pct >= 60 ? "#fde68a" : "#fecaca",
-                }}
+                className="self-start px-3 py-1 rounded-full text-xs font-bold border mt-1"
+                style={{ background: labelStyle.bg, color: labelStyle.text, borderColor: labelStyle.border }}
               >
                 {label}
               </span>
             </div>
-            {/* Gradient bar */}
-            <div className="h-2.5 rounded-full bg-gray-100 overflow-hidden">
+            <div className="h-1.5 rounded-full bg-gray-100 overflow-hidden">
               <motion.div
+                key={idx + "-bar"}
                 initial={{ width: 0 }}
                 animate={{ width: `${profile.pct}%` }}
-                transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+                transition={{ duration: 1.4, ease: [0.16, 1, 0.3, 1] }}
                 className="h-full rounded-full"
-                style={{ background: "linear-gradient(90deg, #ef4444, #f59e0b, #22c55e)" }}
+                style={{ background: "linear-gradient(90deg, #ef4444 0%, #f59e0b 45%, #22c55e 100%)" }}
               />
             </div>
             <div className="flex justify-between mt-1.5">
-              <span className="text-[10px] text-gray-300">300</span>
-              <span className="text-[10px] text-gray-300">900</span>
+              <span className="text-[10px] text-gray-300 font-medium">300 Poor</span>
+              <span className="text-[10px] text-gray-300 font-medium">900 Excellent</span>
             </div>
           </motion.div>
         </AnimatePresence>
@@ -507,93 +543,89 @@ function RoarScoreCard() {
   );
 }
 
-/* ─── Multi-Currency Settlement Animation ─── */
+/* ─── Multi-Currency Card ─── */
 function CurrencyCard() {
   const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: false, amount: 0.4 });
-
-  const currencies = [
-    { code: "USD", flag: "🇺🇸", rate: "1.0000", change: "+0.00%" },
-    { code: "EUR", flag: "🇪🇺", rate: "0.9241", change: "-0.12%" },
-    { code: "GBP", flag: "🇬🇧", rate: "0.7912", change: "+0.08%" },
-    { code: "AED", flag: "🇦🇪", rate: "3.6725", change: "+0.00%" },
-    { code: "INR", flag: "🇮🇳", rate: "83.420", change: "+0.21%" },
-    { code: "PHP", flag: "🇵🇭", rate: "56.110", change: "-0.05%" },
-  ];
-
+  const inView = useInView(ref, { once: false, amount: 0.3 });
   const [tick, setTick] = useState(0);
+  const [highlight, setHighlight] = useState<number | null>(null);
+
   useEffect(() => {
     if (!inView) return;
-    const id = setInterval(() => setTick((t) => t + 1), 1400);
+    const id = setInterval(() => {
+      const next = Math.floor(Math.random() * MARKETS.length);
+      setHighlight(next);
+      setTick((t) => t + 1);
+      setTimeout(() => setHighlight(null), 600);
+    }, 1600);
     return () => clearInterval(id);
   }, [inView]);
-
-  // Simulate slight rate jitter
-  const jitter = (base: string) => {
-    const n = parseFloat(base);
-    const delta = (Math.random() - 0.5) * 0.001 * n;
-    return (n + delta).toFixed(base.split(".")[1]?.length ?? 4);
-  };
 
   return (
     <motion.div
       ref={ref}
       {...animateIn}
-      transition={{ duration: 0.5, ease, delay: 0.2 }}
-      className="md:col-span-2 rounded-2xl bg-white border border-gray-100 hover:shadow-xl transition-shadow duration-300 overflow-hidden"
+      transition={{ duration: 0.6, ease, delay: 0.2 }}
+      className="md:col-span-2 rounded-2xl bg-white border border-gray-100 hover:shadow-lg transition-shadow duration-500 overflow-hidden"
     >
-      <div className="p-8 pb-4">
-        <h3 className="text-xl font-bold text-gray-900 mb-2">Settlement in Multiple Currencies.</h3>
+      <div className="p-8 pb-6">
+        <h3 className="text-xl font-bold text-gray-900 mb-1.5">Settlement in 7 Markets.</h3>
         <p className="text-gray-400 text-sm leading-relaxed">
-          Receive settlement across 15+ countries with competitive FX and same-day liquidity.
+          Receive settlement in AED, INR, PKR, HKD, IDR, CNY &amp; RUB with competitive FX and same-day liquidity.
         </p>
       </div>
       <div className="px-8 pb-8">
-        <div className="grid grid-cols-3 gap-3">
-          {currencies.map((c, i) => {
-            const isPositive = c.change.startsWith("+") && c.change !== "+0.00%";
-            const isNeutral = c.change === "+0.00%";
-            return (
-              <motion.div
-                key={c.code}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={inView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.9 }}
-                transition={{ delay: 0.1 + i * 0.07, duration: 0.4 }}
-                className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3"
-              >
-                <div className="flex items-center gap-2 mb-1.5">
-                  <span className="text-lg">{c.flag}</span>
-                  <span className="text-sm font-bold text-gray-800">{c.code}</span>
-                </div>
-                <motion.div
-                  key={tick}
-                  initial={{ opacity: 0.6 }}
+        <div className="grid grid-cols-4 sm:grid-cols-7 gap-2">
+          {MARKETS.map((m, i) => (
+            <motion.div
+              key={m.code}
+              animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 12 }}
+              initial={{ opacity: 0, y: 12 }}
+              transition={{ delay: 0.08 * i, duration: 0.5, ease }}
+              className="relative rounded-xl border overflow-hidden"
+              style={{
+                borderColor: highlight === i ? ORANGE : "#f3f4f6",
+                background: highlight === i ? "#fff7f5" : "#fafafa",
+                transition: "border-color 0.3s ease, background 0.3s ease",
+              }}
+            >
+              <div className="px-3 py-3 flex flex-col items-center gap-1 text-center">
+                <span className="text-2xl leading-none">{m.flag}</span>
+                <span className="text-xs font-bold text-gray-800">{m.code}</span>
+                <motion.span
+                  key={tick + m.code}
+                  initial={{ opacity: 0.5, color: m.dir > 0 ? "#16a34a" : "#dc2626" }}
                   animate={{ opacity: 1 }}
-                  className="text-xs font-mono text-gray-600"
+                  transition={{ duration: 0.3 }}
+                  className="text-[10px] font-mono text-gray-400"
                 >
-                  {tick > 0 ? jitter(c.rate) : c.rate}
-                </motion.div>
-                <div
-                  className={`text-[10px] font-semibold mt-0.5 ${
-                    isNeutral ? "text-gray-400" : isPositive ? "text-green-600" : "text-red-500"
-                  }`}
-                >
-                  {c.change}
-                </div>
-              </motion.div>
-            );
-          })}
+                  {m.rate}
+                </motion.span>
+              </div>
+              {highlight === i && (
+                <motion.div
+                  className="absolute inset-0 pointer-events-none"
+                  initial={{ opacity: 0.5 }}
+                  animate={{ opacity: 0 }}
+                  transition={{ duration: 0.6 }}
+                  style={{ background: `${ORANGE}18`, borderRadius: "inherit" }}
+                />
+              )}
+            </motion.div>
+          ))}
         </div>
-        {/* Scrolling ticker */}
-        <div className="mt-4 overflow-hidden rounded-lg bg-gray-50 border border-gray-100 py-2 px-4">
+
+        {/* Subtle scrolling ticker */}
+        <div className="mt-4 overflow-hidden rounded-lg border border-gray-100 bg-gray-50 py-2.5 px-4">
           <motion.div
             animate={{ x: ["0%", "-50%"] }}
-            transition={{ duration: 18, ease: "linear", repeat: Infinity }}
-            className="flex gap-8 whitespace-nowrap"
+            transition={{ duration: 22, ease: "linear", repeat: Infinity }}
+            className="flex gap-10 whitespace-nowrap"
           >
-            {[...currencies, ...currencies].map((c, i) => (
-              <span key={i} className="text-xs text-gray-400 font-mono">
-                <span className="font-semibold text-gray-600">{c.code}/USD</span> {c.rate}
+            {[...MARKETS, ...MARKETS].map((m, i) => (
+              <span key={i} className="text-[11px] text-gray-400 font-mono">
+                <span className="text-gray-500 font-semibold">{m.code}/USD</span>{" "}
+                <span style={{ color: m.dir > 0 ? "#16a34a" : "#ef4444" }}>{m.rate}</span>
               </span>
             ))}
           </motion.div>
