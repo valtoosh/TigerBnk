@@ -148,103 +148,105 @@ function HeroSection() {
   };
 
   return (
-    <section className="relative min-h-screen overflow-hidden" data-testid="section-hero">
-      <AnimatedWorldMap />
+    <section className="bg-white pt-24 pb-12 px-4 sm:px-6 lg:px-8" data-testid="section-hero">
+      <div className="max-w-[1320px] mx-auto rounded-3xl overflow-hidden border border-gray-200/50 relative" style={{ minHeight: "78vh" }}>
+        <AnimatedWorldMap />
 
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background: "radial-gradient(ellipse at center, transparent 50%, rgba(255,255,255,0.6) 100%)",
-        }}
-      />
+        <div
+          className="absolute inset-0 pointer-events-none z-[1]"
+          style={{
+            background: "radial-gradient(ellipse at center, transparent 50%, rgba(255,248,231,0.5) 100%)",
+          }}
+        />
 
-      <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-10 flex flex-col justify-end min-h-screen pb-20 pt-32">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.6, ease, delay: 0.3 }}
-          className="mb-6"
-        >
-          <span
-            className="inline-block px-4 py-1.5 rounded-md text-sm font-semibold tabular-nums"
-            style={{ background: ORANGE, color: "#000" }}
-            data-testid="badge-tpv"
+        <div className="relative z-10 flex flex-col justify-end h-full px-8 md:px-14 pb-14 pt-20" style={{ minHeight: "78vh" }}>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6, ease, delay: 0.3 }}
+            className="mb-6"
           >
-            ${tpv.toLocaleString()}+ TPV
-          </span>
-        </motion.div>
+            <span
+              className="inline-block px-4 py-1.5 rounded-md text-sm font-semibold tabular-nums"
+              style={{ background: ORANGE, color: "#000" }}
+              data-testid="badge-tpv"
+            >
+              ${tpv.toLocaleString()}+ TPV
+            </span>
+          </motion.div>
 
-        <div className="mb-6 max-w-3xl">
-          {["Global Payments,", "Simplified."].map((line, i) => (
-            <div key={i} className="overflow-hidden">
-              <motion.div
-                variants={clipReveal}
-                initial="hidden"
-                animate="visible"
-                transition={{ duration: 0.8, ease, delay: 0.5 + i * 0.15 }}
-              >
-                <h1
-                  className="text-gray-900 font-black tracking-tight leading-[1.05]"
-                  style={{ fontSize: "clamp(2.8rem, 6vw, 5rem)" }}
-                  data-testid="text-hero-headline"
+          <div className="mb-6 max-w-3xl">
+            {["Global Payments,", "Simplified."].map((line, i) => (
+              <div key={i} className="overflow-hidden">
+                <motion.div
+                  variants={clipReveal}
+                  initial="hidden"
+                  animate="visible"
+                  transition={{ duration: 0.8, ease, delay: 0.5 + i * 0.15 }}
                 >
-                  {line}
-                </h1>
-              </motion.div>
-            </div>
-          ))}
+                  <h1
+                    className="text-gray-900 font-black tracking-tight leading-[1.05]"
+                    style={{ fontSize: "clamp(2.8rem, 6vw, 5rem)" }}
+                    data-testid="text-hero-headline"
+                  >
+                    {line}
+                  </h1>
+                </motion.div>
+              </div>
+            ))}
+          </div>
+
+          <motion.p
+            initial={{ opacity: 0, filter: "blur(10px)" }}
+            animate={{ opacity: 1, filter: "blur(0px)" }}
+            transition={{ duration: 0.9, ease, delay: 0.9 }}
+            className="text-gray-500 text-base sm:text-lg max-w-md leading-relaxed mb-8"
+            data-testid="text-hero-subheadline"
+          >
+            Collect and pay globally with{" "}
+            <span
+              className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold"
+              style={{ background: "#C9A84C", color: "#1a1a1a", border: "1px solid rgba(201, 168, 76, 0.5)" }}
+            >
+              T+0 settlement
+            </span>
+            , powered by TigerBnk.
+          </motion.p>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease, delay: 1.2 }}
+          >
+            <Link href="/auth?mode=register">
+              <button
+                className="group inline-flex items-center gap-2 px-8 py-3.5 rounded-full font-semibold text-sm transition-all duration-300"
+                style={{
+                  background: ORANGE,
+                  color: "#fff",
+                  boxShadow: "0 4px 20px rgba(255, 77, 0, 0.25)",
+                }}
+                data-testid="button-hero-cta"
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = "scale(1.05)";
+                  e.currentTarget.style.boxShadow = "0 6px 30px rgba(255, 77, 0, 0.35)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "scale(1)";
+                  e.currentTarget.style.boxShadow = "0 4px 20px rgba(255, 77, 0, 0.25)";
+                }}
+              >
+                Get Started <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
+              </button>
+            </Link>
+          </motion.div>
         </div>
 
-        <motion.p
-          initial={{ opacity: 0, filter: "blur(10px)" }}
-          animate={{ opacity: 1, filter: "blur(0px)" }}
-          transition={{ duration: 0.9, ease, delay: 0.9 }}
-          className="text-gray-500 text-base sm:text-lg max-w-md leading-relaxed mb-8"
-          data-testid="text-hero-subheadline"
-        >
-          Collect and pay globally with{" "}
-          <span
-            className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold"
-            style={{ background: "#C9A84C", color: "#1a1a1a", border: "1px solid rgba(201, 168, 76, 0.5)" }}
-          >
-            T+0 settlement
-          </span>
-          , powered by TigerBnk.
-        </motion.p>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease, delay: 1.2 }}
-        >
-          <Link href="/auth?mode=register">
-            <button
-              className="group inline-flex items-center gap-2 px-8 py-3.5 rounded-full font-semibold text-sm transition-all duration-300"
-              style={{
-                background: ORANGE,
-                color: "#fff",
-                boxShadow: "0 4px 20px rgba(255, 77, 0, 0.25)",
-              }}
-              data-testid="button-hero-cta"
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = "scale(1.05)";
-                e.currentTarget.style.boxShadow = "0 6px 30px rgba(255, 77, 0, 0.35)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = "scale(1)";
-                e.currentTarget.style.boxShadow = "0 4px 20px rgba(255, 77, 0, 0.25)";
-              }}
-            >
-              Get Started <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
-            </button>
-          </Link>
-        </motion.div>
+        <div
+          className="absolute bottom-0 left-0 right-0 h-32 pointer-events-none z-[2]"
+          style={{ background: "linear-gradient(to top, rgba(255,248,231,0.8), transparent)" }}
+        />
       </div>
-
-      <div
-        className="absolute bottom-0 left-0 right-0 h-32 pointer-events-none"
-        style={{ background: "linear-gradient(to top, #FFF8E7, transparent)" }}
-      />
     </section>
   );
 }
@@ -1025,7 +1027,7 @@ function CurrencyCard() {
 /* ─── Feature Bento Grid ─── */
 function FeaturesSection() {
   return (
-    <section id="features" className="py-24 sm:py-32 bg-[#FFF8E7]">
+    <section id="features" className="py-24 sm:py-32 bg-white">
       <div className="max-w-6xl mx-auto px-6">
         <motion.div {...animateIn} className="text-center mb-16">
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-gray-900 tracking-tight">
@@ -1140,7 +1142,7 @@ function HowItWorksSection() {
   ];
 
   return (
-    <section id="how-it-works" className="py-24 sm:py-32 bg-[#FFF8E7]" data-testid="section-how-it-works">
+    <section id="how-it-works" className="py-24 sm:py-32 bg-white" data-testid="section-how-it-works">
       <div className="max-w-6xl mx-auto px-6">
         <motion.div {...animateIn} className="text-center mb-16">
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-gray-900 tracking-tight" data-testid="text-hiw-headline">

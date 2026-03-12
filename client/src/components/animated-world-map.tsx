@@ -9,24 +9,15 @@ const VB_W = 2752;
 const VB_H = 1536;
 
 const LON_MIN = -168;
-const LON_MAX = 182;
-const LAT_TOP = 80;
+const LON_MAX = 190;
+const LAT_TOP = 83;
 const LAT_BOT = -72;
-
-function mercatorProject(lat: number) {
-  const latRad = (lat * Math.PI) / 180;
-  return (1 - Math.log(Math.tan(Math.PI / 4 + latRad / 2)) / Math.PI) / 2;
-}
-
-const Y_TOP = mercatorProject(LAT_TOP);
-const Y_BOT = mercatorProject(LAT_BOT);
 
 function lonToX(lon: number) {
   return ((lon - LON_MIN) / (LON_MAX - LON_MIN)) * VB_W;
 }
 function latToY(lat: number) {
-  const yNorm = mercatorProject(Math.max(LAT_BOT, Math.min(LAT_TOP, lat)));
-  return ((yNorm - Y_TOP) / (Y_BOT - Y_TOP)) * VB_H;
+  return ((LAT_TOP - lat) / (LAT_TOP - LAT_BOT)) * VB_H;
 }
 
 interface CityNode {
