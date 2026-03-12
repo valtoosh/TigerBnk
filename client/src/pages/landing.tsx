@@ -575,49 +575,48 @@ const MARKETS = [
 
 const CARD_STYLE = "rounded-sm bg-white border border-gray-200/80 hover:border-gray-300 transition-colors duration-300 overflow-hidden";
 
-/* ─── Settlement Pipeline Card ─── */
+/* ─── Settlement Card — Animated Receipt ─── */
 function SettlementCard() {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: false, amount: 0.3 });
-  const [feedIdx, setFeedIdx] = useState(0);
-  const [newestKey, setNewestKey] = useState("");
+  const [txIdx, setTxIdx] = useState(0);
+  const [step, setStep] = useState(0);
+  const [settled, setSettled] = useState(false);
 
-  const feed = [
-    { flag: "🇵🇰", label: "PKR 250,000", sub: "to Al Maktoum Corp",  status: "Settled",    fg: "#16a34a" },
-    { flag: "🇮🇳", label: "INR 1,200,000", sub: "via Razorpay",      status: "Processing", fg: "#d97706" },
-    { flag: "🇨🇳", label: "CNY 80,000",  sub: "from UnionPay",       status: "Settled",    fg: "#16a34a" },
-    { flag: "🇮🇩", label: "IDR 50M",     sub: "to BCA Jakarta",      status: "Confirming", fg: "#4f46e5" },
-    { flag: "🇭🇰", label: "HKD 92,400",  sub: "from HSBC HK",       status: "Sent",       fg: "#16a34a" },
-    { flag: "🇦🇪", label: "AED 180,000", sub: "Emirates NBD",        status: "Settled",    fg: "#16a34a" },
-    { flag: "🇷🇺", label: "RUB 4,200,000", sub: "to Sberbank",      status: "Processing", fg: "#d97706" },
+  const txs = [
+    { from: "\u{1F1F5}\u{1F1F0} PKR 250,000",    to: "\u{1F1E6}\u{1F1EA} AED 3,312",   rate: "PKR/AED 0.01325",  time: "14:32:07" },
+    { from: "\u{1F1EE}\u{1F1F3} INR 1,200,000",   to: "\u{1F1ED}\u{1F1F0} HKD 11,320",  rate: "INR/HKD 0.00943",  time: "14:38:51" },
+    { from: "\u{1F1E8}\u{1F1F3} CNY 80,000",      to: "\u{1F1E6}\u{1F1EA} AED 40,360",   rate: "CNY/AED 0.5045",   time: "14:45:22" },
+    { from: "\u{1F1EE}\u{1F1E9} IDR 50,000,000",  to: "\u{1F1EE}\u{1F1F3} INR 266,120",  rate: "IDR/INR 0.005322", time: "14:52:09" },
   ];
 
   useEffect(() => {
-    if (!inView) return;
-    const id = setInterval(() => {
-      setFeedIdx((i) => {
-        const next = (i + 1) % feed.length;
-        const entry = feed[next];
-        setNewestKey(`${entry.flag}-${entry.label}-${next}`);
-        return next;
-      });
-    }, 4000);
-    return () => clearInterval(id);
-  }, [inView]);
+    if (!inView) { setStep(0); setSettled(false); return; }
 
-  useEffect(() => {
-    if (!newestKey) return;
-    const t = setTimeout(() => setNewestKey(""), 1000);
-    return () => clearTimeout(t);
-  }, [newestKey]);
+    const delays = [0, 400, 700, 1000, 1300, 1700, 2100, 3400];
+    const timers: ReturnType<typeof setTimeout>[] = [];
 
-  const visibleRows = Array.from({ length: 4 }, (_, i) => {
-    const idx = ((feedIdx - i) % feed.length + feed.length) % feed.length;
-    return {
-      ...feed[idx],
-      rowKey: `${feed[idx].flag}-${feed[idx].label}-${idx}`,
-    };
-  });
+    delays.forEach((d, i) => {
+      timers.push(setTimeout(() => setStep(i + 1), d));
+    });
+
+    timers.push(setTimeout(() => setSettled(true), 3400));
+
+    timers.push(setTimeout(() => {
+      setStep(0);
+      setSettled(false);
+      setTxIdx((prev) => (prev + 1) % txs.length);
+    }, 5200));
+
+    return () => timers.forEach(clearTimeout);
+  }, [inView, txIdx]);
+
+  const tx = txs[txIdx];
+
+  const lineVariants = {
+    hidden: { opacity: 0, x: -12 },
+    visible: { opacity: 1, x: 0 },
+  } as const;
 
   return (
     <motion.div
@@ -635,94 +634,152 @@ function SettlementCard() {
       </div>
 
       <div className="px-8 pb-8">
-        <AnimatePresence mode="popLayout" initial={false}>
-          {visibleRows.map((row, i) => {
-            const isNewest = row.rowKey === newestKey;
-            return (
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={txIdx}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0, y: 8 }}
+            transition={{ duration: 0.35, ease }}
+            className="rounded-sm border border-gray-100 p-5"
+            style={{ backgroundColor: "#f9f7f2" }}
+          >
+            <motion.p
+              variants={lineVariants}
+              initial="hidden"
+              animate={step >= 1 ? "visible" : "hidden"}
+              transition={{ duration: 0.3, ease }}
+              className="font-mono text-[10px] text-gray-400 mb-4"
+            >
+              {tx.time} UTC
+            </motion.p>
+
+            <div className="space-y-2.5">
               <motion.div
-                key={row.rowKey}
-                layout
-                initial={{ opacity: 0, y: -16 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 16 }}
-                transition={{ duration: 0.5, ease }}
-                className="flex items-center justify-between py-3"
-                style={{
-                  borderBottom: i < 3 ? "1px solid #f0ebe0" : "none",
-                  borderLeft: isNewest ? `3px solid ${ORANGE}` : "3px solid transparent",
-                  paddingLeft: "8px",
-                  transition: "border-left-color 1s ease",
-                }}
+                variants={lineVariants}
+                initial="hidden"
+                animate={step >= 2 ? "visible" : "hidden"}
+                transition={{ duration: 0.3, ease }}
+                className="flex items-baseline gap-3"
               >
-                <div className="flex items-center gap-3">
-                  <span className="text-lg leading-none flex-shrink-0">{row.flag}</span>
-                  <div>
-                    <p className="text-sm font-semibold text-gray-900 leading-tight">{row.label}</p>
-                    <p className="text-[11px] text-gray-400 mt-0.5">{row.sub}</p>
-                  </div>
-                </div>
-                <span
-                  className="text-[10px] font-semibold px-2.5 py-1 rounded-sm flex-shrink-0 border"
-                  style={{ borderColor: row.fg, color: row.fg }}
-                >
-                  {row.status === "Settled" || row.status === "Sent" ? "✓ " : "⟳ "}{row.status}
-                </span>
+                <span className="text-xs text-gray-400 font-medium w-10 flex-shrink-0">From</span>
+                <span className="text-sm font-semibold text-gray-900">{tx.from}</span>
               </motion.div>
-            );
-          })}
+
+              <motion.div
+                variants={lineVariants}
+                initial="hidden"
+                animate={step >= 3 ? "visible" : "hidden"}
+                transition={{ duration: 0.3, ease }}
+                className="flex items-baseline gap-3"
+              >
+                <span className="text-xs text-gray-400 font-medium w-10 flex-shrink-0">To</span>
+                <span className="text-sm font-semibold text-gray-900">{tx.to}</span>
+              </motion.div>
+
+              <motion.div
+                variants={lineVariants}
+                initial="hidden"
+                animate={step >= 4 ? "visible" : "hidden"}
+                transition={{ duration: 0.3, ease }}
+                className="flex items-baseline gap-3"
+              >
+                <span className="text-xs text-gray-400 font-medium w-10 flex-shrink-0">Rate</span>
+                <span className="text-sm font-mono text-gray-700">{tx.rate}</span>
+              </motion.div>
+
+              <motion.div
+                variants={lineVariants}
+                initial="hidden"
+                animate={step >= 5 ? "visible" : "hidden"}
+                transition={{ duration: 0.3, ease }}
+                className="flex items-baseline gap-3"
+              >
+                <span className="text-xs text-gray-400 font-medium w-10 flex-shrink-0">Fee</span>
+                <span className="text-sm font-mono text-gray-700">0.00 <span className="text-gray-400">(waived)</span></span>
+              </motion.div>
+            </div>
+
+            <motion.div
+              initial={{ scaleX: 0 }}
+              animate={{ scaleX: step >= 6 ? 1 : 0 }}
+              transition={{ duration: 0.4, ease }}
+              className="h-px my-4"
+              style={{ backgroundColor: "#e0dbd0", transformOrigin: "left" }}
+            />
+
+            <div className="flex items-center gap-3">
+              <motion.span
+                variants={lineVariants}
+                initial="hidden"
+                animate={step >= 7 ? "visible" : "hidden"}
+                transition={{ duration: 0.2, ease }}
+                className="text-xs text-gray-400 font-medium w-10 flex-shrink-0"
+              >
+                Status
+              </motion.span>
+              <div className="flex-1 flex items-center gap-3">
+                <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: "#e8e3d8" }}>
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: step >= 7 ? "100%" : "0%" }}
+                    transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+                    className="h-full rounded-full"
+                    style={{ backgroundColor: settled ? "#16a34a" : ORANGE, transition: "background-color 0.4s ease" }}
+                  />
+                </div>
+                <AnimatePresence mode="wait">
+                  {step >= 8 && (
+                    <motion.span
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.3, ease }}
+                      className="text-xs font-bold flex-shrink-0"
+                      style={{ color: "#16a34a" }}
+                    >
+                      SETTLED ✓
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+              </div>
+            </div>
+          </motion.div>
         </AnimatePresence>
-        <div className="flex items-center gap-2 mt-4 pt-3" style={{ borderTop: "1px solid #f0ebe0" }}>
-          <span className="relative flex h-1.5 w-1.5">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-green-500" />
-          </span>
-          <span className="text-[10px] text-gray-400 font-medium">Live feed</span>
+
+        <div className="flex items-center justify-between mt-4 pt-3" style={{ borderTop: "1px solid #f0ebe0" }}>
+          <div className="flex items-center gap-2">
+            <span className="relative flex h-1.5 w-1.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-green-500" />
+            </span>
+            <span className="text-[10px] text-gray-400 font-medium">Live</span>
+          </div>
+          <span className="text-[10px] text-gray-400 font-mono">Avg: 12s · Last: 8.2s · 99.9% uptime</span>
         </div>
       </div>
     </motion.div>
   );
 }
 
-/* ─── Transaction Transparency Card ─── */
+/* ─── Transaction Transparency Card — Continuous Scroller ─── */
 function TransparencyCard() {
   const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: false, amount: 0.3 });
 
-  const statusCycle = [
-    { status: "Processing", fg: "#d97706" },
-    { status: "Confirmed",  fg: "#4f46e5" },
-    { status: "Settled",    fg: "#16a34a" },
-  ] as const;
-
-  const baseRows = [
-    { initials: "AE", label: "AED Deposit",    sub: "from Al Maktoum Corp",   defaultStatus: "Settled",    defaultFg: "#16a34a" },
-    { initials: "IN", label: "INR Collection", sub: "via Razorpay",           defaultStatus: "Processing", defaultFg: "#d97706" },
-    { initials: "PK", label: "PKR Transfer",   sub: "to HBL Karachi",        defaultStatus: "Sent",       defaultFg: "#16a34a" },
-    { initials: "HK", label: "HKD Payment",    sub: "from HSBC HK",          defaultStatus: "Ready",      defaultFg: "#16a34a" },
+  const rows = [
+    { icon: "AE", iconBg: "#16a34a", title: "AED Deposit",       sub: "Al Maktoum Corp",        status: "Settled",    positive: true  },
+    { icon: "IN", iconBg: "#2563eb", title: "INR Collection",    sub: "via Razorpay",            status: "Credited",   positive: true  },
+    { icon: "PK", iconBg: "#059669", title: "PKR Transfer",      sub: "to HBL Karachi",         status: "Sent",       positive: true  },
+    { icon: "HK", iconBg: "#dc2626", title: "HKD Payment",       sub: "from HSBC HK",           status: "Completed",  positive: true  },
+    { icon: "ID", iconBg: "#d97706", title: "IDR Payout",        sub: "to BCA Jakarta",         status: "Confirming", positive: false },
+    { icon: "CN", iconBg: "#dc2626", title: "CNY Exchange",      sub: "via UnionPay",           status: "Processing", positive: false },
+    { icon: "RU", iconBg: "#2563eb", title: "RUB Settlement",    sub: "to Sberbank",            status: "Pending",    positive: false },
+    { icon: "KY", iconBg: "#0891b2", title: "KYC Submitted",     sub: "Steven Kirk, London UK", status: "Completed",  positive: true  },
+    { icon: "US", iconBg: "#7c3aed", title: "USD Deposit (ACH)", sub: "$500,000 from J. Kirk",  status: "Credited",   positive: true  },
+    { icon: "PY", iconBg: "#0284c7", title: "+$500 PYUSD",       sub: "from U80a\u2026 7D0a",    status: "Confirming", positive: false },
   ];
 
-  const [updatedRow, setUpdatedRow] = useState<{ idx: number; statusIdx: number } | null>(null);
-  const [flashIdx, setFlashIdx] = useState(-1);
-
-  useEffect(() => {
-    if (!inView) return;
-    const id = setInterval(() => {
-      const rowIdx = Math.floor(Math.random() * baseRows.length);
-      const statusIdx = Math.floor(Math.random() * statusCycle.length);
-      setUpdatedRow({ idx: rowIdx, statusIdx });
-      setFlashIdx(rowIdx);
-      setTimeout(() => setFlashIdx(-1), 1200);
-    }, 5000);
-    return () => clearInterval(id);
-  }, [inView]);
-
-  const rows = baseRows.map((row, i) => {
-    if (updatedRow && updatedRow.idx === i) {
-      const s = statusCycle[updatedRow.statusIdx];
-      return { ...row, status: s.status, fg: s.fg };
-    }
-    return { ...row, status: row.defaultStatus, fg: row.defaultFg };
-  });
+  const allRows = [...rows, ...rows];
 
   return (
     <motion.div
@@ -739,42 +796,48 @@ function TransparencyCard() {
           Track payments, customers and onchain transactions.
         </p>
       </div>
-      <div className="px-8 pb-8">
-        {rows.map((row, i) => (
-          <motion.div
-            key={row.initials}
-            initial={{ backgroundColor: "rgba(255,255,255,0)" }}
-            animate={{
-              backgroundColor: flashIdx === i ? "rgba(255,77,0,0.04)" : "rgba(255,255,255,0)",
-            }}
-            transition={{ duration: 0.4, ease }}
-            className="flex items-center justify-between py-3 px-2 -mx-2 rounded-sm"
-            style={{ borderBottom: i < rows.length - 1 ? "1px solid #f0ebe0" : "none" }}
-          >
-            <div className="flex items-center gap-3">
-              <div
-                className="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0"
-                style={{ backgroundColor: row.fg }}
-              >
-                {row.initials}
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-gray-900 leading-tight">{row.label}</p>
-                <p className="text-[11px] text-gray-400 mt-0.5">{row.sub}</p>
-              </div>
-            </div>
-            <motion.span
-              key={`${row.initials}-${row.status}`}
-              initial={{ scale: 0.9, opacity: 0.5 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 0.3, ease }}
-              className="text-[10px] font-semibold px-2.5 py-1 rounded-sm flex-shrink-0 border"
-              style={{ borderColor: row.fg, color: row.fg }}
+      <div
+        className="px-8 pb-2 overflow-hidden"
+        style={{
+          height: "260px",
+          maskImage: "linear-gradient(to bottom, transparent 0%, black 12%, black 88%, transparent 100%)",
+          WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, black 12%, black 88%, transparent 100%)",
+        }}
+      >
+        <motion.div
+          animate={{ y: ["0%", "-50%"] }}
+          transition={{ duration: 22, ease: "linear", repeat: Infinity }}
+        >
+          {allRows.map((row, i) => (
+            <div
+              key={`${row.icon}-${i}`}
+              className="flex items-center justify-between py-3 px-1"
+              style={{ borderBottom: "1px solid #f0ebe0" }}
             >
-              {row.status === "Settled" || row.status === "Sent" || row.status === "Ready" || row.status === "Confirmed" ? "✓ " : "⟳ "}{row.status}
-            </motion.span>
-          </motion.div>
-        ))}
+              <div className="flex items-center gap-3">
+                <div
+                  className="w-9 h-9 rounded-full flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0"
+                  style={{ backgroundColor: row.iconBg }}
+                >
+                  {row.icon}
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-gray-900 leading-tight">{row.title}</p>
+                  <p className="text-[11px] text-gray-400 mt-0.5">{row.sub}</p>
+                </div>
+              </div>
+              <span
+                className="text-[10px] font-semibold px-2.5 py-1 rounded-full flex-shrink-0"
+                style={{
+                  backgroundColor: row.positive ? "#dcfce7" : "#f3f4f6",
+                  color: row.positive ? "#16a34a" : "#6b7280",
+                }}
+              >
+                {row.positive ? "✓ " : "⟳ "}{row.status}
+              </span>
+            </div>
+          ))}
+        </motion.div>
       </div>
     </motion.div>
   );
