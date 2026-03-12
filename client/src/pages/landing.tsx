@@ -322,7 +322,7 @@ function SettlementCard() {
             </div>
             <motion.div
               animate={{ x: [0, 3, 0] }}
-              transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+              transition={{ duration: 1.8, repeat: Infinity, ease }}
             >
               <ArrowRight className="w-4 h-4 text-gray-300" />
             </motion.div>
@@ -341,7 +341,7 @@ function SettlementCard() {
               <div className="flex flex-col items-center gap-1.5 flex-1">
                 <motion.div
                   animate={{
-                    backgroundColor: step > i ? "#16a34a" : step === i ? ORANGE : "#f3f4f6",
+                    backgroundColor: step >= i ? ORANGE : "#f3f4f6",
                     scale: step === i ? 1.08 : 1,
                   }}
                   transition={{ duration: 0.5, ease }}
@@ -352,7 +352,7 @@ function SettlementCard() {
                 </motion.div>
                 <motion.span
                   animate={{ opacity: step >= i ? 1 : 0.3, color: step === i ? "#111827" : "#9ca3af" }}
-                  transition={{ duration: 0.5 }}
+                  transition={{ duration: 0.5, ease }}
                   className="text-[10px] font-medium text-center"
                 >
                   {label}
@@ -362,7 +362,7 @@ function SettlementCard() {
                 <div className="flex-1 h-[2px] mb-5 mx-1 rounded-full bg-gray-100 overflow-hidden relative">
                   <motion.div
                     className="absolute inset-y-0 left-0 h-full rounded-full"
-                    style={{ background: step > i ? "#16a34a" : ORANGE }}
+                    style={{ background: ORANGE }}
                     animate={{ width: step > i ? "100%" : step === i ? "50%" : "0%" }}
                     transition={{ duration: 0.7, ease }}
                   />
@@ -371,12 +371,11 @@ function SettlementCard() {
             </div>
           ))}
         </div>
-        <div className="flex items-center gap-1.5 mt-5 justify-end">
+        <div className="flex justify-end mt-5">
           <span className="relative flex h-1.5 w-1.5">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
             <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-green-500" />
           </span>
-          <span className="text-[10px] text-gray-300 font-medium">Processing live</span>
         </div>
       </div>
     </motion.div>
@@ -435,7 +434,7 @@ function TransparencyCard() {
             >
               <div className="flex items-center gap-3">
                 <div
-                  className="w-8 h-8 rounded-md flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0"
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0"
                   style={{ backgroundColor: row.fg }}
                 >
                   {row.initials}
@@ -585,12 +584,13 @@ function CurrencyCard() {
               initial={{ opacity: 0, y: 8 }}
               animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 8 }}
               transition={{ delay: 0.06 * i, duration: 0.5, ease }}
-              className="rounded-lg bg-white py-3 flex flex-col items-center gap-1 text-center"
+              className="rounded-lg py-3 flex flex-col items-center gap-1 text-center"
               style={{
+                background: activeIdx === i ? "#fff7f5" : "#fff",
                 boxShadow: activeIdx === i
-                  ? `0 0 0 1.5px ${ORANGE}, 0 2px 8px rgba(0,0,0,0.06)`
-                  : "0 1px 3px rgba(0,0,0,0.04)",
-                transition: "box-shadow 0.4s ease",
+                  ? `inset 0 1px 4px rgba(255,77,0,0.12)`
+                  : "inset 0 1px 3px rgba(0,0,0,0.04)",
+                transition: "box-shadow 0.5s cubic-bezier(0.16,1,0.3,1), background 0.5s cubic-bezier(0.16,1,0.3,1)",
               }}
             >
               <span className="text-xl leading-none">{m.flag}</span>
@@ -599,7 +599,7 @@ function CurrencyCard() {
                 key={tick + m.code}
                 initial={{ opacity: 0.4 }}
                 animate={{ opacity: 1 }}
-                transition={{ duration: 0.5 }}
+                transition={{ duration: 0.5, ease }}
                 className="text-[9px] font-mono text-gray-400"
               >
                 {m.rate}
