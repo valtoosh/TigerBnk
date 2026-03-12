@@ -306,6 +306,7 @@ function SettlementCard() {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: false, amount: 0.3 });
   const [feedIdx, setFeedIdx] = useState(0);
+  const [newestKey, setNewestKey] = useState("");
 
   const feed = [
     { flag: "🇵🇰", label: "PKR 250,000", sub: "to Al Maktoum Corp",  status: "Settled",    fg: "#16a34a" },
@@ -319,11 +320,26 @@ function SettlementCard() {
 
   useEffect(() => {
     if (!inView) return;
-    const id = setInterval(() => setFeedIdx((i) => (i + 1) % feed.length), 4000);
+    const id = setInterval(() => {
+      setFeedIdx((i) => {
+        const next = (i + 1) % feed.length;
+        setNewestKey(`${feed[next % feed.length].flag}-${feed[next % feed.length].label}-${next}`);
+        return next;
+      });
+    }, 4000);
     return () => clearInterval(id);
   }, [inView]);
 
-  const visibleRows = Array.from({ length: 4 }, (_, i) => feed[(feedIdx + i) % feed.length]);
+  useEffect(() => {
+    if (!newestKey) return;
+    const t = setTimeout(() => setNewestKey(""), 1000);
+    return () => clearTimeout(t);
+  }, [newestKey]);
+
+  const visibleRows = Array.from({ length: 4 }, (_, i) => ({
+    ...feed[(feedIdx + i) % feed.length],
+    rowKey: `${feed[(feedIdx + i) % feed.length].flag}-${feed[(feedIdx + i) % feed.length].label}-${(feedIdx + i) % feed.length}`,
+  }));
 
   return (
     <motion.div
@@ -342,32 +358,40 @@ function SettlementCard() {
 
       <div className="px-8 pb-8">
         <AnimatePresence mode="popLayout" initial={false}>
-          {visibleRows.map((row, i) => (
-            <motion.div
-              key={`${row.flag}-${row.label}-${(feedIdx + i) % feed.length}`}
-              layout
-              initial={{ opacity: 0, y: -16 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 16 }}
-              transition={{ duration: 0.5, ease }}
-              className="flex items-center justify-between py-3"
-              style={{ borderBottom: i < 3 ? "1px solid #f0ebe0" : "none" }}
-            >
-              <div className="flex items-center gap-3">
-                <span className="text-lg leading-none flex-shrink-0">{row.flag}</span>
-                <div>
-                  <p className="text-sm font-semibold text-gray-900 leading-tight">{row.label}</p>
-                  <p className="text-[11px] text-gray-400 mt-0.5">{row.sub}</p>
-                </div>
-              </div>
-              <span
-                className="text-[10px] font-semibold px-2.5 py-1 rounded-sm flex-shrink-0 border"
-                style={{ borderColor: row.fg, color: row.fg }}
+          {visibleRows.map((row, i) => {
+            const isNewest = row.rowKey === newestKey;
+            return (
+              <motion.div
+                key={row.rowKey}
+                layout
+                initial={{ opacity: 0, y: -16 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 16 }}
+                transition={{ duration: 0.5, ease }}
+                className="flex items-center justify-between py-3"
+                style={{
+                  borderBottom: i < 3 ? "1px solid #f0ebe0" : "none",
+                  borderLeft: isNewest ? `3px solid ${ORANGE}` : "3px solid transparent",
+                  paddingLeft: "8px",
+                  transition: "border-left-color 1s ease",
+                }}
               >
-                {row.status === "Settled" || row.status === "Sent" ? "✓ " : "⟳ "}{row.status}
-              </span>
-            </motion.div>
-          ))}
+                <div className="flex items-center gap-3">
+                  <span className="text-lg leading-none flex-shrink-0">{row.flag}</span>
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900 leading-tight">{row.label}</p>
+                    <p className="text-[11px] text-gray-400 mt-0.5">{row.sub}</p>
+                  </div>
+                </div>
+                <span
+                  className="text-[10px] font-semibold px-2.5 py-1 rounded-sm flex-shrink-0 border"
+                  style={{ borderColor: row.fg, color: row.fg }}
+                >
+                  {row.status === "Settled" || row.status === "Sent" ? "✓ " : "⟳ "}{row.status}
+                </span>
+              </motion.div>
+            );
+          })}
         </AnimatePresence>
         <div className="flex items-center gap-2 mt-4 pt-3" style={{ borderTop: "1px solid #f0ebe0" }}>
           <span className="relative flex h-1.5 w-1.5">
@@ -385,24 +409,42 @@ function SettlementCard() {
 function TransparencyCard() {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: false, amount: 0.3 });
-  const [highlightIdx, setHighlightIdx] = useState(-1);
 
-  const rows = [
-    { initials: "AE", label: "AED Deposit",    sub: "from Al Maktoum Corp",   status: "Settled",    fg: "#16a34a" },
-    { initials: "IN", label: "INR Collection", sub: "via Razorpay",           status: "Processing", fg: "#d97706" },
-    { initials: "PK", label: "PKR Transfer",   sub: "to HBL Karachi",        status: "Sent",       fg: "#16a34a" },
-    { initials: "HK", label: "HKD Payment",    sub: "from HSBC HK",          status: "Ready",      fg: "#16a34a" },
+  const statusCycle = [
+    { status: "Processing", fg: "#d97706" },
+    { status: "Confirmed",  fg: "#4f46e5" },
+    { status: "Settled",    fg: "#16a34a" },
+  ] as const;
+
+  const baseRows = [
+    { initials: "AE", label: "AED Deposit",    sub: "from Al Maktoum Corp",   defaultStatus: "Settled",    defaultFg: "#16a34a" },
+    { initials: "IN", label: "INR Collection", sub: "via Razorpay",           defaultStatus: "Processing", defaultFg: "#d97706" },
+    { initials: "PK", label: "PKR Transfer",   sub: "to HBL Karachi",        defaultStatus: "Sent",       defaultFg: "#16a34a" },
+    { initials: "HK", label: "HKD Payment",    sub: "from HSBC HK",          defaultStatus: "Ready",      defaultFg: "#16a34a" },
   ];
+
+  const [updatedRow, setUpdatedRow] = useState<{ idx: number; statusIdx: number } | null>(null);
+  const [flashIdx, setFlashIdx] = useState(-1);
 
   useEffect(() => {
     if (!inView) return;
     const id = setInterval(() => {
-      const next = Math.floor(Math.random() * rows.length);
-      setHighlightIdx(next);
-      setTimeout(() => setHighlightIdx(-1), 1200);
+      const rowIdx = Math.floor(Math.random() * baseRows.length);
+      const statusIdx = Math.floor(Math.random() * statusCycle.length);
+      setUpdatedRow({ idx: rowIdx, statusIdx });
+      setFlashIdx(rowIdx);
+      setTimeout(() => setFlashIdx(-1), 1200);
     }, 5000);
     return () => clearInterval(id);
   }, [inView]);
+
+  const rows = baseRows.map((row, i) => {
+    if (updatedRow && updatedRow.idx === i) {
+      const s = statusCycle[updatedRow.statusIdx];
+      return { ...row, status: s.status, fg: s.fg };
+    }
+    return { ...row, status: row.defaultStatus, fg: row.defaultFg };
+  });
 
   return (
     <motion.div
@@ -423,8 +465,9 @@ function TransparencyCard() {
         {rows.map((row, i) => (
           <motion.div
             key={row.initials}
+            initial={{ backgroundColor: "rgba(255,255,255,0)" }}
             animate={{
-              backgroundColor: highlightIdx === i ? "rgba(255,77,0,0.03)" : "transparent",
+              backgroundColor: flashIdx === i ? "rgba(255,77,0,0.04)" : "rgba(255,255,255,0)",
             }}
             transition={{ duration: 0.4, ease }}
             className="flex items-center justify-between py-3 px-2 -mx-2 rounded-sm"
@@ -442,12 +485,16 @@ function TransparencyCard() {
                 <p className="text-[11px] text-gray-400 mt-0.5">{row.sub}</p>
               </div>
             </div>
-            <span
+            <motion.span
+              key={`${row.initials}-${row.status}`}
+              initial={{ scale: 0.9, opacity: 0.5 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.3, ease }}
               className="text-[10px] font-semibold px-2.5 py-1 rounded-sm flex-shrink-0 border"
               style={{ borderColor: row.fg, color: row.fg }}
             >
-              {row.status === "Settled" || row.status === "Sent" || row.status === "Ready" ? "✓ " : "⟳ "}{row.status}
-            </span>
+              {row.status === "Settled" || row.status === "Sent" || row.status === "Ready" || row.status === "Confirmed" ? "✓ " : "⟳ "}{row.status}
+            </motion.span>
           </motion.div>
         ))}
       </div>
@@ -592,8 +639,9 @@ function CurrencyCard() {
             {MARKETS.map((m, i) => (
               <motion.div
                 key={m.code}
+                initial={{ backgroundColor: "rgba(255,255,255,0)" }}
                 animate={{
-                  backgroundColor: highlightIdx === i ? "rgba(255,77,0,0.03)" : "transparent",
+                  backgroundColor: highlightIdx === i ? "rgba(255,77,0,0.03)" : "rgba(255,255,255,0)",
                 }}
                 transition={{ duration: 0.3, ease }}
                 className="flex items-center justify-between py-2.5 px-2 -mx-2 rounded-sm"
