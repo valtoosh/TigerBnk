@@ -250,6 +250,359 @@ function ProblemSection() {
   );
 }
 
+/* ─── Settlement Pipeline Animation ─── */
+function SettlementCard() {
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: false, amount: 0.4 });
+  const [activeStep, setActiveStep] = useState(-1);
+  const [txCount, setTxCount] = useState(1284);
+  const steps = ["Payment Initiated", "AML Check", "FX Conversion", "Settled"];
+
+  useEffect(() => {
+    if (!inView) { setActiveStep(-1); return; }
+    let i = 0;
+    const advance = () => {
+      setActiveStep(i);
+      i = (i + 1) % steps.length;
+      if (i === 0) setTxCount((n) => n + 1);
+    };
+    advance();
+    const id = setInterval(advance, 900);
+    return () => clearInterval(id);
+  }, [inView]);
+
+  return (
+    <motion.div
+      ref={ref}
+      {...animateIn}
+      className="md:col-span-2 rounded-2xl bg-white border border-gray-100 hover:shadow-xl transition-shadow duration-300 overflow-hidden"
+    >
+      <div className="p-8 pb-0">
+        <h3 className="text-xl font-bold text-gray-900 mb-2">Instant Settlement.</h3>
+        <p className="text-gray-400 text-sm leading-relaxed">
+          Get paid instantly. No more waiting 2–7 days for funds to clear. Settlement happens in real-time.
+        </p>
+      </div>
+
+      {/* Visual area */}
+      <div className="relative p-8 pt-6">
+        {/* Live indicator */}
+        <div className="flex items-center gap-2 mb-6">
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
+          </span>
+          <span className="text-xs text-gray-400 font-medium">Live — {txCount.toLocaleString()} transactions today</span>
+        </div>
+
+        {/* Pipeline steps */}
+        <div className="flex items-center gap-0">
+          {steps.map((step, i) => (
+            <div key={step} className="flex items-center flex-1 last:flex-none">
+              <motion.div
+                animate={{
+                  backgroundColor: activeStep >= i ? "#111827" : "#f9fafb",
+                  borderColor: activeStep >= i ? "#111827" : "#e5e7eb",
+                  color: activeStep >= i ? "#ffffff" : "#9ca3af",
+                  scale: activeStep === i ? 1.05 : 1,
+                }}
+                transition={{ duration: 0.3 }}
+                className="flex flex-col items-center px-4 py-3 rounded-xl border text-center min-w-[110px] relative"
+              >
+                <motion.div
+                  animate={{ opacity: activeStep >= i ? 1 : 0.4 }}
+                  className="text-xs font-semibold leading-tight"
+                >
+                  {step}
+                </motion.div>
+                {activeStep === i && (
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: "100%" }}
+                    transition={{ duration: 0.85, ease: "linear" }}
+                    className="absolute bottom-0 left-0 h-[2px] rounded-full"
+                    style={{ background: ORANGE }}
+                  />
+                )}
+                {activeStep > i && (
+                  <CheckCircle2 className="w-3 h-3 mt-1 text-green-400" />
+                )}
+              </motion.div>
+              {i < steps.length - 1 && (
+                <motion.div
+                  animate={{ opacity: activeStep > i ? 1 : 0.2 }}
+                  className="flex-1 h-px mx-1"
+                  style={{ background: activeStep > i ? ORANGE : "#e5e7eb" }}
+                />
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Bottom: simulated tx rows */}
+        <div className="mt-6 space-y-2 overflow-hidden" style={{ maxHeight: 90 }}>
+          {[
+            { id: "TXN-8821", amt: "+$12,400.00", flag: "🇺🇸" },
+            { id: "TXN-8820", amt: "+€5,230.00", flag: "🇪🇺" },
+            { id: "TXN-8819", amt: "+£2,100.00", flag: "🇬🇧" },
+          ].map((tx, i) => (
+            <motion.div
+              key={tx.id}
+              initial={{ opacity: 0, x: -8 }}
+              animate={inView ? { opacity: 1, x: 0 } : { opacity: 0, x: -8 }}
+              transition={{ delay: 0.3 + i * 0.12, duration: 0.4 }}
+              className="flex items-center justify-between px-4 py-2 rounded-lg bg-gray-50 border border-gray-100"
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-base">{tx.flag}</span>
+                <span className="text-xs text-gray-500 font-mono">{tx.id}</span>
+              </div>
+              <span className="text-xs font-semibold text-green-600">{tx.amt}</span>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+/* ─── Transaction Transparency Animation ─── */
+function TransparencyCard() {
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: false, amount: 0.4 });
+
+  const allRows = [
+    { label: "USD Deposit (ACH)", sub: "$500,000 from J. Kirk", status: "Processing", dot: "bg-gray-400", badge: "text-gray-500 bg-gray-50 border-gray-200" },
+    { label: "EUR Account", sub: "Steven Kirk, Berlin, DE", status: "✓ Ready", dot: "bg-green-500", badge: "text-green-700 bg-green-50 border-green-200" },
+    { label: "KYC Submitted", sub: "Steven Kirk, London, UK", status: "⟳ In Review", dot: "bg-amber-400", badge: "text-amber-700 bg-amber-50 border-amber-200" },
+    { label: "GBP Transfer", sub: "to x710...B1Qz", status: "✓ Sent", dot: "bg-green-500", badge: "text-green-700 bg-green-50 border-green-200" },
+    { label: "INR Collection", sub: "Razorpay gateway", status: "✓ Settled", dot: "bg-green-500", badge: "text-green-700 bg-green-50 border-green-200" },
+  ];
+  const [offset, setOffset] = useState(0);
+  const visible = allRows.slice(offset, offset + 3);
+
+  useEffect(() => {
+    if (!inView) return;
+    const id = setInterval(() => setOffset((o) => (o + 1) % allRows.length), 1800);
+    return () => clearInterval(id);
+  }, [inView]);
+
+  return (
+    <motion.div
+      ref={ref}
+      {...animateIn}
+      transition={{ duration: 0.5, ease, delay: 0.1 }}
+      className="rounded-2xl bg-white border border-gray-100 hover:shadow-xl transition-shadow duration-300 overflow-hidden"
+    >
+      <div className="p-8 pb-4">
+        <h3 className="text-xl font-bold text-gray-900 mb-2">Transaction Transparency.</h3>
+        <p className="text-gray-400 text-sm leading-relaxed">
+          Track payments, customers and onchain transactions.
+        </p>
+      </div>
+      <div className="px-8 pb-8 space-y-2">
+        <AnimatePresence mode="popLayout">
+          {visible.map((item) => (
+            <motion.div
+              key={item.label + offset}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.35 }}
+              className="flex items-center justify-between p-3 rounded-xl bg-gray-50 border border-gray-100"
+            >
+              <div className="flex items-center gap-3">
+                <span className={`w-2 h-2 rounded-full flex-shrink-0 ${item.dot}`} />
+                <div>
+                  <p className="text-sm text-gray-800 font-medium leading-tight">{item.label}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">{item.sub}</p>
+                </div>
+              </div>
+              <span className={`text-xs font-semibold px-2 py-1 rounded-md border ${item.badge}`}>{item.status}</span>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </div>
+    </motion.div>
+  );
+}
+
+/* ─── Roar Score Card ─── */
+function RoarScoreCard() {
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: false, amount: 0.4 });
+  const score = useCounter(742, 1800, 300, inView);
+  const profiles = [
+    { name: "TigerBnk Pro", score: 742, pct: 74 },
+    { name: "Global Trade Co.", score: 820, pct: 88 },
+    { name: "StartupPay Ltd.", score: 619, pct: 57 },
+  ];
+  const [profileIdx, setProfileIdx] = useState(0);
+
+  useEffect(() => {
+    if (!inView) return;
+    const id = setInterval(() => setProfileIdx((i) => (i + 1) % profiles.length), 2800);
+    return () => clearInterval(id);
+  }, [inView]);
+
+  const profile = profiles[profileIdx];
+  const label = profile.pct >= 75 ? "Excellent" : profile.pct >= 60 ? "Good" : "Fair";
+
+  return (
+    <motion.div
+      ref={ref}
+      {...animateIn}
+      transition={{ duration: 0.5, ease, delay: 0.15 }}
+      className="rounded-2xl bg-white border border-gray-100 hover:shadow-xl transition-shadow duration-300 overflow-hidden"
+    >
+      <div className="p-8 pb-4">
+        <h3 className="text-xl font-bold text-gray-900 mb-2">Roar Score Credit.</h3>
+        <p className="text-gray-400 text-sm leading-relaxed">
+          A 300–900 credit score built automatically from your business activity. No paperwork required.
+        </p>
+      </div>
+      <div className="px-8 pb-8">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={profileIdx}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.4 }}
+          >
+            <div className="flex items-end justify-between mb-3">
+              <div>
+                <p className="text-xs text-gray-400 font-medium mb-1">{profile.name}</p>
+                <div className="text-5xl font-black text-gray-900 tabular-nums">{score > profile.score ? profile.score : score}</div>
+              </div>
+              <span
+                className="px-3 py-1 rounded-full text-xs font-bold border"
+                style={{
+                  background: profile.pct >= 75 ? "#f0fdf4" : profile.pct >= 60 ? "#fffbeb" : "#fef2f2",
+                  color: profile.pct >= 75 ? "#16a34a" : profile.pct >= 60 ? "#d97706" : "#dc2626",
+                  borderColor: profile.pct >= 75 ? "#bbf7d0" : profile.pct >= 60 ? "#fde68a" : "#fecaca",
+                }}
+              >
+                {label}
+              </span>
+            </div>
+            {/* Gradient bar */}
+            <div className="h-2.5 rounded-full bg-gray-100 overflow-hidden">
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${profile.pct}%` }}
+                transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+                className="h-full rounded-full"
+                style={{ background: "linear-gradient(90deg, #ef4444, #f59e0b, #22c55e)" }}
+              />
+            </div>
+            <div className="flex justify-between mt-1.5">
+              <span className="text-[10px] text-gray-300">300</span>
+              <span className="text-[10px] text-gray-300">900</span>
+            </div>
+          </motion.div>
+        </AnimatePresence>
+      </div>
+    </motion.div>
+  );
+}
+
+/* ─── Multi-Currency Settlement Animation ─── */
+function CurrencyCard() {
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: false, amount: 0.4 });
+
+  const currencies = [
+    { code: "USD", flag: "🇺🇸", rate: "1.0000", change: "+0.00%" },
+    { code: "EUR", flag: "🇪🇺", rate: "0.9241", change: "-0.12%" },
+    { code: "GBP", flag: "🇬🇧", rate: "0.7912", change: "+0.08%" },
+    { code: "AED", flag: "🇦🇪", rate: "3.6725", change: "+0.00%" },
+    { code: "INR", flag: "🇮🇳", rate: "83.420", change: "+0.21%" },
+    { code: "PHP", flag: "🇵🇭", rate: "56.110", change: "-0.05%" },
+  ];
+
+  const [tick, setTick] = useState(0);
+  useEffect(() => {
+    if (!inView) return;
+    const id = setInterval(() => setTick((t) => t + 1), 1400);
+    return () => clearInterval(id);
+  }, [inView]);
+
+  // Simulate slight rate jitter
+  const jitter = (base: string) => {
+    const n = parseFloat(base);
+    const delta = (Math.random() - 0.5) * 0.001 * n;
+    return (n + delta).toFixed(base.split(".")[1]?.length ?? 4);
+  };
+
+  return (
+    <motion.div
+      ref={ref}
+      {...animateIn}
+      transition={{ duration: 0.5, ease, delay: 0.2 }}
+      className="md:col-span-2 rounded-2xl bg-white border border-gray-100 hover:shadow-xl transition-shadow duration-300 overflow-hidden"
+    >
+      <div className="p-8 pb-4">
+        <h3 className="text-xl font-bold text-gray-900 mb-2">Settlement in Multiple Currencies.</h3>
+        <p className="text-gray-400 text-sm leading-relaxed">
+          Receive settlement across 15+ countries with competitive FX and same-day liquidity.
+        </p>
+      </div>
+      <div className="px-8 pb-8">
+        <div className="grid grid-cols-3 gap-3">
+          {currencies.map((c, i) => {
+            const isPositive = c.change.startsWith("+") && c.change !== "+0.00%";
+            const isNeutral = c.change === "+0.00%";
+            return (
+              <motion.div
+                key={c.code}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={inView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.9 }}
+                transition={{ delay: 0.1 + i * 0.07, duration: 0.4 }}
+                className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3"
+              >
+                <div className="flex items-center gap-2 mb-1.5">
+                  <span className="text-lg">{c.flag}</span>
+                  <span className="text-sm font-bold text-gray-800">{c.code}</span>
+                </div>
+                <motion.div
+                  key={tick}
+                  initial={{ opacity: 0.6 }}
+                  animate={{ opacity: 1 }}
+                  className="text-xs font-mono text-gray-600"
+                >
+                  {tick > 0 ? jitter(c.rate) : c.rate}
+                </motion.div>
+                <div
+                  className={`text-[10px] font-semibold mt-0.5 ${
+                    isNeutral ? "text-gray-400" : isPositive ? "text-green-600" : "text-red-500"
+                  }`}
+                >
+                  {c.change}
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+        {/* Scrolling ticker */}
+        <div className="mt-4 overflow-hidden rounded-lg bg-gray-50 border border-gray-100 py-2 px-4">
+          <motion.div
+            animate={{ x: ["0%", "-50%"] }}
+            transition={{ duration: 18, ease: "linear", repeat: Infinity }}
+            className="flex gap-8 whitespace-nowrap"
+          >
+            {[...currencies, ...currencies].map((c, i) => (
+              <span key={i} className="text-xs text-gray-400 font-mono">
+                <span className="font-semibold text-gray-600">{c.code}/USD</span> {c.rate}
+              </span>
+            ))}
+          </motion.div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
 /* ─── Feature Bento Grid ─── */
 function FeaturesSection() {
   return (
@@ -266,83 +619,10 @@ function FeaturesSection() {
 
         {/* Bento grid */}
         <div className="grid md:grid-cols-3 gap-5">
-          {/* Large card — spans 2 cols */}
-          <motion.div
-            {...animateIn}
-            className="md:col-span-2 p-8 rounded-2xl bg-white border border-gray-100 hover:shadow-lg transition-shadow duration-300"
-          >
-            <h3 className="text-xl font-bold text-gray-900 mb-2">Instant Settlement.</h3>
-            <p className="text-gray-400 text-sm leading-relaxed mb-8">
-              Get paid instantly. No more waiting 2–7 days for funds to clear. Settlement happens in real-time, directly to your account.
-            </p>
-            {/* Visual: flow diagram */}
-            <div className="flex items-center justify-center gap-3 py-6">
-              {["Payment", "Verification", "Settlement"].map((step, i) => (
-                <div key={step} className="flex items-center gap-3">
-                  <div className="px-4 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm font-medium text-gray-700">{step}</div>
-                  {i < 2 && <ArrowRight className="w-4 h-4 text-gray-300" />}
-                </div>
-              ))}
-            </div>
-          </motion.div>
-
-          {/* Small card */}
-          <motion.div
-            {...animateIn}
-            transition={{ duration: 0.5, ease, delay: 0.1 }}
-            className="p-8 rounded-2xl bg-white border border-gray-100 hover:shadow-lg transition-shadow duration-300"
-          >
-            <h3 className="text-xl font-bold text-gray-900 mb-2">Transaction Transparency.</h3>
-            <p className="text-gray-400 text-sm leading-relaxed mb-6">
-              Track payments, customers and onchain transactions.
-            </p>
-            <div className="space-y-3">
-              {[
-                { label: "USD Deposit", status: "Processing", color: "text-gray-500" },
-                { label: "EUR Account", status: "Ready", color: "text-green-600" },
-                { label: "KYC Submitted", status: "In Review", color: "text-amber-500" },
-              ].map((item) => (
-                <div key={item.label} className="flex items-center justify-between p-3 rounded-lg bg-gray-50 border border-gray-100">
-                  <span className="text-sm text-gray-700 font-medium">{item.label}</span>
-                  <span className={`text-xs font-medium ${item.color}`}>{item.status}</span>
-                </div>
-              ))}
-            </div>
-          </motion.div>
-
-          {/* Bottom row — 2 equal */}
-          <motion.div
-            {...animateIn}
-            transition={{ duration: 0.5, ease, delay: 0.15 }}
-            className="p-8 rounded-2xl bg-white border border-gray-100 hover:shadow-lg transition-shadow duration-300"
-          >
-            <h3 className="text-xl font-bold text-gray-900 mb-2">Roar Score Credit.</h3>
-            <p className="text-gray-400 text-sm leading-relaxed mb-4">
-              A 300–900 credit score built automatically from your business activity. No paperwork required.
-            </p>
-            <div className="flex items-center gap-3">
-              <div className="text-3xl font-black text-gray-900">742</div>
-              <div className="flex-1 h-2 rounded-full bg-gray-100 overflow-hidden">
-                <div className="h-full rounded-full w-3/4" style={{ background: "linear-gradient(90deg, #ef4444, #f59e0b, #22c55e)" }} />
-              </div>
-            </div>
-          </motion.div>
-
-          <motion.div
-            {...animateIn}
-            transition={{ duration: 0.5, ease, delay: 0.2 }}
-            className="md:col-span-2 p-8 rounded-2xl bg-white border border-gray-100 hover:shadow-lg transition-shadow duration-300"
-          >
-            <h3 className="text-xl font-bold text-gray-900 mb-2">Settlement in Multiple Currencies.</h3>
-            <p className="text-gray-400 text-sm leading-relaxed mb-6">
-              Receive settlement across 15+ countries with competitive FX and same-day liquidity.
-            </p>
-            <div className="flex items-center gap-4 flex-wrap">
-              {["USD", "EUR", "GBP", "AED", "INR"].map((c) => (
-                <div key={c} className="px-4 py-2 rounded-lg bg-gray-50 border border-gray-100 text-sm font-semibold text-gray-700">{c}</div>
-              ))}
-            </div>
-          </motion.div>
+          <SettlementCard />
+          <TransparencyCard />
+          <RoarScoreCard />
+          <CurrencyCard />
         </div>
       </div>
     </section>
