@@ -85,14 +85,14 @@ function Navbar() {
     >
       <div className="max-w-7xl mx-auto px-6 md:px-10">
         <div className="flex items-center justify-between h-16 md:h-20">
-          <div className="flex items-center gap-2.5" data-testid="text-logo">
+          <Link href="/" className="flex items-center gap-2.5" data-testid="text-logo">
             <img src={logoImg} alt="TigerBnk" className="w-7 h-7 rounded-lg" />
             <span className="font-bold text-lg tracking-tight text-gray-900">TigerBnk</span>
-          </div>
+          </Link>
 
           <div className="hidden md:flex items-center gap-8 text-sm text-gray-500">
+            <Link href="/" className="transition-colors hover:text-gray-900">Home</Link>
             <a href="#features" className="transition-colors hover:text-gray-900">Features</a>
-            <a href="#how-it-works" className="transition-colors hover:text-gray-900">How It Works</a>
             <Link href="/cards" className="transition-colors hover:text-gray-900">Cards</Link>
             <a href="#faq" className="transition-colors hover:text-gray-900">FAQ</a>
           </div>
@@ -126,8 +126,8 @@ function Navbar() {
             style={{ background: "rgba(255, 255, 255, 0.95)", backdropFilter: "blur(20px)" }}
           >
             <div className="px-6 py-4 space-y-3">
+              <Link href="/" className="block text-gray-500 text-sm py-2" onClick={() => setMobileOpen(false)}>Home</Link>
               <a href="#features" className="block text-gray-500 text-sm py-2" onClick={() => setMobileOpen(false)}>Features</a>
-              <a href="#how-it-works" className="block text-gray-500 text-sm py-2" onClick={() => setMobileOpen(false)}>How It Works</a>
               <Link href="/cards" className="block text-gray-500 text-sm py-2" onClick={() => setMobileOpen(false)}>Cards</Link>
               <a href="#faq" className="block text-gray-500 text-sm py-2" onClick={() => setMobileOpen(false)}>FAQ</a>
               <div className="flex gap-3 pt-2">
@@ -1383,7 +1383,6 @@ function Footer() {
               <h4 className="font-bold mb-4 text-sm">Resources</h4>
               <div className="space-y-3 text-sm text-gray-400">
                 <a href="#faq" className="block hover:text-white transition-colors">FAQ</a>
-                <a href="#how-it-works" className="block hover:text-white transition-colors">How It Works</a>
               </div>
             </div>
             <div>
@@ -1437,7 +1436,6 @@ export default function LandingPage() {
       <ProblemSection />
       <FeaturesSection />
       <SolutionsSection />
-      <HowItWorksSection />
       <FAQSection />
       <Footer />
     </div>

@@ -252,18 +252,17 @@ function Navbar() {
           </Link>
 
           <div className="hidden md:flex items-center gap-8 text-sm text-gray-500">
-            <a href="#features" className="hover:text-gray-900 transition-colors" data-testid="link-features">Features</a>
-            <Link href="/" className="hover:text-gray-900 transition-colors" data-testid="link-home">Home</Link>
+            <Link href="/" className="transition-colors hover:text-gray-900">Home</Link>
+            <a href="/#features" className="transition-colors hover:text-gray-900">Features</a>
+            <Link href="/cards" className="transition-colors hover:text-gray-900">Cards</Link>
+            <a href="/#faq" className="transition-colors hover:text-gray-900">FAQ</a>
           </div>
 
           <div className="hidden md:flex items-center gap-3">
-            <Button asChild variant="ghost" size="sm" className="rounded-none px-5 text-gray-600 hover:text-gray-900">
-              <Link href="/auth" data-testid="link-signin">Sign In</Link>
-            </Button>
             <Button
               asChild size="sm"
-              className="rounded-none px-6 py-2 font-medium text-white border-0 h-auto"
-              style={{ background: "#1a1a1a" }}
+              className="rounded-full px-6 py-2 font-medium text-gray-900 border-0 h-auto"
+              style={{ background: "#FF4D00" }}
             >
               <Link href="/auth?mode=register" className="inline-flex items-center gap-1.5" data-testid="link-get-started">
                 Get Started <ArrowRight className="w-3.5 h-3.5" />
@@ -291,11 +290,13 @@ function Navbar() {
             style={{ background: "#FFF8E7" }}
           >
             <div className="px-6 py-4 space-y-3">
-              <a href="#features" className="block text-gray-500 text-sm py-2" onClick={() => setMobileOpen(false)} data-testid="link-features-mobile">Features</a>
-              <Link href="/" className="block text-gray-500 text-sm py-2" onClick={() => setMobileOpen(false)} data-testid="link-home-mobile">Home</Link>
+              <Link href="/" className="block text-gray-500 text-sm py-2" onClick={() => setMobileOpen(false)}>Home</Link>
+              <a href="/#features" className="block text-gray-500 text-sm py-2" onClick={() => setMobileOpen(false)}>Features</a>
+              <Link href="/cards" className="block text-gray-500 text-sm py-2" onClick={() => setMobileOpen(false)}>Cards</Link>
+              <a href="/#faq" className="block text-gray-500 text-sm py-2" onClick={() => setMobileOpen(false)}>FAQ</a>
               <div className="flex gap-3 pt-2">
-                <Button asChild size="sm" className="flex-1 rounded-none text-white border-0" style={{ background: "#1a1a1a" }}>
-                  <Link href="/auth?mode=register" data-testid="link-get-started-mobile">Get Started</Link>
+                <Button asChild size="sm" className="flex-1 rounded-full text-gray-900 border-0" style={{ background: "#FF4D00" }}>
+                  <Link href="/auth?mode=register">Get Started</Link>
                 </Button>
               </div>
             </div>
