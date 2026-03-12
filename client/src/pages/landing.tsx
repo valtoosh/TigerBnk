@@ -7,7 +7,8 @@ import { insertEarlyAccessSchema } from "@shared/schema";
 import {
   ArrowRight, Clock, Globe, Lock, CreditCard, TrendingUp, Repeat,
   DollarSign, CheckCircle2, Zap, BarChart3, Menu, X,
-  ShoppingCart, Users, Ship, Monitor, Store, Plus
+  ShoppingCart, Users, Ship, Monitor, Store, Plus,
+  CircleDollarSign, Building2, Smartphone, Landmark, IndianRupee
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
@@ -249,13 +250,298 @@ function HeroSection() {
 }
 
 /* ─── Problem Section ─── */
-function ProblemSection() {
-  const problems = [
-    { icon: Clock, title: "2–7 Day Settlement Delays", desc: "Revenue sits in limbo while your business needs it now." },
-    { icon: Globe, title: "No Portable Credit Across Borders", desc: "Your track record doesn't travel with you." },
-    { icon: Lock, title: "Working Capital Locked in Transit", desc: "Funds trapped in payment pipelines, unavailable when needed." },
+
+function CurrencyRoutingCard() {
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: true, amount: 0.3 });
+  const currencies = [
+    { code: "INR", flag: "🇮🇳", color: "#FF9933" },
+    { code: "BRL", flag: "🇧🇷", color: "#009739" },
+    { code: "PHP", flag: "🇵🇭", color: "#0038A8" },
+    { code: "NGN", flag: "🇳🇬", color: "#008751" },
   ];
 
+  return (
+    <motion.div
+      ref={ref}
+      {...animateIn}
+      transition={{ duration: 0.5, ease, delay: 0 }}
+      className="p-8 bg-white border border-gray-100 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col overflow-hidden"
+      data-testid="card-problem-0"
+    >
+      <div className="flex-1 flex flex-col items-center">
+        <div className="flex justify-between w-full mb-6">
+          {currencies.map((c, i) => (
+            <motion.div
+              key={c.code}
+              initial={{ opacity: 0, scale: 0.5, y: -16 }}
+              animate={inView ? { opacity: 1, scale: 1, y: 0 } : {}}
+              transition={{ duration: 0.5, delay: 0.15 + i * 0.12, type: "spring", stiffness: 200, damping: 15 }}
+              className="flex flex-col items-center gap-1.5"
+            >
+              <motion.div
+                className="w-11 h-11 bg-white border-2 flex items-center justify-center text-lg shadow-sm"
+                style={{ borderColor: c.color }}
+                animate={inView ? { boxShadow: [`0 0 0px ${c.color}00`, `0 0 12px ${c.color}30`, `0 0 4px ${c.color}15`] } : {}}
+                transition={{ duration: 1.5, delay: 0.8 + i * 0.12 }}
+              >
+                {c.flag}
+              </motion.div>
+              <span className="text-[10px] font-bold text-gray-500 tracking-wide">{c.code}</span>
+            </motion.div>
+          ))}
+        </div>
+
+        <svg width="100%" height="130" viewBox="0 0 240 130" className="mb-2">
+          <defs>
+            <linearGradient id="lineGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#E5E7EB" />
+              <stop offset="100%" stopColor={ORANGE} stopOpacity={0.4} />
+            </linearGradient>
+            <filter id="hubGlow">
+              <feGaussianBlur stdDeviation="3" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
+          {[0, 1, 2, 3].map((i) => (
+            <motion.path
+              key={`line-top-${i}`}
+              d={`M${30 + i * 60},0 Q${30 + i * 60 + (120 - (30 + i * 60)) * 0.3},25 120,55`}
+              stroke="url(#lineGrad)"
+              strokeWidth={1.5}
+              fill="none"
+              initial={{ pathLength: 0, opacity: 0 }}
+              animate={inView ? { pathLength: 1, opacity: 1 } : {}}
+              transition={{ duration: 0.8, delay: 0.5 + i * 0.15, ease: [0.4, 0, 0.2, 1] }}
+            />
+          ))}
+          {[0, 1, 2, 3].map((i) => (
+            <motion.circle
+              key={`dot-${i}`}
+              r={2.5}
+              fill={ORANGE}
+              initial={{ opacity: 0 }}
+              animate={inView ? {
+                opacity: [0, 1, 1, 0],
+                cx: [30 + i * 60, 30 + i * 60 + (120 - (30 + i * 60)) * 0.5, 120, 120],
+                cy: [0, 25, 50, 55],
+              } : {}}
+              transition={{ duration: 1.2, delay: 1.3 + i * 0.2, ease: "easeInOut" }}
+            />
+          ))}
+          <motion.circle
+            cx={120}
+            cy={55}
+            r={20}
+            fill="#FFF8E7"
+            stroke={ORANGE}
+            strokeWidth={2}
+            filter="url(#hubGlow)"
+            initial={{ scale: 0, opacity: 0 }}
+            animate={inView ? { scale: 1, opacity: 1 } : {}}
+            transition={{ duration: 0.6, delay: 1.0, type: "spring", stiffness: 180, damping: 12 }}
+          />
+          <motion.text
+            x={120}
+            y={59}
+            textAnchor="middle"
+            fontSize={9}
+            fontWeight={800}
+            fill={ORANGE}
+            letterSpacing="1"
+            initial={{ opacity: 0 }}
+            animate={inView ? { opacity: 1 } : {}}
+            transition={{ duration: 0.4, delay: 1.4 }}
+          >
+            HUB
+          </motion.text>
+          <motion.line
+            x1={120}
+            y1={75}
+            x2={120}
+            y2={115}
+            stroke="url(#lineGrad)"
+            strokeWidth={1.5}
+            initial={{ pathLength: 0 }}
+            animate={inView ? { pathLength: 1 } : {}}
+            transition={{ duration: 0.6, delay: 1.6, ease: [0.4, 0, 0.2, 1] }}
+          />
+          <motion.circle
+            r={2.5}
+            fill={ORANGE}
+            initial={{ opacity: 0 }}
+            animate={inView ? {
+              opacity: [0, 1, 1, 0],
+              cx: [120, 120, 120, 120],
+              cy: [75, 90, 105, 115],
+            } : {}}
+            transition={{ duration: 0.8, delay: 2.0, ease: "easeInOut" }}
+          />
+          <motion.g
+            initial={{ opacity: 0, scale: 0 }}
+            animate={inView ? { opacity: 1, scale: 1 } : {}}
+            transition={{ duration: 0.5, delay: 2.1, type: "spring", stiffness: 200, damping: 14 }}
+          >
+            <circle cx={120} cy={118} r={12} fill="#FFF8E7" stroke={ORANGE} strokeWidth={1.5} strokeOpacity={0.5} />
+            <g transform="translate(112, 110)">
+              <rect x="1" y="3" width="14" height="10" rx="1" stroke={ORANGE} strokeWidth="1.2" fill="none" strokeOpacity={0.7} />
+              <path d="M3 3V2a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v1" stroke={ORANGE} strokeWidth="1.2" fill="none" strokeOpacity={0.7} />
+              <circle cx="11" cy="8" r="1" fill={ORANGE} fillOpacity={0.7} />
+            </g>
+          </motion.g>
+        </svg>
+      </div>
+      <h3 className="text-lg font-bold text-gray-900 mb-3" data-testid="text-problem-title-0">2–7 Day Settlement Delays</h3>
+      <p className="text-gray-400 text-sm leading-relaxed" data-testid="text-problem-desc-0">Revenue sits in limbo while your business needs it now.</p>
+    </motion.div>
+  );
+}
+
+function LiveBalanceCard() {
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: true, amount: 0.3 });
+  const balance = useCounter(284930, 2200, 0, inView);
+  const payoutRails = [
+    { icon: Building2, label: "Bank" },
+    { icon: Smartphone, label: "Smartphone" },
+    { icon: Landmark, label: "Landmark" },
+    { icon: IndianRupee, label: "Rupee" },
+  ];
+
+  return (
+    <motion.div
+      ref={ref}
+      {...animateIn}
+      transition={{ duration: 0.5, ease, delay: 0.1 }}
+      className="p-8 bg-white border border-gray-100 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col overflow-hidden"
+      data-testid="card-problem-1"
+    >
+      <div className="flex-1 flex flex-col items-center justify-center">
+        <motion.div
+          initial={{ scale: 0, rotate: -30 }}
+          animate={inView ? { scale: 1, rotate: 0 } : {}}
+          transition={{ duration: 0.7, delay: 0.2, type: "spring", stiffness: 160, damping: 12 }}
+          className="mb-5 relative"
+        >
+          <motion.div
+            animate={inView ? { boxShadow: [`0 0 0px ${ORANGE}00`, `0 0 30px ${ORANGE}25`, `0 0 15px ${ORANGE}15`] } : {}}
+            transition={{ duration: 2, delay: 0.8 }}
+            className="rounded-full p-3"
+          >
+            <CircleDollarSign className="w-14 h-14" style={{ color: ORANGE }} />
+          </motion.div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 16, scale: 0.9 }}
+          animate={inView ? { opacity: 1, y: 0, scale: 1 } : {}}
+          transition={{ duration: 0.6, delay: 0.5, type: "spring", stiffness: 120 }}
+          className="text-center mb-6"
+        >
+          <span className="text-3xl font-black text-gray-900 tabular-nums" data-testid="text-balance-counter">
+            ${balance.toLocaleString()}
+          </span>
+          <motion.div
+            initial={{ width: 0 }}
+            animate={inView ? { width: "60%" } : {}}
+            transition={{ duration: 0.8, delay: 1.2, ease: [0.4, 0, 0.2, 1] }}
+            className="h-[2px] mx-auto mt-2 mb-1"
+            style={{ background: `linear-gradient(90deg, transparent, ${ORANGE}40, transparent)` }}
+          />
+          <p className="text-xs text-gray-400 mt-1">Available Balance</p>
+        </motion.div>
+
+        <div className="flex justify-between w-full mb-4 gap-2">
+          {payoutRails.map((r, i) => (
+            <motion.div
+              key={r.label}
+              initial={{ opacity: 0, y: 16, scale: 0.8 }}
+              animate={inView ? { opacity: 1, y: 0, scale: 1 } : {}}
+              transition={{ duration: 0.5, delay: 0.8 + i * 0.12, type: "spring", stiffness: 180, damping: 14 }}
+              className="flex flex-col items-center gap-1.5 flex-1"
+            >
+              <motion.div
+                className="w-9 h-9 bg-white border border-gray-200 flex items-center justify-center shadow-sm"
+                whileHover={{ scale: 1.1, borderColor: ORANGE }}
+                transition={{ duration: 0.2 }}
+              >
+                <r.icon className="w-4 h-4 text-gray-500" />
+              </motion.div>
+              <span className="text-[9px] font-semibold text-gray-400">{r.label}</span>
+            </motion.div>
+          ))}
+        </div>
+
+        <motion.p
+          initial={{ opacity: 0, y: 8 }}
+          animate={inView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.5, delay: 1.4 }}
+          className="text-[11px] text-gray-400 text-center leading-snug"
+        >
+          Payout in 30+ currencies across Americas, Asia, Africa & Europe.
+        </motion.p>
+      </div>
+      <h3 className="text-lg font-bold text-gray-900 mb-3 mt-6" data-testid="text-problem-title-1">No Portable Credit Across Borders</h3>
+      <p className="text-gray-400 text-sm leading-relaxed" data-testid="text-problem-desc-1">Your track record doesn't travel with you.</p>
+    </motion.div>
+  );
+}
+
+function AccountLedgerCard() {
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: true, amount: 0.3 });
+  const balance1 = useCounter(42500, 2200, 0, inView);
+  const balance2 = useCounter(180200, 2800, 0, inView);
+
+  const accounts = [
+    { name: "Roar.Finance", type: "IBAN", masked: "•••• 4821", balance: balance1, accent: ORANGE },
+    { name: "Solana", type: "Wallet", masked: "•••• 8296", balance: balance2, accent: "#9945FF" },
+  ];
+
+  return (
+    <motion.div
+      ref={ref}
+      {...animateIn}
+      transition={{ duration: 0.5, ease, delay: 0.2 }}
+      className="p-8 bg-white border border-gray-100 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col overflow-hidden"
+      data-testid="card-problem-2"
+    >
+      <div className="flex-1 flex flex-col justify-center gap-3 mb-6">
+        {accounts.map((acc, i) => (
+          <motion.div
+            key={acc.name}
+            initial={{ opacity: 0, x: -20, scale: 0.95 }}
+            animate={inView ? { opacity: 1, x: 0, scale: 1 } : {}}
+            transition={{ duration: 0.6, delay: 0.3 + i * 0.25, type: "spring", stiffness: 120, damping: 14 }}
+            className="bg-gray-50 border border-gray-100 p-4 flex items-center justify-between relative overflow-hidden"
+          >
+            <motion.div
+              className="absolute left-0 top-0 bottom-0 w-[3px]"
+              style={{ backgroundColor: acc.accent }}
+              initial={{ scaleY: 0 }}
+              animate={inView ? { scaleY: 1 } : {}}
+              transition={{ duration: 0.4, delay: 0.6 + i * 0.25 }}
+            />
+            <div className="flex flex-col pl-2">
+              <span className="text-sm font-bold text-gray-900">{acc.name}</span>
+              <span className="text-[11px] text-gray-400">{acc.type} {acc.masked}</span>
+            </div>
+            <span className="text-lg font-black text-gray-900 tabular-nums" data-testid={`text-ledger-balance-${i}`}>
+              ${acc.balance.toLocaleString()}
+            </span>
+          </motion.div>
+        ))}
+      </div>
+      <h3 className="text-lg font-bold text-gray-900 mb-3" data-testid="text-problem-title-2">Working Capital Locked in Transit</h3>
+      <p className="text-gray-400 text-sm leading-relaxed" data-testid="text-problem-desc-2">Funds trapped in payment pipelines, unavailable when needed.</p>
+    </motion.div>
+  );
+}
+
+function ProblemSection() {
   return (
     <section className="py-24 sm:py-32 bg-white" data-testid="section-problem">
       <div className="max-w-6xl mx-auto px-6">
@@ -267,21 +553,9 @@ function ProblemSection() {
         </motion.div>
 
         <div className="grid md:grid-cols-3 gap-6">
-          {problems.map((p, i) => (
-            <motion.div
-              key={i}
-              {...animateIn}
-              transition={{ duration: 0.5, ease, delay: i * 0.1 }}
-              className="p-8 rounded-2xl bg-white border border-gray-100 hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
-              data-testid={`card-problem-${i}`}
-            >
-              <div className="w-12 h-12 rounded-xl bg-[#FFF8E7] flex items-center justify-center mb-6">
-                <p.icon className="w-6 h-6 text-gray-700" />
-              </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-3" data-testid={`text-problem-title-${i}`}>{p.title}</h3>
-              <p className="text-gray-400 text-sm leading-relaxed" data-testid={`text-problem-desc-${i}`}>{p.desc}</p>
-            </motion.div>
-          ))}
+          <CurrencyRoutingCard />
+          <LiveBalanceCard />
+          <AccountLedgerCard />
         </div>
       </div>
     </section>
