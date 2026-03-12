@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, useMotionValue, useSpring, useTransform, useInView, AnimatePresence } from "framer-motion";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -1051,19 +1051,111 @@ function FeaturesSection() {
 }
 
 /* ─── Solutions / Industries ─── */
+
+function IndustryRow({ ind, index, isActive, onActivate }: {
+  ind: { icon: any; title: string; desc: string };
+  index: number;
+  isActive: boolean;
+  onActivate: (index: number) => void;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { amount: 0.6 });
+
+  useEffect(() => {
+    if (inView) onActivate(index);
+  }, [inView, onActivate, index]);
+
+  const Icon = ind.icon;
+
+  return (
+    <div
+      ref={ref}
+      className="relative cursor-pointer"
+      style={{ paddingLeft: "28px", borderBottom: "1px solid #e8e0d0" }}
+      onClick={() => onActivate(index)}
+      data-testid={`industry-row-${index}`}
+    >
+      <motion.div
+        className="absolute left-0 top-0 bottom-0 w-[3px] origin-top"
+        style={{ backgroundColor: ORANGE }}
+        initial={{ scaleY: 0 }}
+        animate={{ scaleY: isActive ? 1 : 0 }}
+        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+      />
+      <motion.div
+        className="py-6"
+        animate={{ opacity: isActive ? 1 : 0.35 }}
+        transition={{ type: "spring", stiffness: 200, damping: 25 }}
+      >
+        <div className="flex items-start gap-3">
+          <motion.div
+            animate={{ color: isActive ? ORANGE : "#d1d5db" }}
+            transition={{ duration: 0.3 }}
+            className="mt-0.5 flex-shrink-0"
+          >
+            <Icon className="w-5 h-5" />
+          </motion.div>
+          <div>
+            <motion.h4
+              className="font-bold"
+              animate={{ color: isActive ? "#111827" : "#9ca3af" }}
+              transition={{ duration: 0.3 }}
+            >
+              {ind.title}
+            </motion.h4>
+            <motion.p
+              className="text-sm leading-relaxed mt-1"
+              animate={{ color: isActive ? "#6b7280" : "#9ca3af" }}
+              transition={{ duration: 0.3 }}
+            >
+              {ind.desc}
+            </motion.p>
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
 function SolutionsSection() {
   const industries = [
-    { icon: ShoppingCart, title: "E-commerce", desc: "Accept payments globally and settle instantly to fuel your growth." },
-    { icon: Users, title: "Freelancers", desc: "Get paid from anywhere without delays or hidden FX fees." },
-    { icon: Ship, title: "Cross-border Trade", desc: "Settle international trade payments with competitive FX and same-day liquidity." },
-    { icon: Monitor, title: "SaaS Platforms", desc: "Monetize global users instantly with local collections and real-time payouts." },
-    { icon: Store, title: "Marketplaces", desc: "Collect locally and pay out globally with high approval rates and instant settlement." },
+    {
+      icon: ShoppingCart,
+      title: "E-commerce",
+      desc: "Accept payments globally and settle instantly to fuel your growth.",
+      image: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800&q=80",
+    },
+    {
+      icon: Users,
+      title: "Freelancers",
+      desc: "Get paid from anywhere without delays or hidden FX fees.",
+      image: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&q=80",
+    },
+    {
+      icon: Ship,
+      title: "Cross-border Trade",
+      desc: "Settle international trade payments with competitive FX and same-day liquidity.",
+      image: "https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=800&q=80",
+    },
+    {
+      icon: Monitor,
+      title: "SaaS Platforms",
+      desc: "Monetize global users instantly with local collections and real-time payouts.",
+      image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&q=80",
+    },
+    {
+      icon: Store,
+      title: "Marketplaces",
+      desc: "Collect locally and pay out globally with high approval rates and instant settlement.",
+      image: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&q=80",
+    },
   ];
 
   const [active, setActive] = useState(0);
+  const handleActivate = useCallback((index: number) => setActive(index), []);
 
   return (
-    <section className="py-24 sm:py-32 bg-white">
+    <section className="py-24 sm:py-32 bg-white" data-testid="solutions-section">
       <div className="max-w-6xl mx-auto px-6">
         <motion.div {...animateIn} className="text-center mb-16">
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-gray-900 tracking-tight">
@@ -1075,56 +1167,60 @@ function SolutionsSection() {
         </motion.div>
 
         <div className="grid md:grid-cols-2 gap-16 items-start">
-          {/* Left — visual */}
+          {/* Left — sticky image panel */}
           <motion.div
             {...animateIn}
-            className="relative rounded-2xl overflow-hidden aspect-[4/5] hidden md:block"
+            className="hidden md:block"
           >
-            <div
-              className="absolute inset-0"
-              style={{
-                background: "#FFF8E7",
-              }}
-            />
-            <div className="absolute inset-0 border border-gray-200/60 rounded-2xl flex items-center justify-center">
-              <div className="text-center">
-                <div className="w-16 h-16 rounded-2xl bg-white flex items-center justify-center mx-auto mb-4" style={{ boxShadow: "inset 0 1px 4px rgba(0,0,0,0.05)" }}>
-                  {(() => {
-                    const Icon = industries[active].icon;
-                    return <Icon className="w-8 h-8 text-gray-400" />;
-                  })()}
-                </div>
-                <p className="text-gray-400 text-sm font-medium">{industries[active].title}</p>
-              </div>
+            <div className="sticky top-24 rounded-2xl overflow-hidden bg-gray-900" style={{ height: "420px" }}>
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={active}
+                  className="absolute inset-0"
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -12 }}
+                  transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                >
+                  <img
+                    src={industries[active].image}
+                    alt={industries[active].title}
+                    className="w-full h-full object-cover"
+                    style={{ filter: "grayscale(40%) contrast(1.1)" }}
+                    data-testid={`industry-image-${active}`}
+                  />
+                  <div
+                    className="absolute inset-0"
+                    style={{
+                      background: "linear-gradient(to top, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.25) 100%)",
+                    }}
+                  />
+                  <div className="absolute bottom-6 left-6 right-6">
+                    <motion.p
+                      className="text-white/90 text-lg font-bold"
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.15, duration: 0.4 }}
+                    >
+                      {industries[active].title}
+                    </motion.p>
+                  </div>
+                </motion.div>
+              </AnimatePresence>
             </div>
           </motion.div>
 
           {/* Right — list */}
           <motion.div {...animateIn} transition={{ duration: 0.5, ease, delay: 0.1 }}>
-            <div className="space-y-0">
-              {industries.map((ind, i) => (
-                <motion.div
-                  key={ind.title}
-                  className="py-6 cursor-pointer transition-all duration-300"
-                  style={{
-                    borderLeft: i === active ? `3px solid ${ORANGE}` : "3px solid transparent",
-                    paddingLeft: "24px",
-                    borderBottom: "1px solid #e8e0d0",
-                  }}
-                  onClick={() => setActive(i)}
-                  onViewportEnter={() => setActive(i)}
-                  viewport={{ amount: 0.8 }}
-                >
-                  <div className="flex items-start gap-3">
-                    <ind.icon className={`w-5 h-5 mt-0.5 flex-shrink-0 transition-colors duration-300 ${i === active ? "text-gray-900" : "text-gray-300"}`} />
-                    <div>
-                      <h4 className={`font-bold transition-colors duration-300 ${i === active ? "text-gray-900" : "text-gray-300"}`}>{ind.title}</h4>
-                      <p className={`text-sm leading-relaxed mt-1 transition-colors duration-300 ${i === active ? "text-gray-500" : "text-gray-300"}`}>{ind.desc}</p>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
+            {industries.map((ind, i) => (
+              <IndustryRow
+                key={ind.title}
+                ind={ind}
+                index={i}
+                isActive={i === active}
+                onActivate={handleActivate}
+              />
+            ))}
           </motion.div>
         </div>
       </div>
