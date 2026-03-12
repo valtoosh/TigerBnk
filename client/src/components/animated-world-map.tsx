@@ -8,69 +8,64 @@ const GOLD_GLOW = "rgba(201, 168, 76, 0.6)";
 const VB_W = 2752;
 const VB_H = 1536;
 
-const LON_MIN = -168;
-const LON_MAX = 190;
-const LAT_TOP = 83;
-const LAT_BOT = -72;
-
-function lonToX(lon: number) {
-  return ((lon - LON_MIN) / (LON_MAX - LON_MIN)) * VB_W;
-}
-function latToY(lat: number) {
-  return ((LAT_TOP - lat) / (LAT_TOP - LAT_BOT)) * VB_H;
-}
-
 interface CityNode {
   name: string;
-  lat: number;
-  lon: number;
-  labelOffset: [number, number];
+  x: number;
+  y: number;
 }
 
 const CITIES: CityNode[] = [
-  { name: "San Francisco", lat: 37.77, lon: -122.42, labelOffset: [-18, -18] },
-  { name: "Los Angeles", lat: 34.05, lon: -118.24, labelOffset: [-18, 22] },
-  { name: "Chicago", lat: 41.88, lon: -87.63, labelOffset: [18, -14] },
-  { name: "Toronto", lat: 43.65, lon: -79.38, labelOffset: [0, -18] },
-  { name: "New York", lat: 40.71, lon: -74.01, labelOffset: [18, 6] },
-  { name: "Mexico City", lat: 19.43, lon: -99.13, labelOffset: [-18, 6] },
-  { name: "São Paulo", lat: -23.55, lon: -46.63, labelOffset: [18, 6] },
-  { name: "Buenos Aires", lat: -34.60, lon: -58.38, labelOffset: [18, 6] },
-  { name: "Santiago", lat: -33.45, lon: -70.67, labelOffset: [-18, 6] },
-  { name: "London", lat: 51.51, lon: -0.13, labelOffset: [-18, -14] },
-  { name: "Amsterdam", lat: 52.37, lon: 4.90, labelOffset: [18, -14] },
-  { name: "Zurich", lat: 47.38, lon: 8.54, labelOffset: [18, -14] },
-  { name: "Paris", lat: 48.86, lon: 2.35, labelOffset: [-18, 6] },
-  { name: "Milan", lat: 45.46, lon: 9.19, labelOffset: [18, 10] },
-  { name: "Madrid", lat: 40.42, lon: -3.70, labelOffset: [-18, 10] },
-  { name: "Frankfurt", lat: 50.11, lon: 8.68, labelOffset: [18, 6] },
-  { name: "Moscow", lat: 55.76, lon: 37.62, labelOffset: [18, -14] },
-  { name: "Istanbul", lat: 41.01, lon: 28.98, labelOffset: [18, 10] },
-  { name: "Cairo", lat: 30.04, lon: 31.24, labelOffset: [18, 6] },
-  { name: "Lagos", lat: 6.52, lon: 3.38, labelOffset: [-18, 10] },
-  { name: "Nairobi", lat: -1.29, lon: 36.82, labelOffset: [18, 6] },
-  { name: "Johannesburg", lat: -26.20, lon: 28.05, labelOffset: [18, 6] },
-  { name: "Dubai", lat: 25.20, lon: 55.27, labelOffset: [0, -18] },
-  { name: "Abu Dhabi", lat: 24.45, lon: 54.65, labelOffset: [-18, 16] },
-  { name: "Riyadh", lat: 24.69, lon: 46.72, labelOffset: [-18, 6] },
-  { name: "Karachi", lat: 24.86, lon: 67.01, labelOffset: [18, -14] },
-  { name: "Delhi", lat: 28.61, lon: 77.21, labelOffset: [0, -18] },
-  { name: "Mumbai", lat: 19.08, lon: 72.88, labelOffset: [-18, 10] },
-  { name: "Bengaluru", lat: 12.97, lon: 77.59, labelOffset: [18, 10] },
-  { name: "Bangkok", lat: 13.76, lon: 100.50, labelOffset: [18, -14] },
-  { name: "Kuala Lumpur", lat: 3.14, lon: 101.69, labelOffset: [18, 10] },
-  { name: "Singapore", lat: 1.35, lon: 103.82, labelOffset: [18, -14] },
-  { name: "Jakarta", lat: -6.21, lon: 106.85, labelOffset: [18, 10] },
-  { name: "Hong Kong", lat: 22.32, lon: 114.17, labelOffset: [18, 10] },
-  { name: "Taipei", lat: 25.03, lon: 121.57, labelOffset: [18, -14] },
-  { name: "Shanghai", lat: 31.23, lon: 121.47, labelOffset: [18, 6] },
-  { name: "Beijing", lat: 39.90, lon: 116.40, labelOffset: [0, -18] },
-  { name: "Seoul", lat: 37.57, lon: 126.98, labelOffset: [18, -14] },
-  { name: "Tokyo", lat: 35.68, lon: 139.69, labelOffset: [18, 6] },
-  { name: "Osaka", lat: 34.69, lon: 135.50, labelOffset: [-18, 16] },
-  { name: "Sydney", lat: -33.87, lon: 151.21, labelOffset: [18, 6] },
-  { name: "Melbourne", lat: -37.81, lon: 144.96, labelOffset: [-18, 6] },
-  { name: "Auckland", lat: -36.85, lon: 174.76, labelOffset: [18, 6] },
+  { name: "San Francisco",  x: 342,  y: 494 },
+  { name: "Los Angeles",    x: 321,  y: 544 },
+  { name: "Chicago",        x: 530,  y: 451 },
+  { name: "Toronto",        x: 594,  y: 424 },
+  { name: "New York",       x: 640,  y: 453 },
+  { name: "Mexico City",    x: 438,  y: 629 },
+
+  { name: "São Paulo",      x: 741,  y: 918 },
+  { name: "Buenos Aires",   x: 702,  y: 991 },
+  { name: "Santiago",       x: 637,  y: 981 },
+
+  { name: "Zurich",         x: 1262, y: 315 },
+  { name: "Amsterdam",      x: 1232, y: 289 },
+  { name: "London",         x: 1207, y: 309 },
+  { name: "Paris",          x: 1225, y: 332 },
+  { name: "Milan",          x: 1267, y: 342 },
+  { name: "Madrid",         x: 1177, y: 377 },
+  { name: "Frankfurt",      x: 1273, y: 311 },
+  { name: "Moscow",         x: 1502, y: 287 },
+
+  { name: "Istanbul",       x: 1443, y: 367 },
+  { name: "Cairo",          x: 1435, y: 466 },
+  { name: "Riyadh",         x: 1547, y: 504 },
+  { name: "Dubai",          x: 1633, y: 478 },
+  { name: "Abu Dhabi",      x: 1617, y: 498 },
+  { name: "Karachi",        x: 1695, y: 470 },
+
+  { name: "Lagos",          x: 1247, y: 648 },
+  { name: "Nairobi",        x: 1496, y: 702 },
+  { name: "Johannesburg",   x: 1445, y: 862 },
+
+  { name: "Delhi",          x: 1756, y: 446 },
+  { name: "Mumbai",         x: 1730, y: 536 },
+  { name: "Bengaluru",      x: 1742, y: 581 },
+
+  { name: "Bangkok",        x: 1933, y: 579 },
+  { name: "Kuala Lumpur",   x: 1943, y: 635 },
+  { name: "Singapore",      x: 1960, y: 659 },
+  { name: "Jakarta",        x: 1987, y: 709 },
+
+  { name: "Hong Kong",      x: 2035, y: 518 },
+  { name: "Taipei",         x: 2073, y: 497 },
+  { name: "Shanghai",       x: 2066, y: 459 },
+  { name: "Beijing",        x: 2047, y: 406 },
+  { name: "Seoul",          x: 2111, y: 412 },
+  { name: "Tokyo",          x: 2155, y: 436 },
+  { name: "Osaka",          x: 2134, y: 455 },
+
+  { name: "Sydney",         x: 2268, y: 928 },
+  { name: "Melbourne",      x: 2236, y: 963 },
+  { name: "Auckland",       x: 2377, y: 948 },
 ];
 
 interface Arc {
@@ -135,9 +130,9 @@ const ARCS: Arc[] = [
   { from: "Jakarta", to: "Sydney" },
 ];
 
-function getCityPos(name: string): { x: number; y: number; offset: [number, number] } {
+function getCityPos(name: string): { x: number; y: number } {
   const c = CITIES.find((c) => c.name === name)!;
-  return { x: lonToX(c.lon), y: latToY(c.lat), offset: c.labelOffset };
+  return { x: c.x, y: c.y };
 }
 
 function makeArcPath(fromX: number, fromY: number, toX: number, toY: number): string {
@@ -153,7 +148,7 @@ function makeArcPath(fromX: number, fromY: number, toX: number, toY: number): st
 }
 
 function PulsingDot({ name }: { name: string }) {
-  const { x, y, offset } = getCityPos(name);
+  const { x, y } = getCityPos(name);
   return (
     <g>
       <circle cx={x} cy={y} r="22" fill="none" stroke={GOLD_DIM} strokeWidth="2">
@@ -162,18 +157,6 @@ function PulsingDot({ name }: { name: string }) {
       </circle>
       <circle cx={x} cy={y} r="8" fill={GOLD} />
       <circle cx={x} cy={y} r="14" fill="none" stroke={GOLD_GLOW} strokeWidth="1.5" opacity="0.4" />
-      <text
-        x={x + offset[0]}
-        y={y + offset[1]}
-        textAnchor={offset[0] > 0 ? "start" : offset[0] < 0 ? "end" : "middle"}
-        fill="#5a4a28"
-        fontSize="18"
-        fontFamily="'JetBrains Mono', monospace"
-        fontWeight="600"
-        opacity="0.7"
-      >
-        {name}
-      </text>
     </g>
   );
 }
