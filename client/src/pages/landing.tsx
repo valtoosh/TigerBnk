@@ -16,8 +16,8 @@ import { Form, FormControl, FormField, FormItem, FormMessage } from "@/component
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Link } from "wouter";
 import logoImg from "@assets/tigerbnklogo.png";
-import heroBg from "@assets/background.png";
 import faqImg from "@assets/faq.png";
+import AnimatedWorldMap from "@/components/animated-world-map";
 
 const ORANGE = "#FF4D00";
 const ease = [0.16, 1, 0.3, 1] as const;
@@ -139,69 +139,107 @@ function Navbar() {
 
 /* ─── Hero ─── */
 function HeroSection() {
-  const [statsVisible, setStatsVisible] = useState(false);
-  const merchants = useCounter(800, 2000, 0, statsVisible);
-  const processed = useCounter(20, 1800, 0, statsVisible);
+  const tpv = useCounter(20000000, 2400, 0, true);
+
+  const clipReveal = {
+    hidden: { y: "100%", opacity: 0, filter: "blur(8px)" },
+    visible: { y: "0%", opacity: 1, filter: "blur(0px)" },
+  };
 
   return (
     <section className="relative min-h-screen overflow-hidden" data-testid="section-hero">
-      {/* Full-bleed background image — no filter, sharp */}
-      <div className="absolute inset-0">
-        <img
-          src={heroBg}
-          alt=""
-          className="w-full h-full object-cover"
-          style={{ imageRendering: "auto" }}
-          loading="eager"
-          decoding="async"
-        />
-        {/* Dark overlay for text readability */}
-        <div className="absolute inset-0 bg-black/30" />
-      </div>
+      <AnimatedWorldMap />
 
-      {/* Hero content — left aligned like credible */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: "radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.7) 100%)",
+        }}
+      />
+
       <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-10 flex flex-col justify-end min-h-screen pb-20 pt-32">
-        {/* TPV badge */}
         <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease, delay: 0.1 }}
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.6, ease, delay: 0.3 }}
           className="mb-6"
         >
           <span
-            className="inline-block px-4 py-1.5 rounded-md text-sm font-semibold"
+            className="inline-block px-4 py-1.5 rounded-md text-sm font-semibold tabular-nums"
             style={{ background: ORANGE, color: "#000" }}
+            data-testid="badge-tpv"
           >
-            $20,000,000+ TPV
+            ${tpv.toLocaleString()}+ TPV
           </span>
         </motion.div>
 
-        <motion.h1
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, ease, delay: 0.2 }}
-          className="text-white font-black tracking-tight leading-[1.05] mb-6 max-w-3xl"
-          style={{ fontSize: "clamp(2.8rem, 6vw, 5rem)" }}
-          data-testid="text-hero-headline"
-        >
-          Global Payments,<br />
-          Simplified.
-        </motion.h1>
+        <div className="mb-6 max-w-3xl">
+          {["Global Payments,", "Simplified."].map((line, i) => (
+            <div key={i} className="overflow-hidden">
+              <motion.div
+                variants={clipReveal}
+                initial="hidden"
+                animate="visible"
+                transition={{ duration: 0.8, ease, delay: 0.5 + i * 0.15 }}
+              >
+                <h1
+                  className="text-white font-black tracking-tight leading-[1.05]"
+                  style={{ fontSize: "clamp(2.8rem, 6vw, 5rem)" }}
+                  data-testid="text-hero-headline"
+                >
+                  {line}
+                </h1>
+              </motion.div>
+            </div>
+          ))}
+        </div>
 
         <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease, delay: 0.35 }}
-          className="text-white/60 text-base sm:text-lg max-w-md leading-relaxed"
+          initial={{ opacity: 0, filter: "blur(10px)" }}
+          animate={{ opacity: 1, filter: "blur(0px)" }}
+          transition={{ duration: 0.9, ease, delay: 0.9 }}
+          className="text-white/60 text-base sm:text-lg max-w-md leading-relaxed mb-8"
           data-testid="text-hero-subheadline"
         >
           Collect and pay globally with{" "}
-          <span className="text-white font-medium">T+0 settlement</span>,
-          powered by TigerBnk.
+          <span
+            className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold"
+            style={{ background: "#C9A84C", color: "#1a1a1a", border: "1px solid rgba(201, 168, 76, 0.5)" }}
+          >
+            T+0 settlement
+          </span>
+          , powered by TigerBnk.
         </motion.p>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease, delay: 1.2 }}
+        >
+          <Link href="/auth?mode=register">
+            <button
+              className="group inline-flex items-center gap-2 px-8 py-3.5 rounded-full font-semibold text-sm transition-all duration-300"
+              style={{
+                background: ORANGE,
+                color: "#000",
+                boxShadow: "0 0 20px rgba(255, 77, 0, 0.3), 0 0 60px rgba(255, 77, 0, 0.1)",
+              }}
+              data-testid="button-hero-cta"
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "scale(1.05)";
+                e.currentTarget.style.boxShadow = "0 0 30px rgba(255, 77, 0, 0.5), 0 0 80px rgba(255, 77, 0, 0.2)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "scale(1)";
+                e.currentTarget.style.boxShadow = "0 0 20px rgba(255, 77, 0, 0.3), 0 0 60px rgba(255, 77, 0, 0.1)";
+              }}
+            >
+              Get Started <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
+            </button>
+          </Link>
+        </motion.div>
       </div>
 
-      {/* Bottom fog fade into white content below */}
       <div
         className="absolute bottom-0 left-0 right-0 h-32 pointer-events-none"
         style={{ background: "linear-gradient(to top, #f5f5f5, transparent)" }}
