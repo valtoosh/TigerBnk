@@ -242,7 +242,7 @@ function HeroSection() {
 
       <div
         className="absolute bottom-0 left-0 right-0 h-32 pointer-events-none"
-        style={{ background: "linear-gradient(to top, #fff, transparent)" }}
+        style={{ background: "linear-gradient(to top, #f5f0e8, transparent)" }}
       />
     </section>
   );

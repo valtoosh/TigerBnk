@@ -1,17 +1,17 @@
 import { useEffect, useRef, useState } from "react";
-import mapImg from "@assets/Screenshot_2026-03-12_at_3.44.10_PM_1773316067240.png";
+import mapImg from "@assets/Gemini_Generated_Image_9ugbyi9ugbyi9ugb_1773316811694.png";
 
 const GOLD = "#C9A84C";
 const GOLD_DIM = "rgba(201, 168, 76, 0.3)";
 const GOLD_GLOW = "rgba(201, 168, 76, 0.6)";
 
-const VB_W = 970;
-const VB_H = 634;
+const VB_W = 2752;
+const VB_H = 1536;
 
-const LON_MIN = -175;
-const LON_MAX = 180;
-const LAT_TOP = 83;
-const LAT_BOT = -60;
+const LON_MIN = -168;
+const LON_MAX = 182;
+const LAT_TOP = 80;
+const LAT_BOT = -72;
 
 function mercatorProject(lat: number) {
   const latRad = (lat * Math.PI) / 180;
@@ -33,17 +33,52 @@ interface CityNode {
   name: string;
   lat: number;
   lon: number;
-  labelOffset?: [number, number];
 }
 
 const CITIES: CityNode[] = [
-  { name: "Dubai", lat: 25.2, lon: 55.3, labelOffset: [-30, -14] },
-  { name: "Mumbai", lat: 19.1, lon: 72.9, labelOffset: [0, 18] },
-  { name: "Karachi", lat: 24.9, lon: 67.0, labelOffset: [0, -14] },
-  { name: "Hong Kong", lat: 22.3, lon: 114.2, labelOffset: [12, 5] },
-  { name: "Jakarta", lat: -6.2, lon: 106.8, labelOffset: [12, 5] },
-  { name: "Beijing", lat: 39.9, lon: 116.4, labelOffset: [0, -14] },
-  { name: "Moscow", lat: 55.8, lon: 37.6, labelOffset: [0, -14] },
+  { name: "San Francisco", lat: 37.77, lon: -122.42 },
+  { name: "Los Angeles", lat: 34.05, lon: -118.24 },
+  { name: "Chicago", lat: 41.88, lon: -87.63 },
+  { name: "Toronto", lat: 43.65, lon: -79.38 },
+  { name: "New York", lat: 40.71, lon: -74.01 },
+  { name: "Mexico City", lat: 19.43, lon: -99.13 },
+  { name: "São Paulo", lat: -23.55, lon: -46.63 },
+  { name: "Buenos Aires", lat: -34.60, lon: -58.38 },
+  { name: "Santiago", lat: -33.45, lon: -70.67 },
+  { name: "London", lat: 51.51, lon: -0.13 },
+  { name: "Amsterdam", lat: 52.37, lon: 4.90 },
+  { name: "Zurich", lat: 47.38, lon: 8.54 },
+  { name: "Paris", lat: 48.86, lon: 2.35 },
+  { name: "Milan", lat: 45.46, lon: 9.19 },
+  { name: "Madrid", lat: 40.42, lon: -3.70 },
+  { name: "Frankfurt", lat: 50.11, lon: 8.68 },
+  { name: "Moscow", lat: 55.76, lon: 37.62 },
+  { name: "Istanbul", lat: 41.01, lon: 28.98 },
+  { name: "Cairo", lat: 30.04, lon: 31.24 },
+  { name: "Lagos", lat: 6.52, lon: 3.38 },
+  { name: "Nairobi", lat: -1.29, lon: 36.82 },
+  { name: "Johannesburg", lat: -26.20, lon: 28.05 },
+  { name: "Dubai", lat: 25.20, lon: 55.27 },
+  { name: "Abu Dhabi", lat: 24.45, lon: 54.65 },
+  { name: "Riyadh", lat: 24.69, lon: 46.72 },
+  { name: "Karachi", lat: 24.86, lon: 67.01 },
+  { name: "Delhi", lat: 28.61, lon: 77.21 },
+  { name: "Mumbai", lat: 19.08, lon: 72.88 },
+  { name: "Bengaluru", lat: 12.97, lon: 77.59 },
+  { name: "Bangkok", lat: 13.76, lon: 100.50 },
+  { name: "Kuala Lumpur", lat: 3.14, lon: 101.69 },
+  { name: "Singapore", lat: 1.35, lon: 103.82 },
+  { name: "Jakarta", lat: -6.21, lon: 106.85 },
+  { name: "Hong Kong", lat: 22.32, lon: 114.17 },
+  { name: "Taipei", lat: 25.03, lon: 121.57 },
+  { name: "Shanghai", lat: 31.23, lon: 121.47 },
+  { name: "Beijing", lat: 39.90, lon: 116.40 },
+  { name: "Seoul", lat: 37.57, lon: 126.98 },
+  { name: "Tokyo", lat: 35.68, lon: 139.69 },
+  { name: "Osaka", lat: 34.69, lon: 135.50 },
+  { name: "Sydney", lat: -33.87, lon: 151.21 },
+  { name: "Melbourne", lat: -37.81, lon: 144.96 },
+  { name: "Auckland", lat: -36.85, lon: 174.76 },
 ];
 
 interface Arc {
@@ -52,18 +87,63 @@ interface Arc {
 }
 
 const ARCS: Arc[] = [
-  { from: "Dubai", to: "Mumbai" },
-  { from: "Mumbai", to: "Hong Kong" },
-  { from: "Hong Kong", to: "Beijing" },
-  { from: "Beijing", to: "Moscow" },
+  { from: "San Francisco", to: "Los Angeles" },
+  { from: "Los Angeles", to: "Mexico City" },
+  { from: "San Francisco", to: "Chicago" },
+  { from: "Chicago", to: "Toronto" },
+  { from: "Toronto", to: "New York" },
+  { from: "New York", to: "Chicago" },
+  { from: "Mexico City", to: "São Paulo" },
+  { from: "São Paulo", to: "Buenos Aires" },
+  { from: "Buenos Aires", to: "Santiago" },
+  { from: "New York", to: "London" },
+  { from: "São Paulo", to: "Lagos" },
+  { from: "London", to: "Amsterdam" },
+  { from: "London", to: "Paris" },
+  { from: "Paris", to: "Zurich" },
+  { from: "Zurich", to: "Milan" },
+  { from: "Paris", to: "Madrid" },
+  { from: "Frankfurt", to: "London" },
+  { from: "Frankfurt", to: "Milan" },
+  { from: "Amsterdam", to: "Frankfurt" },
+  { from: "London", to: "Moscow" },
+  { from: "Istanbul", to: "Moscow" },
+  { from: "Istanbul", to: "Dubai" },
+  { from: "London", to: "Dubai" },
+  { from: "Cairo", to: "Istanbul" },
+  { from: "Cairo", to: "Dubai" },
+  { from: "Dubai", to: "Riyadh" },
+  { from: "Dubai", to: "Abu Dhabi" },
   { from: "Dubai", to: "Karachi" },
-  { from: "Jakarta", to: "Hong Kong" },
-  { from: "Mumbai", to: "Jakarta" },
+  { from: "Dubai", to: "Mumbai" },
+  { from: "Lagos", to: "Nairobi" },
+  { from: "Nairobi", to: "Johannesburg" },
+  { from: "Nairobi", to: "Dubai" },
+  { from: "Karachi", to: "Delhi" },
+  { from: "Delhi", to: "Mumbai" },
+  { from: "Mumbai", to: "Bengaluru" },
+  { from: "Mumbai", to: "Bangkok" },
+  { from: "Bengaluru", to: "Singapore" },
+  { from: "Bangkok", to: "Kuala Lumpur" },
+  { from: "Kuala Lumpur", to: "Singapore" },
+  { from: "Singapore", to: "Jakarta" },
+  { from: "Hong Kong", to: "Singapore" },
+  { from: "Hong Kong", to: "Shanghai" },
+  { from: "Shanghai", to: "Beijing" },
+  { from: "Beijing", to: "Seoul" },
+  { from: "Seoul", to: "Tokyo" },
+  { from: "Tokyo", to: "Osaka" },
+  { from: "Hong Kong", to: "Taipei" },
+  { from: "Taipei", to: "Shanghai" },
+  { from: "Singapore", to: "Sydney" },
+  { from: "Sydney", to: "Melbourne" },
+  { from: "Sydney", to: "Auckland" },
+  { from: "Jakarta", to: "Sydney" },
 ];
 
-function getCityPos(name: string): { x: number; y: number; offset: [number, number] } {
+function getCityPos(name: string): { x: number; y: number } {
   const c = CITIES.find((c) => c.name === name)!;
-  return { x: lonToX(c.lon), y: latToY(c.lat), offset: c.labelOffset || [0, -14] };
+  return { x: lonToX(c.lon), y: latToY(c.lat) };
 }
 
 function makeArcPath(fromX: number, fromY: number, toX: number, toY: number): string {
@@ -72,33 +152,22 @@ function makeArcPath(fromX: number, fromY: number, toX: number, toY: number): st
   const dx = toX - fromX;
   const dy = toY - fromY;
   const dist = Math.sqrt(dx * dx + dy * dy);
-  const curvature = Math.min(dist * 0.3, 80);
+  const curvature = Math.min(dist * 0.25, 230);
   const cx = mx - (dy / dist) * curvature;
   const cy = my + (dx / dist) * curvature;
   return `M${fromX},${fromY} Q${cx},${cy} ${toX},${toY}`;
 }
 
 function PulsingDot({ name }: { name: string }) {
-  const { x, y, offset } = getCityPos(name);
+  const { x, y } = getCityPos(name);
   return (
     <g>
-      <circle cx={x} cy={y} r="8" fill="none" stroke={GOLD_DIM} strokeWidth="1">
-        <animate attributeName="r" values="4;14;4" dur="3s" repeatCount="indefinite" />
+      <circle cx={x} cy={y} r="22" fill="none" stroke={GOLD_DIM} strokeWidth="2">
+        <animate attributeName="r" values="10;36;10" dur="3s" repeatCount="indefinite" />
         <animate attributeName="opacity" values="0.6;0;0.6" dur="3s" repeatCount="indefinite" />
       </circle>
-      <circle cx={x} cy={y} r="3.5" fill={GOLD} />
-      <circle cx={x} cy={y} r="5.5" fill="none" stroke={GOLD_GLOW} strokeWidth="0.5" opacity="0.5" />
-      <text
-        x={x + offset[0]}
-        y={y + offset[1]}
-        textAnchor={offset[0] > 0 ? "start" : offset[0] < 0 ? "end" : "middle"}
-        fill="#6b5a2e"
-        fontSize="9"
-        fontFamily="'JetBrains Mono', monospace"
-        fontWeight="600"
-      >
-        {name}
-      </text>
+      <circle cx={x} cy={y} r="8" fill={GOLD} />
+      <circle cx={x} cy={y} r="14" fill="none" stroke={GOLD_GLOW} strokeWidth="1.5" opacity="0.4" />
     </g>
   );
 }
@@ -116,7 +185,7 @@ function AnimatedArc({ arc, delay }: { arc: Arc; delay: number }) {
     }
   }, []);
 
-  const totalDur = 3;
+  const totalDur = 3.5;
   const drawDur = totalDur * 0.6;
   const fadeDur = totalDur * 0.4;
 
@@ -127,8 +196,8 @@ function AnimatedArc({ arc, delay }: { arc: Arc; delay: number }) {
         d={path}
         fill="none"
         stroke={GOLD}
-        strokeWidth="1.5"
-        opacity="0.8"
+        strokeWidth="3"
+        opacity="0.7"
         strokeDasharray={pathLength}
         strokeDashoffset={pathLength}
         filter="url(#arc-glow)"
@@ -143,14 +212,14 @@ function AnimatedArc({ arc, delay }: { arc: Arc; delay: number }) {
         />
         <animate
           attributeName="opacity"
-          values="0;0.8;0.8;0"
+          values="0;0.7;0.7;0"
           keyTimes="0;0.1;0.7;1"
           dur={`${totalDur + fadeDur}s`}
           begin={`${delay}s`}
           repeatCount="indefinite"
         />
       </path>
-      <circle r="3" fill={GOLD} opacity="0">
+      <circle r="7" fill={GOLD} opacity="0">
         <animateMotion
           path={path}
           dur={`${drawDur}s`}
@@ -173,7 +242,7 @@ function AnimatedArc({ arc, delay }: { arc: Arc; delay: number }) {
 
 export default function AnimatedWorldMap() {
   return (
-    <div className="absolute inset-0 overflow-hidden" style={{ background: "#fff" }}>
+    <div className="absolute inset-0 overflow-hidden" style={{ background: "#f5f0e8" }}>
       <img
         src={mapImg}
         alt=""
@@ -188,7 +257,7 @@ export default function AnimatedWorldMap() {
       >
         <defs>
           <filter id="arc-glow" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="3" result="blur" />
+            <feGaussianBlur stdDeviation="6" result="blur" />
             <feMerge>
               <feMergeNode in="blur" />
               <feMergeNode in="SourceGraphic" />
@@ -197,7 +266,7 @@ export default function AnimatedWorldMap() {
         </defs>
 
         {ARCS.map((arc, i) => (
-          <AnimatedArc key={`${arc.from}-${arc.to}`} arc={arc} delay={i * 0.7} />
+          <AnimatedArc key={`${arc.from}-${arc.to}`} arc={arc} delay={i * 0.45} />
         ))}
 
         {CITIES.map((city) => (
