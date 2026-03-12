@@ -155,7 +155,7 @@ function HeroSection() {
         <div
           className="absolute inset-0 pointer-events-none z-[1]"
           style={{
-            background: "radial-gradient(ellipse at center, transparent 50%, rgba(255,248,231,0.5) 100%)",
+            background: "radial-gradient(ellipse at center, transparent 50%, rgba(255,255,255,0.5) 100%)",
           }}
         />
 
@@ -244,7 +244,7 @@ function HeroSection() {
 
         <div
           className="absolute bottom-0 left-0 right-0 h-32 pointer-events-none z-[2]"
-          style={{ background: "linear-gradient(to top, rgba(255,248,231,0.8), transparent)" }}
+          style={{ background: "linear-gradient(to top, rgba(255,255,255,0.8), transparent)" }}
         />
       </div>
     </section>
