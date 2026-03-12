@@ -299,121 +299,82 @@ const MARKETS = [
   { flag: "🇷🇺", code: "RUB", country: "Russia",    rate: "92.10",  dir: -1, color: "#2563eb" },
 ];
 
-const INSET_STYLE = "rounded-xl bg-white";
-const INSET_SHADOW = { boxShadow: "inset 0 1px 4px rgba(0,0,0,0.05)" } as const;
+const CARD_STYLE = "rounded-sm bg-white border border-gray-200/80 hover:border-gray-300 transition-colors duration-300 overflow-hidden";
 
 /* ─── Settlement Pipeline Card ─── */
 function SettlementCard() {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: false, amount: 0.3 });
-  const [step, setStep] = useState(0);
-  const [txIdx, setTxIdx] = useState(0);
+  const [feedIdx, setFeedIdx] = useState(0);
 
-  const steps = ["Initiated", "Verified", "Converted", "Settled"];
-
-  const txs = [
-    { from: "🇵🇰 PKR", to: "🇦🇪 AED", amt: "250,000",    out: "3,312.50"  },
-    { from: "🇮🇳 INR", to: "🇭🇰 HKD", amt: "1,200,000",  out: "11,320.00" },
-    { from: "🇨🇳 CNY", to: "🇦🇪 AED", amt: "80,000",     out: "40,360.00" },
-    { from: "🇮🇩 IDR", to: "🇮🇳 INR", amt: "50,000,000", out: "266,120"   },
+  const feed = [
+    { flag: "🇵🇰", label: "PKR 250,000", sub: "to Al Maktoum Corp",  status: "Settled",    fg: "#16a34a" },
+    { flag: "🇮🇳", label: "INR 1,200,000", sub: "via Razorpay",      status: "Processing", fg: "#d97706" },
+    { flag: "🇨🇳", label: "CNY 80,000",  sub: "from UnionPay",       status: "Settled",    fg: "#16a34a" },
+    { flag: "🇮🇩", label: "IDR 50M",     sub: "to BCA Jakarta",      status: "Confirming", fg: "#4f46e5" },
+    { flag: "🇭🇰", label: "HKD 92,400",  sub: "from HSBC HK",       status: "Sent",       fg: "#16a34a" },
+    { flag: "🇦🇪", label: "AED 180,000", sub: "Emirates NBD",        status: "Settled",    fg: "#16a34a" },
+    { flag: "🇷🇺", label: "RUB 4,200,000", sub: "to Sberbank",      status: "Processing", fg: "#d97706" },
   ];
 
   useEffect(() => {
-    if (!inView) { setStep(0); return; }
-    const id = setInterval(() => {
-      setStep((s) => {
-        if (s >= steps.length - 1) { setTxIdx((t) => (t + 1) % txs.length); return 0; }
-        return s + 1;
-      });
-    }, 1600);
+    if (!inView) return;
+    const id = setInterval(() => setFeedIdx((i) => (i + 1) % feed.length), 4000);
     return () => clearInterval(id);
   }, [inView]);
 
-  const tx = txs[txIdx];
+  const visibleRows = Array.from({ length: 4 }, (_, i) => feed[(feedIdx + i) % feed.length]);
 
   return (
     <motion.div
       ref={ref}
       {...animateIn}
-      className="md:col-span-2 rounded-2xl bg-white border border-gray-100 hover:shadow-lg transition-shadow duration-500 overflow-hidden"
+      className={`md:col-span-2 ${CARD_STYLE}`}
     >
-      <div className="p-8 pb-5">
-        <h3 className="text-xl font-bold text-gray-900 mb-1.5">Instant Settlement.</h3>
-        <p className="text-gray-400 text-sm leading-relaxed">
-          Real-time cross-border settlement across UAE, India, Pakistan, Hong Kong, Indonesia, China &amp; Russia.
+      <div className="p-8 pb-4">
+        <h3 className="text-2xl lg:text-3xl font-black text-gray-900 leading-tight tracking-tight" data-testid="text-settlement-title">
+          Instant Settlement.
+        </h3>
+        <p className="text-gray-400 text-sm leading-relaxed mt-2">
+          Real-time cross-border settlement across 7 markets.
         </p>
       </div>
 
-      <div className={`mx-8 mb-5 p-5 ${INSET_STYLE}`} style={INSET_SHADOW}>
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={txIdx}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.6, ease }}
-            className="flex items-center justify-between"
-          >
-            <div>
-              <p className="text-[10px] text-gray-400 mb-0.5 font-medium uppercase tracking-wide">Sending</p>
-              <p className="text-gray-800 font-bold text-base">{tx.from} {tx.amt}</p>
-            </div>
-            <motion.div
-              animate={{ x: [0, 3, 0] }}
-              transition={{ duration: 1.8, repeat: Infinity, ease }}
-            >
-              <ArrowRight className="w-4 h-4 text-gray-300" />
-            </motion.div>
-            <div className="text-right">
-              <p className="text-[10px] text-gray-400 mb-0.5 font-medium uppercase tracking-wide">Received</p>
-              <p className="font-bold text-base text-green-600">{tx.to} {tx.out}</p>
-            </div>
-          </motion.div>
-        </AnimatePresence>
-      </div>
-
       <div className="px-8 pb-8">
-        <div className="flex items-center">
-          {steps.map((label, i) => (
-            <div key={label} className="flex items-center flex-1 last:flex-none">
-              <div className="flex flex-col items-center gap-1.5 flex-1">
-                <motion.div
-                  animate={{
-                    backgroundColor: step >= i ? ORANGE : "#e8e0d0",
-                    scale: step === i ? 1.08 : 1,
-                  }}
-                  transition={{ duration: 0.5, ease }}
-                  className="w-7 h-7 rounded-md flex items-center justify-center text-[10px] font-bold"
-                  style={{ color: step >= i ? "#fff" : "#d1d5db" }}
-                >
-                  {step > i ? "✓" : i + 1}
-                </motion.div>
-                <motion.span
-                  animate={{ opacity: step >= i ? 1 : 0.3, color: step === i ? "#111827" : "#9ca3af" }}
-                  transition={{ duration: 0.5, ease }}
-                  className="text-[10px] font-medium text-center"
-                >
-                  {label}
-                </motion.span>
-              </div>
-              {i < steps.length - 1 && (
-                <div className="flex-1 h-[2px] mb-5 mx-1 rounded-full bg-[#e8e0d0] overflow-hidden relative">
-                  <motion.div
-                    className="absolute inset-y-0 left-0 h-full rounded-full"
-                    style={{ background: ORANGE }}
-                    animate={{ width: step > i ? "100%" : step === i ? "50%" : "0%" }}
-                    transition={{ duration: 0.7, ease }}
-                  />
+        <AnimatePresence mode="popLayout" initial={false}>
+          {visibleRows.map((row, i) => (
+            <motion.div
+              key={`${row.flag}-${row.label}-${(feedIdx + i) % feed.length}`}
+              layout
+              initial={{ opacity: 0, y: -16 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 16 }}
+              transition={{ duration: 0.5, ease }}
+              className="flex items-center justify-between py-3"
+              style={{ borderBottom: i < 3 ? "1px solid #f0ebe0" : "none" }}
+            >
+              <div className="flex items-center gap-3">
+                <span className="text-lg leading-none flex-shrink-0">{row.flag}</span>
+                <div>
+                  <p className="text-sm font-semibold text-gray-900 leading-tight">{row.label}</p>
+                  <p className="text-[11px] text-gray-400 mt-0.5">{row.sub}</p>
                 </div>
-              )}
-            </div>
+              </div>
+              <span
+                className="text-[10px] font-semibold px-2.5 py-1 rounded-sm flex-shrink-0 border"
+                style={{ borderColor: row.fg, color: row.fg }}
+              >
+                {row.status === "Settled" || row.status === "Sent" ? "✓ " : "⟳ "}{row.status}
+              </span>
+            </motion.div>
           ))}
-        </div>
-        <div className="flex justify-end mt-5">
+        </AnimatePresence>
+        <div className="flex items-center gap-2 mt-4 pt-3" style={{ borderTop: "1px solid #f0ebe0" }}>
           <span className="relative flex h-1.5 w-1.5">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
             <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-green-500" />
           </span>
+          <span className="text-[10px] text-gray-400 font-medium">Live feed</span>
         </div>
       </div>
     </motion.div>
@@ -424,73 +385,71 @@ function SettlementCard() {
 function TransparencyCard() {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: false, amount: 0.3 });
+  const [highlightIdx, setHighlightIdx] = useState(-1);
 
   const rows = [
-    { initials: "AE", label: "AED Deposit",    sub: "from Al Maktoum Corp",   status: "Settled",    green: true,  bg: "#dcfce7", fg: "#16a34a" },
-    { initials: "IN", label: "INR Collection", sub: "via Razorpay",           status: "Processing", green: false, bg: "#fef3c7", fg: "#d97706" },
-    { initials: "PK", label: "PKR Transfer",   sub: "to HBL Karachi",        status: "Sent",       green: true,  bg: "#dcfce7", fg: "#16a34a" },
-    { initials: "HK", label: "HKD Payment",    sub: "from HSBC HK",          status: "Settled",    green: true,  bg: "#dcfce7", fg: "#16a34a" },
-    { initials: "ID", label: "IDR Payout",     sub: "to BCA Jakarta",        status: "Confirming", green: false, bg: "#e0e7ff", fg: "#4f46e5" },
-    { initials: "CN", label: "CNY Exchange",   sub: "via UnionPay",          status: "Settled",    green: true,  bg: "#dcfce7", fg: "#16a34a" },
-    { initials: "RU", label: "RUB Settlement", sub: "to Sberbank",           status: "Processing", green: false, bg: "#fef3c7", fg: "#d97706" },
+    { initials: "AE", label: "AED Deposit",    sub: "from Al Maktoum Corp",   status: "Settled",    fg: "#16a34a" },
+    { initials: "IN", label: "INR Collection", sub: "via Razorpay",           status: "Processing", fg: "#d97706" },
+    { initials: "PK", label: "PKR Transfer",   sub: "to HBL Karachi",        status: "Sent",       fg: "#16a34a" },
+    { initials: "HK", label: "HKD Payment",    sub: "from HSBC HK",          status: "Ready",      fg: "#16a34a" },
   ];
-
-  const [topIdx, setTopIdx] = useState(0);
 
   useEffect(() => {
     if (!inView) return;
-    const id = setInterval(() => setTopIdx((i) => (i + 1) % rows.length), 2500);
+    const id = setInterval(() => {
+      const next = Math.floor(Math.random() * rows.length);
+      setHighlightIdx(next);
+      setTimeout(() => setHighlightIdx(-1), 1200);
+    }, 5000);
     return () => clearInterval(id);
   }, [inView]);
-
-  const visible = [rows[topIdx % rows.length], rows[(topIdx + 1) % rows.length]];
 
   return (
     <motion.div
       ref={ref}
       {...animateIn}
       transition={{ duration: 0.6, ease, delay: 0.1 }}
-      className="rounded-2xl bg-white border border-gray-100 hover:shadow-lg transition-shadow duration-500 overflow-hidden"
+      className={CARD_STYLE}
     >
-      <div className="p-8 pb-5">
-        <h3 className="text-xl font-bold text-gray-900 mb-1.5">Transaction Transparency.</h3>
-        <p className="text-gray-400 text-sm leading-relaxed">
+      <div className="p-8 pb-4">
+        <h3 className="text-2xl lg:text-3xl font-black text-gray-900 leading-tight tracking-tight">
+          Transaction<br />Transparency.
+        </h3>
+        <p className="text-gray-400 text-sm leading-relaxed mt-2">
           Track payments, customers and onchain transactions.
         </p>
       </div>
-      <div className={`mx-8 mb-8 p-4 ${INSET_STYLE}`} style={INSET_SHADOW}>
-        <AnimatePresence mode="popLayout">
-          {visible.map((row, i) => (
-            <motion.div
-              key={row.initials + "-" + row.label}
-              layout
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.5, ease }}
-              className={`flex items-center justify-between py-3.5 px-1 ${i === 0 ? "border-b border-gray-200/60" : ""}`}
-            >
-              <div className="flex items-center gap-3">
-                <div
-                  className="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0"
-                  style={{ backgroundColor: row.fg }}
-                >
-                  {row.initials}
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-gray-800 leading-tight">{row.label}</p>
-                  <p className="text-[11px] text-gray-400 mt-0.5">{row.sub}</p>
-                </div>
-              </div>
-              <span
-                className="text-[10px] font-semibold px-2.5 py-1 rounded-full flex-shrink-0"
-                style={{ backgroundColor: row.bg, color: row.fg }}
+      <div className="px-8 pb-8">
+        {rows.map((row, i) => (
+          <motion.div
+            key={row.initials}
+            animate={{
+              backgroundColor: highlightIdx === i ? "rgba(255,77,0,0.03)" : "transparent",
+            }}
+            transition={{ duration: 0.4, ease }}
+            className="flex items-center justify-between py-3 px-2 -mx-2 rounded-sm"
+            style={{ borderBottom: i < rows.length - 1 ? "1px solid #f0ebe0" : "none" }}
+          >
+            <div className="flex items-center gap-3">
+              <div
+                className="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0"
+                style={{ backgroundColor: row.fg }}
               >
-                {row.green ? "✓ " : "⟳ "}{row.status}
-              </span>
-            </motion.div>
-          ))}
-        </AnimatePresence>
+                {row.initials}
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-gray-900 leading-tight">{row.label}</p>
+                <p className="text-[11px] text-gray-400 mt-0.5">{row.sub}</p>
+              </div>
+            </div>
+            <span
+              className="text-[10px] font-semibold px-2.5 py-1 rounded-sm flex-shrink-0 border"
+              style={{ borderColor: row.fg, color: row.fg }}
+            >
+              {row.status === "Settled" || row.status === "Sent" || row.status === "Ready" ? "✓ " : "⟳ "}{row.status}
+            </span>
+          </motion.div>
+        ))}
       </div>
     </motion.div>
   );
@@ -502,74 +461,79 @@ function RoarScoreCard() {
   const inView = useInView(ref, { once: false, amount: 0.3 });
 
   const profiles = [
-    { name: "Dubai Exports LLC",  country: "🇦🇪", score: 812, pct: 85 },
-    { name: "Mumbai Tech Pvt.",   country: "🇮🇳", score: 756, pct: 76 },
-    { name: "HK Capital Ltd.",    country: "🇭🇰", score: 891, pct: 93 },
-    { name: "Jakarta Retail Co.", country: "🇮🇩", score: 634, pct: 55 },
+    { name: "Dubai Exports LLC",  country: "🇦🇪", score: 812, notches: 8 },
+    { name: "Mumbai Tech Pvt.",   country: "🇮🇳", score: 756, notches: 7 },
+    { name: "HK Capital Ltd.",    country: "🇭🇰", score: 891, notches: 9 },
+    { name: "Jakarta Retail Co.", country: "🇮🇩", score: 634, notches: 5 },
   ];
   const [idx, setIdx] = useState(0);
 
   useEffect(() => {
     if (!inView) return;
-    const id = setInterval(() => setIdx((i) => (i + 1) % profiles.length), 3500);
+    const id = setInterval(() => setIdx((i) => (i + 1) % profiles.length), 5000);
     return () => clearInterval(id);
   }, [inView]);
 
   const profile = profiles[idx];
-  const score = useCounter(profile.score, 1600, 300, inView);
-  const label = profile.pct >= 80 ? "Excellent" : profile.pct >= 65 ? "Good" : "Fair";
-  const labelStyle = profile.pct >= 80
-    ? { bg: "#dcfce7", text: "#16a34a" }
-    : profile.pct >= 65
-    ? { bg: "#fef3c7", text: "#d97706" }
-    : { bg: "#fee2e2", text: "#dc2626" };
+  const score = useCounter(profile.score, 1800, 300, inView);
+  const label = profile.notches >= 8 ? "Excellent" : profile.notches >= 7 ? "Good" : "Fair";
 
   return (
     <motion.div
       ref={ref}
       {...animateIn}
       transition={{ duration: 0.6, ease, delay: 0.15 }}
-      className="rounded-2xl bg-white border border-gray-100 hover:shadow-lg transition-shadow duration-500 overflow-hidden"
+      className={CARD_STYLE}
     >
-      <div className="p-8 pb-5">
-        <h3 className="text-xl font-bold text-gray-900 mb-1.5">Roar Score Credit.</h3>
-        <p className="text-gray-400 text-sm leading-relaxed">
-          Business credit scores built automatically from payment activity.
+      <div className="p-8 pb-4">
+        <h3 className="text-2xl lg:text-3xl font-black text-gray-900 leading-tight tracking-tight">
+          Roar Score<br />Credit.
+        </h3>
+        <p className="text-gray-400 text-sm leading-relaxed mt-2">
+          Business credit built from payment activity.
         </p>
       </div>
-      <div className={`mx-8 mb-8 p-5 ${INSET_STYLE}`} style={INSET_SHADOW}>
+      <div className="px-8 pb-8">
         <AnimatePresence mode="wait">
           <motion.div
             key={idx}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.6, ease }}
+            transition={{ duration: 0.5, ease }}
           >
-            <div className="flex items-center gap-1.5 mb-2">
-              <span className="text-sm">{profile.country}</span>
-              <span className="text-[11px] text-gray-400 font-medium">{profile.name}</span>
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-base">{profile.country}</span>
+              <span className="text-xs text-gray-400 font-medium">{profile.name}</span>
             </div>
-            <div className="flex items-end justify-between mb-4">
-              <div className="text-5xl font-black text-gray-900 tabular-nums leading-none">
+            <div className="flex items-end justify-between mb-5">
+              <div className="text-6xl font-black text-gray-900 tabular-nums leading-none tracking-tight">
                 {Math.min(score, profile.score)}
               </div>
               <span
-                className="px-2.5 py-1 rounded-full text-[10px] font-bold"
-                style={{ backgroundColor: labelStyle.bg, color: labelStyle.text }}
+                className="text-[10px] font-bold px-2.5 py-1 rounded-sm border"
+                style={{
+                  borderColor: profile.notches >= 8 ? "#16a34a" : profile.notches >= 7 ? "#d97706" : "#dc2626",
+                  color: profile.notches >= 8 ? "#16a34a" : profile.notches >= 7 ? "#d97706" : "#dc2626",
+                }}
               >
                 {label}
               </span>
             </div>
-            <div className="h-2 rounded-full bg-white overflow-hidden" style={{ boxShadow: "inset 0 1px 3px rgba(0,0,0,0.08)" }}>
-              <motion.div
-                key={idx + "-bar"}
-                initial={{ width: 0 }}
-                animate={{ width: `${profile.pct}%` }}
-                transition={{ duration: 1.6, ease: [0.16, 1, 0.3, 1] }}
-                className="h-full rounded-full"
-                style={{ background: "linear-gradient(90deg, #ef4444 0%, #f59e0b 45%, #22c55e 100%)" }}
-              />
+            <div className="flex gap-1.5">
+              {Array.from({ length: 10 }, (_, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ scaleY: 0 }}
+                  animate={{ scaleY: 1 }}
+                  transition={{ duration: 0.4, ease, delay: i * 0.06 }}
+                  className="flex-1 h-3 rounded-[2px]"
+                  style={{
+                    backgroundColor: i < profile.notches ? ORANGE : "#f0ebe0",
+                    transformOrigin: "bottom",
+                  }}
+                />
+              ))}
             </div>
             <div className="flex justify-between mt-2">
               <span className="text-[10px] text-gray-300 font-medium">300</span>
@@ -586,80 +550,84 @@ function RoarScoreCard() {
 function CurrencyCard() {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: false, amount: 0.3 });
-  const [tick, setTick] = useState(0);
-  const [activeIdx, setActiveIdx] = useState<number | null>(null);
+  const [highlightIdx, setHighlightIdx] = useState(-1);
 
   useEffect(() => {
     if (!inView) return;
-    let timeoutId: ReturnType<typeof setTimeout>;
     const id = setInterval(() => {
       const next = Math.floor(Math.random() * MARKETS.length);
-      setActiveIdx(next);
-      setTick((t) => t + 1);
-      timeoutId = setTimeout(() => setActiveIdx(null), 800);
-    }, 2000);
-    return () => { clearInterval(id); clearTimeout(timeoutId); };
+      setHighlightIdx(next);
+      setTimeout(() => setHighlightIdx(-1), 1500);
+    }, 3000);
+    return () => { clearInterval(id); };
   }, [inView]);
+
+  const features = [
+    "T+0 Settlement",
+    "7 Target Markets",
+    "Same-day Liquidity",
+    "Competitive FX",
+    "Multi-currency Wallets",
+  ];
 
   return (
     <motion.div
       ref={ref}
       {...animateIn}
       transition={{ duration: 0.6, ease, delay: 0.2 }}
-      className="md:col-span-2 rounded-2xl bg-white border border-gray-100 hover:shadow-lg transition-shadow duration-500 overflow-hidden"
+      className={`md:col-span-2 ${CARD_STYLE}`}
     >
-      <div className="p-8 pb-5">
-        <h3 className="text-xl font-bold text-gray-900 mb-1.5">Settlement in 7 Markets.</h3>
-        <p className="text-gray-400 text-sm leading-relaxed">
-          Receive settlement in AED, INR, PKR, HKD, IDR, CNY &amp; RUB with competitive FX and same-day liquidity.
+      <div className="p-8 pb-4">
+        <h3 className="text-2xl lg:text-3xl font-black text-gray-900 leading-tight tracking-tight">
+          Settlement in 7 Markets.
+        </h3>
+        <p className="text-gray-400 text-sm leading-relaxed mt-2">
+          Receive settlement on-chain or to bank with competitive FX and same-day liquidity.
         </p>
       </div>
-      <div className={`mx-8 mb-5 p-4 ${INSET_STYLE}`} style={INSET_SHADOW}>
-        <div className="grid grid-cols-4 sm:grid-cols-7 gap-2">
-          {MARKETS.map((m, i) => (
-            <motion.div
-              key={m.code}
-              initial={{ opacity: 0, y: 8 }}
-              animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 8 }}
-              transition={{ delay: 0.06 * i, duration: 0.5, ease }}
-              className="rounded-lg py-3 flex flex-col items-center gap-1 text-center"
-              style={{
-                background: activeIdx === i ? "#FFF8E7" : "#fff",
-                boxShadow: activeIdx === i
-                  ? `inset 0 1px 4px rgba(255,77,0,0.12)`
-                  : "inset 0 1px 3px rgba(0,0,0,0.04)",
-                transition: "box-shadow 0.5s cubic-bezier(0.16,1,0.3,1), background 0.5s cubic-bezier(0.16,1,0.3,1)",
-              }}
-            >
-              <span className="text-xl leading-none">{m.flag}</span>
-              <span className="text-[11px] font-bold text-gray-700">{m.code}</span>
-              <motion.span
-                key={tick + m.code}
-                initial={{ opacity: 0.4 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.5, ease }}
-                className="text-[9px] font-mono text-gray-400"
-              >
-                {m.rate}
-              </motion.span>
-            </motion.div>
-          ))}
-        </div>
-      </div>
 
-      <div className={`mx-8 mb-8 overflow-hidden py-2 px-4 ${INSET_STYLE}`} style={INSET_SHADOW}>
-        <motion.div
-          animate={{ x: ["0%", "-50%"] }}
-          transition={{ duration: 24, ease, repeat: Infinity }}
-          className="flex gap-10 whitespace-nowrap"
-        >
-          {[...MARKETS, ...MARKETS].map((m, i) => (
-            <span key={i} className="text-[10px] text-gray-400 font-mono">
-              <span className="text-gray-500 font-semibold">{m.code}/USD</span>{" "}
-              <span style={{ color: m.dir > 0 ? "#16a34a" : "#ef4444" }}>{m.rate}</span>
-            </span>
-          ))}
-        </motion.div>
+      <div className="px-8 pb-8">
+        <div className="grid md:grid-cols-2 gap-8">
+          <div>
+            {MARKETS.map((m, i) => (
+              <motion.div
+                key={m.code}
+                animate={{
+                  backgroundColor: highlightIdx === i ? "rgba(255,77,0,0.03)" : "transparent",
+                }}
+                transition={{ duration: 0.3, ease }}
+                className="flex items-center justify-between py-2.5 px-2 -mx-2 rounded-sm"
+                style={{ borderBottom: i < MARKETS.length - 1 ? "1px solid #f0ebe0" : "none" }}
+              >
+                <div className="flex items-center gap-2.5">
+                  <span className="text-base leading-none">{m.flag}</span>
+                  <span className="text-sm font-semibold text-gray-900">{m.code}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-mono text-gray-500">{m.rate}</span>
+                  <span style={{ color: m.dir > 0 ? "#16a34a" : "#ef4444" }} className="text-xs">
+                    {m.dir > 0 ? "▲" : "▼"}
+                  </span>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+          <div className="flex flex-col justify-center">
+            {features.map((f, i) => (
+              <motion.div
+                key={f}
+                initial={{ opacity: 0, x: 8 }}
+                animate={inView ? { opacity: 1, x: 0 } : { opacity: 0, x: 8 }}
+                transition={{ delay: 0.08 * i, duration: 0.5, ease }}
+                className="flex items-center gap-2.5 py-2"
+              >
+                <CheckCircle2 className="w-4 h-4 flex-shrink-0" style={{ color: ORANGE }} />
+                <span className="text-sm font-medium text-gray-700">{f}</span>
+              </motion.div>
+            ))}
+          </div>
+        </div>
       </div>
     </motion.div>
   );
@@ -680,7 +648,7 @@ function FeaturesSection() {
         </motion.div>
 
         {/* Bento grid */}
-        <div className="grid md:grid-cols-3 gap-5">
+        <div className="grid md:grid-cols-3 gap-4">
           <SettlementCard />
           <TransparencyCard />
           <RoarScoreCard />
