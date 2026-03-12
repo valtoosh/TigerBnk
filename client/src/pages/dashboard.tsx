@@ -12,13 +12,15 @@ import type { Transaction } from "@shared/schema";
 import { Plus, Send, ArrowDownLeft, CreditCard, TrendingUp, ArrowUpRight, ArrowDownRight, Clock } from "lucide-react";
 import { useLocation } from "wouter";
 
+const kxEase = [0.16, 1, 0.3, 1] as const;
+
 const stagger = {
-  animate: { transition: { staggerChildren: 0.06 } },
+  animate: { transition: { staggerChildren: 0.08 } },
 };
 
 const fadeUp = {
-  initial: { opacity: 0, y: 16 },
-  animate: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" } },
+  initial: { opacity: 0, y: 20, filter: "blur(4px)" },
+  animate: { opacity: 1, y: 0, filter: "blur(0px)", transition: { duration: 0.5, ease: kxEase } },
 };
 
 export default function Dashboard() {

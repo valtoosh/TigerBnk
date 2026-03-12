@@ -6,10 +6,11 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { MobileNav } from "@/components/mobile-nav";
-import { ThemeProvider } from "@/components/theme-provider";
+import { ThemeProvider, useTheme } from "@/components/theme-provider";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLocation } from "wouter";
+import { Sun, Moon } from "lucide-react";
 import NotFound from "@/pages/not-found";
 import AuthPage from "@/pages/auth";
 import Dashboard from "@/pages/dashboard";
@@ -20,7 +21,8 @@ import Cards from "@/pages/cards";
 import Profile from "@/pages/profile";
 import LandingPage from "@/pages/landing";
 import MerchantComingSoon from "@/pages/merchant-coming-soon";
-import logoImg from "@assets/Group_95_1771930128528.png";
+import CardsLandingPage from "@/pages/cards-landing";
+import logoImg from "@assets/tigerbnklogo.png";
 
 function DashboardRouter() {
   return (
@@ -33,6 +35,20 @@ function DashboardRouter() {
       <Route path="/dashboard/profile" component={Profile} />
       <Route component={NotFound} />
     </Switch>
+  );
+}
+
+function ThemeToggle() {
+  const { theme, toggleTheme } = useTheme();
+  return (
+    <button
+      onClick={toggleTheme}
+      className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-muted transition-colors"
+      data-testid="button-theme-toggle"
+      aria-label={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
+    >
+      {theme === "light" ? <Moon className="w-4 h-4 text-muted-foreground" /> : <Sun className="w-4 h-4 text-muted-foreground" />}
+    </button>
   );
 }
 
@@ -50,12 +66,14 @@ function AuthenticatedLayout() {
         </div>
         <div className="flex flex-col flex-1 min-w-0">
           <header className="flex items-center justify-between gap-4 p-3 border-b sticky top-0 z-50 bg-background/95 backdrop-blur-sm">
-            <SidebarTrigger className="hidden md:flex" data-testid="button-sidebar-toggle" />
-            <div className="md:hidden flex items-center gap-2">
-              <img src={logoImg} alt="TigerBnk" className="w-6 h-6 rounded" />
-              <p className="text-sm font-semibold">TigerBnk</p>
+            <div className="flex items-center gap-2">
+              <SidebarTrigger className="hidden md:flex" data-testid="button-sidebar-toggle" />
+              <div className="md:hidden flex items-center gap-2">
+                <img src={logoImg} alt="TigerBnk" className="w-6 h-6 rounded" />
+                <p className="text-sm font-semibold">TigerBnk</p>
+              </div>
             </div>
-            <div />
+            <ThemeToggle />
           </header>
           <main className="flex-1 overflow-y-auto">
             <div className="max-w-2xl mx-auto p-4 pb-24 md:pb-6 md:p-6">
@@ -75,6 +93,10 @@ function AppContent() {
 
   if (location === "/" || location === "/landing") {
     return <LandingPage />;
+  }
+
+  if (location === "/cards") {
+    return <CardsLandingPage />;
   }
 
   if (location === "/auth" || location.startsWith("/auth?")) {

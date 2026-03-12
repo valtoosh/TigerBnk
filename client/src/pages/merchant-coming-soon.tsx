@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth";
 import { Rocket, ArrowLeft } from "lucide-react";
-import logoImg from "@assets/Group_95_1771930128528.png";
+import logoImg from "@assets/tigerbnklogo.png";
 
 const ORANGE = "#FF4D00";
 

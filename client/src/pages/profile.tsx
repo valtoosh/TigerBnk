@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { COUNTRIES, getRoarTier } from "@shared/schema";
-import { User, Mail, Phone, Globe, Shield, Bell, Moon, LogOut, ChevronRight } from "lucide-react";
+import { Mail, Phone, Globe, Shield, Bell, Moon, Sun, LogOut } from "lucide-react";
 
 const fadeUp = {
   initial: { opacity: 0, y: 16 },
@@ -119,7 +119,7 @@ export default function Profile() {
           <CardContent className="p-2">
             <div className="flex items-center gap-3 p-3 rounded-md">
               <div className="w-9 h-9 rounded-md bg-muted flex items-center justify-center">
-                <Moon className="w-4 h-4 text-muted-foreground" />
+                {theme === "dark" ? <Moon className="w-4 h-4 text-muted-foreground" /> : <Sun className="w-4 h-4 text-muted-foreground" />}
               </div>
               <div className="flex-1">
                 <p className="text-sm font-medium">Dark Mode</p>

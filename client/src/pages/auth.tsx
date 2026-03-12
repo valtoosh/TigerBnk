@@ -13,7 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { COUNTRIES, loginSchema, registerSchema } from "@shared/schema";
 import { Eye, EyeOff, ArrowRight, ArrowLeft, Building2, User } from "lucide-react";
 import { Link, useLocation, useSearch } from "wouter";
-import logoImg from "@assets/Group_95_1771930128528.png";
+import logoImg from "@assets/tigerbnklogo.png";
 
 const ORANGE = "#FF4D00";
 
@@ -80,38 +80,77 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen flex bg-background">
+      {/* Branding panel — desktop only */}
+      <div className="hidden lg:flex lg:w-1/2 bg-gray-50 dark:bg-gray-950 items-center justify-center p-12">
         <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-8"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5 }}
+          className="max-w-md"
         >
-          <Link href="/" className="inline-flex items-center justify-center mb-4">
-            <img src={logoImg} alt="TigerBnk" className="w-14 h-14 rounded-xl" data-testid="img-auth-logo" />
+          <Link href="/" className="inline-flex items-center gap-3 mb-8 cursor-pointer">
+            <img src={logoImg} alt="TigerBnk" className="w-14 h-14 rounded-xl" />
+            <span className="text-3xl font-black tracking-tight text-foreground">TigerBnk</span>
           </Link>
-          <h1 className="text-2xl font-semibold tracking-tight" data-testid="text-app-title">TigerBnk</h1>
-          <p className="text-sm text-muted-foreground mt-1">Your premium digital wallet</p>
+          <h2 className="text-4xl font-black tracking-tight text-foreground leading-tight mb-4">
+            Financial OS for<br />
+            <span style={{ color: ORANGE }}>Global Merchants</span>
+          </h2>
+          <p className="text-muted-foreground text-lg leading-relaxed">
+            Turn payment flow into instant settlement, portable credit, and programmable capital.
+          </p>
+          <div className="flex items-center gap-8 mt-10">
+            {[
+              { value: "800+", label: "Merchants" },
+              { value: "$20M+", label: "Processed" },
+            ].map((stat) => (
+              <div key={stat.label}>
+                <div className="text-2xl font-black text-foreground">{stat.value}</div>
+                <div className="text-xs text-muted-foreground uppercase tracking-wider">{stat.label}</div>
+              </div>
+            ))}
+          </div>
         </motion.div>
+      </div>
 
-        <Card className="border-border">
-          <CardContent className="p-6">
-            <div className="flex gap-1 mb-6 p-1 bg-muted rounded-md">
-              <button
-                onClick={() => { setMode("login"); setAccountType(null); }}
-                data-testid="button-switch-login"
-                className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${mode === "login" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"}`}
-              >
-                Sign In
-              </button>
-              <button
-                onClick={() => { setMode("register"); setAccountType(null); }}
-                data-testid="button-switch-register"
-                className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${mode === "register" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"}`}
-              >
-                Sign Up
-              </button>
-            </div>
+      {/* Auth form */}
+      <div className="flex-1 flex items-center justify-center p-4">
+        <div className="w-full max-w-md">
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center mb-8 lg:text-left"
+          >
+            <Link href="/" className="inline-flex items-center justify-center lg:justify-start mb-4 cursor-pointer">
+              <img src={logoImg} alt="TigerBnk" className="w-12 h-12 rounded-xl lg:hidden" data-testid="img-auth-logo" />
+            </Link>
+            <h1 className="text-2xl font-bold tracking-tight" data-testid="text-app-title">
+              {mode === "login" ? "Welcome back" : "Create account"}
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              {mode === "login" ? "Sign in to your TigerBnk wallet" : "Get started with TigerBnk"}
+            </p>
+          </motion.div>
+
+          <Card className="border-border">
+            <CardContent className="p-6">
+              <div className="flex gap-1 mb-6 p-1 bg-muted rounded-lg">
+                <button
+                  onClick={() => { setMode("login"); setAccountType(null); }}
+                  data-testid="button-switch-login"
+                  className={`flex-1 py-2.5 text-sm font-medium rounded-md transition-all cursor-pointer ${mode === "login" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"}`}
+                >
+                  Sign In
+                </button>
+                <button
+                  onClick={() => { setMode("register"); setAccountType(null); }}
+                  data-testid="button-switch-register"
+                  className={`flex-1 py-2.5 text-sm font-medium rounded-md transition-all cursor-pointer ${mode === "register" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"}`}
+                >
+                  Sign Up
+                </button>
+              </div>
 
             <AnimatePresence mode="wait">
               {mode === "login" ? (
@@ -296,9 +335,10 @@ export default function AuthPage() {
           </CardContent>
         </Card>
 
-        <p className="text-xs text-muted-foreground text-center mt-6">
-          By continuing, you agree to our Terms of Service and Privacy Policy
-        </p>
+          <p className="text-xs text-muted-foreground text-center mt-6">
+            By continuing, you agree to our Terms of Service and Privacy Policy
+          </p>
+        </div>
       </div>
     </div>
   );

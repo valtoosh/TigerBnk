@@ -14,7 +14,7 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/lib/auth";
 import { Home, Send, Plus, Clock, CreditCard, User } from "lucide-react";
-import logoImg from "@assets/Group_95_1771930128528.png";
+import logoImg from "@assets/tigerbnklogo.png";
 
 const navItems = [
   { title: "Home", path: "/dashboard", icon: Home },
