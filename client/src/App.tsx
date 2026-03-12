@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -9,6 +10,7 @@ import { MobileNav } from "@/components/mobile-nav";
 import { ThemeProvider, useTheme } from "@/components/theme-provider";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import { Skeleton } from "@/components/ui/skeleton";
+import { LoadingScreen } from "@/components/loading-screen";
 import { useLocation } from "wouter";
 import { Sun, Moon } from "lucide-react";
 import NotFound from "@/pages/not-found";
@@ -135,12 +137,15 @@ function AppContent() {
 }
 
 function App() {
+  const [showLoading, setShowLoading] = useState(true);
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <ThemeProvider>
           <AuthProvider>
             <AppContent />
+            {showLoading && <LoadingScreen onComplete={() => setShowLoading(false)} />}
           </AuthProvider>
         </ThemeProvider>
         <Toaster />
