@@ -13,11 +13,20 @@ const LON_MAX = 180;
 const LAT_TOP = 83;
 const LAT_BOT = -60;
 
+function mercatorProject(lat: number) {
+  const latRad = (lat * Math.PI) / 180;
+  return (1 - Math.log(Math.tan(Math.PI / 4 + latRad / 2)) / Math.PI) / 2;
+}
+
+const Y_TOP = mercatorProject(LAT_TOP);
+const Y_BOT = mercatorProject(LAT_BOT);
+
 function lonToX(lon: number) {
   return ((lon - LON_MIN) / (LON_MAX - LON_MIN)) * VB_W;
 }
 function latToY(lat: number) {
-  return ((LAT_TOP - lat) / (LAT_TOP - LAT_BOT)) * VB_H;
+  const yNorm = mercatorProject(Math.max(LAT_BOT, Math.min(LAT_TOP, lat)));
+  return ((yNorm - Y_TOP) / (Y_BOT - Y_TOP)) * VB_H;
 }
 
 interface CityNode {
