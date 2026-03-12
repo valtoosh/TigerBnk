@@ -129,6 +129,8 @@ const ARCS: Arc[] = [
   { from: "Kuala Lumpur", to: "Singapore" },
   { from: "Singapore", to: "Jakarta" },
   { from: "Hong Kong", to: "Singapore" },
+  { from: "Mumbai", to: "Singapore" },
+  { from: "Hong Kong", to: "Tokyo" },
   { from: "Hong Kong", to: "Shanghai" },
   { from: "Shanghai", to: "Beijing" },
   { from: "Beijing", to: "Seoul" },
@@ -278,7 +280,7 @@ export default function AnimatedWorldMap() {
         </defs>
 
         {ARCS.map((arc, i) => (
-          <AnimatedArc key={`${arc.from}-${arc.to}`} arc={arc} delay={i * 0.45} />
+          <AnimatedArc key={`${arc.from}-${arc.to}`} arc={arc} delay={i * 0.37} />
         ))}
 
         {CITIES.map((city) => (
