@@ -8,13 +8,14 @@ const GOLD_GLOW = "rgba(201, 168, 76, 0.6)";
 const VB_W = 2752;
 const VB_H = 1536;
 
-// Asymmetric bounds: the map image has ~4% left cream pad and ~10% right cream pad,
-// so the Prime Meridian sits at 47% of image width, not 50%.
-// LON range = 419°, LAT range = 175°
-const LON_MIN = -197;
-const LON_MAX = 222;
-const LAT_TOP = 87;
-const LAT_BOT = -88;
+// Calibrated from map image landmarks:
+//   West Africa coast (~15°W) → ~42.5% x; India tip (~80°E) → ~68% x
+//   Greenland (~72°N) → ~8% y; South Africa tip (~34°S) → ~70% y
+// LON range = 372°, LAT range = 175°
+const LON_MIN = -173;
+const LON_MAX = 199;
+const LAT_TOP = 86;
+const LAT_BOT = -89;
 
 function lonToX(lon: number) {
   return ((lon - LON_MIN) / (LON_MAX - LON_MIN)) * VB_W;
@@ -31,49 +32,49 @@ interface CityNode {
 }
 
 const CITIES: CityNode[] = [
-  { name: "San Francisco", lat: 37.77,  lon: -122.42, lo: [-24, -16] },
-  { name: "Los Angeles",   lat: 34.05,  lon: -118.24, lo: [-24,  18] },
-  { name: "Chicago",       lat: 41.88,  lon: -87.63,  lo: [  0, -20] },
-  { name: "Toronto",       lat: 43.65,  lon: -79.38,  lo: [ 20, -14] },
-  { name: "New York",      lat: 40.71,  lon: -74.01,  lo: [ 20,   6] },
-  { name: "Mexico City",   lat: 19.43,  lon: -99.13,  lo: [-24,  20] },
-  { name: "São Paulo",     lat: -23.55, lon: -46.63,  lo: [ 20,  10] },
-  { name: "Buenos Aires",  lat: -34.60, lon: -58.38,  lo: [ 20,  12] },
-  { name: "Santiago",      lat: -33.45, lon: -70.67,  lo: [-24,  12] },
-  { name: "London",        lat: 51.51,  lon: -0.13,   lo: [-24, -16] },
-  { name: "Amsterdam",     lat: 52.37,  lon:  4.90,   lo: [ 20, -14] },
-  { name: "Zurich",        lat: 47.38,  lon:  8.54,   lo: [ 20, -14] },
-  { name: "Paris",         lat: 48.86,  lon:  2.35,   lo: [-24,  12] },
-  { name: "Milan",         lat: 45.46,  lon:  9.19,   lo: [ 20,  12] },
-  { name: "Madrid",        lat: 40.42,  lon: -3.70,   lo: [-24,  12] },
-  { name: "Frankfurt",     lat: 50.11,  lon:  8.68,   lo: [ 20,  10] },
-  { name: "Moscow",        lat: 55.76,  lon: 37.62,   lo: [ 20, -16] },
-  { name: "Istanbul",      lat: 41.01,  lon: 28.98,   lo: [ 20,  12] },
-  { name: "Cairo",         lat: 30.04,  lon: 31.24,   lo: [ 20,  10] },
-  { name: "Lagos",         lat:  6.52,  lon:  3.38,   lo: [-24,  14] },
-  { name: "Nairobi",       lat: -1.29,  lon: 36.82,   lo: [ 20,  10] },
-  { name: "Johannesburg",  lat: -26.20, lon: 28.05,   lo: [ 20,  12] },
-  { name: "Dubai",         lat: 25.20,  lon: 55.27,   lo: [  0, -20] },
-  { name: "Abu Dhabi",     lat: 24.45,  lon: 54.65,   lo: [-24,  18] },
-  { name: "Riyadh",        lat: 24.69,  lon: 46.72,   lo: [-24,  10] },
-  { name: "Karachi",       lat: 24.86,  lon: 67.01,   lo: [ 20, -16] },
-  { name: "Delhi",         lat: 28.61,  lon: 77.21,   lo: [  0, -20] },
-  { name: "Mumbai",        lat: 19.08,  lon: 72.88,   lo: [-24,  12] },
-  { name: "Bengaluru",     lat: 12.97,  lon: 77.59,   lo: [ 20,  12] },
-  { name: "Bangkok",       lat: 13.76,  lon: 100.50,  lo: [ 20, -16] },
-  { name: "Kuala Lumpur",  lat:  3.14,  lon: 101.69,  lo: [ 20,  14] },
-  { name: "Singapore",     lat:  1.35,  lon: 103.82,  lo: [ 20, -16] },
-  { name: "Jakarta",       lat: -6.21,  lon: 106.85,  lo: [ 20,  14] },
-  { name: "Hong Kong",     lat: 22.32,  lon: 114.17,  lo: [ 20,  12] },
-  { name: "Taipei",        lat: 25.03,  lon: 121.57,  lo: [ 20, -16] },
-  { name: "Shanghai",      lat: 31.23,  lon: 121.47,  lo: [ 20,  10] },
-  { name: "Beijing",       lat: 39.90,  lon: 116.40,  lo: [  0, -20] },
-  { name: "Seoul",         lat: 37.57,  lon: 126.98,  lo: [ 20, -14] },
-  { name: "Tokyo",         lat: 35.68,  lon: 139.69,  lo: [ 20,  10] },
-  { name: "Osaka",         lat: 34.69,  lon: 135.50,  lo: [-24,  18] },
-  { name: "Sydney",        lat: -33.87, lon: 151.21,  lo: [ 20,  10] },
-  { name: "Melbourne",     lat: -37.81, lon: 144.96,  lo: [-24,  10] },
-  { name: "Auckland",      lat: -36.85, lon: 174.76,  lo: [ 20,  10] },
+  { name: "San Francisco", lat: 37.77,  lon: -122.42, lo: [-28, -22] },
+  { name: "Los Angeles",   lat: 34.05,  lon: -118.24, lo: [-28,  26] },
+  { name: "Chicago",       lat: 41.88,  lon: -87.63,  lo: [  0, -26] },
+  { name: "Toronto",       lat: 43.65,  lon: -79.38,  lo: [ 24, -20] },
+  { name: "New York",      lat: 40.71,  lon: -74.01,  lo: [ 24,  10] },
+  { name: "Mexico City",   lat: 19.43,  lon: -99.13,  lo: [-28,  26] },
+  { name: "São Paulo",     lat: -23.55, lon: -46.63,  lo: [ 24,  14] },
+  { name: "Buenos Aires",  lat: -34.60, lon: -58.38,  lo: [ 24,  16] },
+  { name: "Santiago",      lat: -33.45, lon: -70.67,  lo: [-28,  16] },
+  { name: "London",        lat: 51.51,  lon: -0.13,   lo: [-28, -22] },
+  { name: "Amsterdam",     lat: 52.37,  lon:  4.90,   lo: [ 24, -20] },
+  { name: "Zurich",        lat: 47.38,  lon:  8.54,   lo: [ 24, -20] },
+  { name: "Paris",         lat: 48.86,  lon:  2.35,   lo: [-28,  18] },
+  { name: "Milan",         lat: 45.46,  lon:  9.19,   lo: [ 24,  16] },
+  { name: "Madrid",        lat: 40.42,  lon: -3.70,   lo: [-28,  16] },
+  { name: "Frankfurt",     lat: 50.11,  lon:  8.68,   lo: [ 24,  14] },
+  { name: "Moscow",        lat: 55.76,  lon: 37.62,   lo: [ 24, -22] },
+  { name: "Istanbul",      lat: 41.01,  lon: 28.98,   lo: [ 24,  16] },
+  { name: "Cairo",         lat: 30.04,  lon: 31.24,   lo: [ 24,  14] },
+  { name: "Lagos",         lat:  6.52,  lon:  3.38,   lo: [-28,  20] },
+  { name: "Nairobi",       lat: -1.29,  lon: 36.82,   lo: [ 24,  14] },
+  { name: "Johannesburg",  lat: -26.20, lon: 28.05,   lo: [ 24,  16] },
+  { name: "Dubai",         lat: 25.20,  lon: 55.27,   lo: [  0, -26] },
+  { name: "Abu Dhabi",     lat: 24.45,  lon: 54.65,   lo: [-28,  24] },
+  { name: "Riyadh",        lat: 24.69,  lon: 46.72,   lo: [-28,  14] },
+  { name: "Karachi",       lat: 24.86,  lon: 67.01,   lo: [ 24, -22] },
+  { name: "Delhi",         lat: 28.61,  lon: 77.21,   lo: [  0, -26] },
+  { name: "Mumbai",        lat: 19.08,  lon: 72.88,   lo: [-28,  16] },
+  { name: "Bengaluru",     lat: 12.97,  lon: 77.59,   lo: [ 24,  16] },
+  { name: "Bangkok",       lat: 13.76,  lon: 100.50,  lo: [ 24, -22] },
+  { name: "Kuala Lumpur",  lat:  3.14,  lon: 101.69,  lo: [ 24,  20] },
+  { name: "Singapore",     lat:  1.35,  lon: 103.82,  lo: [ 24, -22] },
+  { name: "Jakarta",       lat: -6.21,  lon: 106.85,  lo: [ 24,  20] },
+  { name: "Hong Kong",     lat: 22.32,  lon: 114.17,  lo: [ 24,  16] },
+  { name: "Taipei",        lat: 25.03,  lon: 121.57,  lo: [ 24, -22] },
+  { name: "Shanghai",      lat: 31.23,  lon: 121.47,  lo: [ 24,  14] },
+  { name: "Beijing",       lat: 39.90,  lon: 116.40,  lo: [  0, -26] },
+  { name: "Seoul",         lat: 37.57,  lon: 126.98,  lo: [ 24, -20] },
+  { name: "Tokyo",         lat: 35.68,  lon: 139.69,  lo: [ 24,  14] },
+  { name: "Osaka",         lat: 34.69,  lon: 135.50,  lo: [-28,  24] },
+  { name: "Sydney",        lat: -33.87, lon: 151.21,  lo: [ 24,  14] },
+  { name: "Melbourne",     lat: -37.81, lon: 144.96,  lo: [-28,  14] },
+  { name: "Auckland",      lat: -36.85, lon: 174.76,  lo: [ 24,  14] },
 ];
 
 interface Arc {
@@ -171,7 +172,7 @@ function PulsingDot({ name }: { name: string }) {
         y={y + lo[1]}
         textAnchor={anchor}
         fill="#3d2e0e"
-        fontSize="19"
+        fontSize="38"
         fontFamily="'JetBrains Mono', monospace"
         fontWeight="600"
         opacity="0.72"
