@@ -133,7 +133,7 @@ function PixelCard({ className = "" }: { className?: string }) {
     <canvas
       ref={canvasRef}
       className={className}
-      style={{ width: CARD_W, height: CARD_H }}
+      style={{ width: "100%", height: "auto", aspectRatio: `${CARD_W}/${CARD_H}` }}
       data-testid="canvas-pixel-card"
     />
   );
@@ -309,6 +309,19 @@ function Navbar() {
 function HeroSection() {
   const [notified, setNotified] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
+  const timerRef = useRef<ReturnType<typeof setInterval>>();
+
+  const startAutoRotate = useCallback(() => {
+    clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => {
+      setActiveStep((prev) => (prev + 1) % steps.length);
+    }, 2000);
+  }, []);
+
+  useEffect(() => {
+    startAutoRotate();
+    return () => clearInterval(timerRef.current);
+  }, [startAutoRotate]);
 
   return (
     <section className="relative min-h-screen pt-28 pb-20 sm:pt-36 overflow-hidden" style={{ background: "#FFF8E7" }}>
@@ -381,29 +394,6 @@ function HeroSection() {
               )}
             </motion.div>
 
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.7 }}
-              id="features"
-            >
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={activeStep}
-                  initial={{ opacity: 0, x: 12 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -12 }}
-                  transition={{ duration: 0.35, ease }}
-                >
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">
-                    {steps[activeStep].heading}
-                  </h3>
-                  <p className="text-gray-500 text-sm max-w-xs leading-relaxed">
-                    {steps[activeStep].description}
-                  </p>
-                </motion.div>
-              </AnimatePresence>
-            </motion.div>
           </div>
 
           <motion.div
@@ -412,13 +402,15 @@ function HeroSection() {
             transition={{ duration: 0.4, delay: 0.2 }}
             className="flex flex-col items-center lg:items-end gap-8"
           >
-            <PixelCard className="rounded-2xl" />
+            <div className="w-full max-w-[420px]">
+              <PixelCard className="rounded-2xl" />
+            </div>
 
             <div className="flex items-center gap-6">
               {steps.map((s, i) => (
                 <button
                   key={s.num}
-                  onClick={() => setActiveStep(i)}
+                  onClick={() => { setActiveStep(i); startAutoRotate(); }}
                   className="transition-all duration-300 cursor-pointer"
                   style={{
                     fontFamily: "'JetBrains Mono', monospace",
@@ -436,6 +428,24 @@ function HeroSection() {
                 </button>
               ))}
             </div>
+
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeStep}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.3, ease }}
+                className="text-center lg:text-right max-w-[420px] w-full"
+              >
+                <h3 className="text-lg font-bold text-gray-900 mb-1">
+                  {steps[activeStep].heading}
+                </h3>
+                <p className="text-gray-500 text-sm leading-relaxed">
+                  {steps[activeStep].description}
+                </p>
+              </motion.div>
+            </AnimatePresence>
           </motion.div>
         </div>
       </div>

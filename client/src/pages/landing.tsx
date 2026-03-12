@@ -18,6 +18,11 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Link } from "wouter";
 import logoImg from "@assets/tigerbnklogo.png";
 import faqImg from "@assets/faq.png";
+import ecommerceImg from "@assets/ecommerce.png";
+import freelancersImg from "@assets/freelancers.png";
+import crossborderImg from "@assets/crossborder.png";
+import saasImg from "@assets/saas.png";
+import marketplacesImg from "@assets/marketplaces.png";
 import AnimatedWorldMap from "@/components/animated-world-map";
 
 const ORANGE = "#FF4D00";
@@ -149,7 +154,7 @@ function HeroSection() {
 
   return (
     <section className="bg-white pt-24 pb-12 px-4 sm:px-6 lg:px-8" data-testid="section-hero">
-      <div className="max-w-[1320px] mx-auto rounded-3xl overflow-hidden border border-gray-200/50 relative" style={{ minHeight: "78vh" }}>
+      <div className="max-w-[1320px] mx-auto rounded-3xl overflow-hidden border border-gray-200/50 relative min-h-[60vh] md:min-h-[78vh]">
         <AnimatedWorldMap />
 
         <div
@@ -159,7 +164,7 @@ function HeroSection() {
           }}
         />
 
-        <div className="relative z-10 flex flex-col justify-end h-full px-8 md:px-14 pb-14 pt-20" style={{ minHeight: "78vh" }}>
+        <div className="relative z-10 flex flex-col justify-end h-full px-8 md:px-14 pb-14 pt-20 min-h-[60vh] md:min-h-[78vh]">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -186,7 +191,7 @@ function HeroSection() {
                 >
                   <h1
                     className="text-gray-900 font-black tracking-tight leading-[1.05]"
-                    style={{ fontSize: "clamp(2.8rem, 6vw, 5rem)" }}
+                    style={{ fontSize: "clamp(2.2rem, 6vw, 5rem)" }}
                     data-testid="text-hero-headline"
                   >
                     {line}
@@ -243,7 +248,7 @@ function HeroSection() {
         </div>
 
         <div
-          className="absolute bottom-0 left-0 right-0 h-32 pointer-events-none z-[2]"
+          className="absolute bottom-0 left-0 right-0 h-20 md:h-32 pointer-events-none z-[2]"
           style={{ background: "linear-gradient(to top, rgba(255,255,255,0.8), transparent)" }}
         />
       </div>
@@ -1123,36 +1128,53 @@ function SolutionsSection() {
       icon: ShoppingCart,
       title: "E-commerce",
       desc: "Accept payments globally and settle instantly to fuel your growth.",
-      image: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800&q=80",
+      image: ecommerceImg,
     },
     {
       icon: Users,
       title: "Freelancers",
       desc: "Get paid from anywhere without delays or hidden FX fees.",
-      image: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&q=80",
+      image: freelancersImg,
     },
     {
       icon: Ship,
       title: "Cross-border Trade",
       desc: "Settle international trade payments with competitive FX and same-day liquidity.",
-      image: "https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=800&q=80",
+      image: crossborderImg,
     },
     {
       icon: Monitor,
       title: "SaaS Platforms",
       desc: "Monetize global users instantly with local collections and real-time payouts.",
-      image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&q=80",
+      image: saasImg,
     },
     {
       icon: Store,
       title: "Marketplaces",
       desc: "Collect locally and pay out globally with high approval rates and instant settlement.",
-      image: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&q=80",
+      image: marketplacesImg,
     },
   ];
 
   const [active, setActive] = useState(0);
-  const handleActivate = useCallback((index: number) => setActive(index), []);
+  const timerRef = useRef<ReturnType<typeof setInterval>>();
+
+  const startAutoRotate = useCallback(() => {
+    clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => {
+      setActive((prev) => (prev + 1) % industries.length);
+    }, 3000);
+  }, [industries.length]);
+
+  useEffect(() => {
+    startAutoRotate();
+    return () => clearInterval(timerRef.current);
+  }, [startAutoRotate]);
+
+  const handleActivate = useCallback((index: number) => {
+    setActive(index);
+    startAutoRotate();
+  }, [startAutoRotate]);
 
   return (
     <section className="py-24 sm:py-32 bg-white" data-testid="solutions-section">
@@ -1283,15 +1305,15 @@ function FAQSection() {
   return (
     <section id="faq" className="py-24 sm:py-32 bg-white">
       <div className="max-w-5xl mx-auto px-6">
-        <div className="grid md:grid-cols-2 gap-16 items-start">
+        <div className="grid md:grid-cols-2 gap-16 items-center">
           {/* Left */}
           <motion.div {...animateIn}>
-            <h2 className="text-3xl sm:text-4xl font-black text-gray-900 tracking-tight leading-tight">
+            <h2 className="text-3xl sm:text-4xl font-black text-gray-900 tracking-tight leading-tight mb-8">
               You got questions?<br />We got your back.
             </h2>
             {/* FAQ visual */}
-            <div className="mt-8 rounded-2xl overflow-hidden max-w-sm">
-              <img src={faqImg} alt="Guidance to the Future" className="w-full h-full object-cover rounded-2xl" />
+            <div className="rounded-2xl overflow-hidden">
+              <img src={faqImg} alt="Guidance to the Future" className="w-full object-cover rounded-2xl" />
             </div>
           </motion.div>
 

@@ -1,81 +1,34 @@
 import { useEffect, useRef, useState } from "react";
-import mapImg from "@assets/Gemini_Generated_Image_w055lew055lew055_1773321842913.png";
+import mapImg from "@assets/map.png";
 
-const GOLD = "#C9A84C";
-const GOLD_DIM = "rgba(201, 168, 76, 0.3)";
-const GOLD_GLOW = "rgba(201, 168, 76, 0.6)";
+const BLACK = "#1a1a1a";
 
-const VB_W = 2752;
+const VB_W = 2750;
 const VB_H = 1536;
 
-// Calibrated from map image landmarks:
-//   West Africa coast (~15°W) → ~42.5% x; India tip (~80°E) → ~68% x
-//   Greenland (~72°N) → ~8% y; South Africa tip (~34°S) → ~70% y
-// LON range = 372°, LAT range = 175°
-const LON_MIN = -173;
-const LON_MAX = 199;
-const LAT_TOP = 86;
-const LAT_BOT = -89;
-
-function lonToX(lon: number) {
-  return ((lon - LON_MIN) / (LON_MAX - LON_MIN)) * VB_W;
-}
-function latToY(lat: number) {
-  return ((LAT_TOP - lat) / (LAT_TOP - LAT_BOT)) * VB_H;
-}
-
-interface CityNode {
-  name: string;
-  lat: number;
-  lon: number;
-  lo: [number, number]; // label offset in SVG viewBox units
-}
-
-const CITIES: CityNode[] = [
-  { name: "San Francisco", lat: 37.77,  lon: -122.42, lo: [-28, -22] },
-  { name: "Los Angeles",   lat: 34.05,  lon: -118.24, lo: [-28,  26] },
-  { name: "Chicago",       lat: 41.88,  lon: -87.63,  lo: [  0, -26] },
-  { name: "Toronto",       lat: 43.65,  lon: -79.38,  lo: [ 24, -20] },
-  { name: "New York",      lat: 40.71,  lon: -74.01,  lo: [ 24,  10] },
-  { name: "Mexico City",   lat: 19.43,  lon: -99.13,  lo: [-28,  26] },
-  { name: "São Paulo",     lat: -23.55, lon: -46.63,  lo: [ 24,  14] },
-  { name: "Buenos Aires",  lat: -34.60, lon: -58.38,  lo: [ 24,  16] },
-  { name: "Santiago",      lat: -33.45, lon: -70.67,  lo: [-28,  16] },
-  { name: "London",        lat: 51.51,  lon: -0.13,   lo: [-28, -22] },
-  { name: "Amsterdam",     lat: 52.37,  lon:  4.90,   lo: [ 24, -20] },
-  { name: "Zurich",        lat: 47.38,  lon:  8.54,   lo: [ 24, -20] },
-  { name: "Paris",         lat: 48.86,  lon:  2.35,   lo: [-28,  18] },
-  { name: "Milan",         lat: 45.46,  lon:  9.19,   lo: [ 24,  16] },
-  { name: "Madrid",        lat: 40.42,  lon: -3.70,   lo: [-28,  16] },
-  { name: "Frankfurt",     lat: 50.11,  lon:  8.68,   lo: [ 24,  14] },
-  { name: "Moscow",        lat: 55.76,  lon: 37.62,   lo: [ 24, -22] },
-  { name: "Istanbul",      lat: 41.01,  lon: 28.98,   lo: [ 24,  16] },
-  { name: "Cairo",         lat: 30.04,  lon: 31.24,   lo: [ 24,  14] },
-  { name: "Lagos",         lat:  6.52,  lon:  3.38,   lo: [-28,  20] },
-  { name: "Nairobi",       lat: -1.29,  lon: 36.82,   lo: [ 24,  14] },
-  { name: "Johannesburg",  lat: -26.20, lon: 28.05,   lo: [ 24,  16] },
-  { name: "Dubai",         lat: 25.20,  lon: 55.27,   lo: [  0, -26] },
-  { name: "Abu Dhabi",     lat: 24.45,  lon: 54.65,   lo: [-28,  24] },
-  { name: "Riyadh",        lat: 24.69,  lon: 46.72,   lo: [-28,  14] },
-  { name: "Karachi",       lat: 24.86,  lon: 67.01,   lo: [ 24, -22] },
-  { name: "Delhi",         lat: 28.61,  lon: 77.21,   lo: [  0, -26] },
-  { name: "Mumbai",        lat: 19.08,  lon: 72.88,   lo: [-28,  16] },
-  { name: "Bengaluru",     lat: 12.97,  lon: 77.59,   lo: [ 24,  16] },
-  { name: "Bangkok",       lat: 13.76,  lon: 100.50,  lo: [ 24, -22] },
-  { name: "Kuala Lumpur",  lat:  3.14,  lon: 101.69,  lo: [ 24,  20] },
-  { name: "Singapore",     lat:  1.35,  lon: 103.82,  lo: [ 24, -22] },
-  { name: "Jakarta",       lat: -6.21,  lon: 106.85,  lo: [ 24,  20] },
-  { name: "Hong Kong",     lat: 22.32,  lon: 114.17,  lo: [ 24,  16] },
-  { name: "Taipei",        lat: 25.03,  lon: 121.57,  lo: [ 24, -22] },
-  { name: "Shanghai",      lat: 31.23,  lon: 121.47,  lo: [ 24,  14] },
-  { name: "Beijing",       lat: 39.90,  lon: 116.40,  lo: [  0, -26] },
-  { name: "Seoul",         lat: 37.57,  lon: 126.98,  lo: [ 24, -20] },
-  { name: "Tokyo",         lat: 35.68,  lon: 139.69,  lo: [ 24,  14] },
-  { name: "Osaka",         lat: 34.69,  lon: 135.50,  lo: [-28,  24] },
-  { name: "Sydney",        lat: -33.87, lon: 151.21,  lo: [ 24,  14] },
-  { name: "Melbourne",     lat: -37.81, lon: 144.96,  lo: [-28,  14] },
-  { name: "Auckland",      lat: -36.85, lon: 174.76,  lo: [ 24,  14] },
-];
+// Pixel positions detected from the black dots on map.png (2750x1536)
+const CITIES: Record<string, [number, number]> = {
+  "San Francisco": [267, 524],
+  "Chicago":       [418, 401],
+  "Toronto":       [460, 398],
+  "New York":      [570, 460],
+  "São Paulo":     [757, 875],
+  "London":        [1229, 327],
+  "Paris":         [1244, 335],
+  "Zurich":        [1309, 365],
+  "Frankfurt":     [1272, 341],
+  "Moscow":        [1424, 224],
+  "Dubai":         [1521, 466],
+  "Mumbai":        [1606, 589],
+  "Johannesburg":  [1403, 815],
+  "Singapore":     [1845, 633],
+  "Beijing":       [2020, 380],
+  "Shanghai":      [2085, 455],
+  "Hong Kong":     [2026, 500],
+  "Tokyo":         [2233, 369],
+  "Sydney":        [2355, 839],
+  "Melbourne":     [2264, 866],
+};
 
 interface Arc {
   from: string;
@@ -83,66 +36,32 @@ interface Arc {
 }
 
 const ARCS: Arc[] = [
-  { from: "San Francisco", to: "Los Angeles" },
-  { from: "Los Angeles", to: "Mexico City" },
   { from: "San Francisco", to: "Chicago" },
   { from: "Chicago", to: "Toronto" },
-  { from: "Toronto", to: "New York" },
-  { from: "New York", to: "Chicago" },
-  { from: "Mexico City", to: "São Paulo" },
-  { from: "São Paulo", to: "Buenos Aires" },
-  { from: "Buenos Aires", to: "Santiago" },
+  { from: "Chicago", to: "New York" },
+  { from: "New York", to: "São Paulo" },
   { from: "New York", to: "London" },
-  { from: "São Paulo", to: "Lagos" },
-  { from: "London", to: "Amsterdam" },
+  { from: "São Paulo", to: "Johannesburg" },
   { from: "London", to: "Paris" },
   { from: "Paris", to: "Zurich" },
-  { from: "Zurich", to: "Milan" },
-  { from: "Paris", to: "Madrid" },
-  { from: "Frankfurt", to: "London" },
-  { from: "Frankfurt", to: "Milan" },
-  { from: "Amsterdam", to: "Frankfurt" },
+  { from: "Paris", to: "Frankfurt" },
+  { from: "London", to: "Frankfurt" },
   { from: "London", to: "Moscow" },
-  { from: "Istanbul", to: "Moscow" },
-  { from: "Istanbul", to: "Dubai" },
+  { from: "Moscow", to: "Dubai" },
   { from: "London", to: "Dubai" },
-  { from: "Cairo", to: "Istanbul" },
-  { from: "Cairo", to: "Dubai" },
-  { from: "Dubai", to: "Riyadh" },
-  { from: "Dubai", to: "Abu Dhabi" },
-  { from: "Dubai", to: "Karachi" },
   { from: "Dubai", to: "Mumbai" },
-  { from: "Lagos", to: "Nairobi" },
-  { from: "Nairobi", to: "Johannesburg" },
-  { from: "Nairobi", to: "Dubai" },
-  { from: "Karachi", to: "Delhi" },
-  { from: "Delhi", to: "Mumbai" },
-  { from: "Mumbai", to: "Bengaluru" },
-  { from: "Mumbai", to: "Bangkok" },
-  { from: "Bengaluru", to: "Singapore" },
-  { from: "Bangkok", to: "Kuala Lumpur" },
-  { from: "Kuala Lumpur", to: "Singapore" },
-  { from: "Singapore", to: "Jakarta" },
-  { from: "Hong Kong", to: "Singapore" },
+  { from: "Dubai", to: "Johannesburg" },
   { from: "Mumbai", to: "Singapore" },
-  { from: "Hong Kong", to: "Tokyo" },
+  { from: "Singapore", to: "Hong Kong" },
   { from: "Hong Kong", to: "Shanghai" },
   { from: "Shanghai", to: "Beijing" },
-  { from: "Beijing", to: "Seoul" },
-  { from: "Seoul", to: "Tokyo" },
-  { from: "Tokyo", to: "Osaka" },
-  { from: "Hong Kong", to: "Taipei" },
-  { from: "Taipei", to: "Shanghai" },
+  { from: "Hong Kong", to: "Tokyo" },
+  { from: "Beijing", to: "Tokyo" },
   { from: "Singapore", to: "Sydney" },
   { from: "Sydney", to: "Melbourne" },
-  { from: "Sydney", to: "Auckland" },
-  { from: "Jakarta", to: "Sydney" },
+  { from: "Mumbai", to: "Hong Kong" },
+  { from: "San Francisco", to: "Tokyo" },
 ];
-
-function getCityPos(name: string): { x: number; y: number; lo: [number, number] } {
-  const c = CITIES.find((c) => c.name === name)!;
-  return { x: lonToX(c.lon), y: latToY(c.lat), lo: c.lo };
-}
 
 function makeArcPath(fromX: number, fromY: number, toX: number, toY: number): string {
   const mx = (fromX + toX) / 2;
@@ -150,43 +69,18 @@ function makeArcPath(fromX: number, fromY: number, toX: number, toY: number): st
   const dx = toX - fromX;
   const dy = toY - fromY;
   const dist = Math.sqrt(dx * dx + dy * dy);
-  const curvature = Math.min(dist * 0.25, 230);
+  const curvature = Math.min(dist * 0.2, 200);
   const cx = mx - (dy / dist) * curvature;
   const cy = my + (dx / dist) * curvature;
   return `M${fromX},${fromY} Q${cx},${cy} ${toX},${toY}`;
 }
 
-function PulsingDot({ name }: { name: string }) {
-  const { x, y, lo } = getCityPos(name);
-  const anchor = lo[0] > 0 ? "start" : lo[0] < 0 ? "end" : "middle";
-  return (
-    <g>
-      <circle cx={x} cy={y} r="22" fill="none" stroke={GOLD_DIM} strokeWidth="2">
-        <animate attributeName="r" values="10;36;10" dur="3s" repeatCount="indefinite" />
-        <animate attributeName="opacity" values="0.6;0;0.6" dur="3s" repeatCount="indefinite" />
-      </circle>
-      <circle cx={x} cy={y} r="8" fill={GOLD} />
-      <circle cx={x} cy={y} r="14" fill="none" stroke={GOLD_GLOW} strokeWidth="1.5" opacity="0.4" />
-      <text
-        x={x + lo[0]}
-        y={y + lo[1]}
-        textAnchor={anchor}
-        fill="#3d2e0e"
-        fontSize="38"
-        fontFamily="'JetBrains Mono', monospace"
-        fontWeight="600"
-        opacity="0.72"
-      >
-        {name}
-      </text>
-    </g>
-  );
-}
-
 function AnimatedArc({ arc, delay }: { arc: Arc; delay: number }) {
-  const from = getCityPos(arc.from);
-  const to = getCityPos(arc.to);
-  const path = makeArcPath(from.x, from.y, to.x, to.y);
+  const from = CITIES[arc.from];
+  const to = CITIES[arc.to];
+  if (!from || !to) return null;
+
+  const path = makeArcPath(from[0], from[1], to[0], to[1]);
   const pathRef = useRef<SVGPathElement>(null);
   const [pathLength, setPathLength] = useState(600);
 
@@ -197,7 +91,6 @@ function AnimatedArc({ arc, delay }: { arc: Arc; delay: number }) {
   }, []);
 
   const cycleDur = 4;
-  const drawDur = cycleDur * 0.4;
 
   return (
     <g>
@@ -205,12 +98,11 @@ function AnimatedArc({ arc, delay }: { arc: Arc; delay: number }) {
         ref={pathRef}
         d={path}
         fill="none"
-        stroke={GOLD}
-        strokeWidth="3"
+        stroke={BLACK}
+        strokeWidth="4"
         opacity="0.7"
         strokeDasharray={pathLength}
         strokeDashoffset={pathLength}
-        filter="url(#arc-glow)"
       >
         <animate
           attributeName="stroke-dashoffset"
@@ -229,23 +121,6 @@ function AnimatedArc({ arc, delay }: { arc: Arc; delay: number }) {
           repeatCount="indefinite"
         />
       </path>
-      <circle r="7" fill={GOLD} opacity="0">
-        <animateMotion
-          path={path}
-          dur={`${drawDur}s`}
-          begin={`${delay}s`}
-          repeatCount="indefinite"
-          fill="freeze"
-        />
-        <animate
-          attributeName="opacity"
-          values="0;1;1;0"
-          keyTimes="0;0.05;0.85;1"
-          dur={`${drawDur}s`}
-          begin={`${delay}s`}
-          repeatCount="indefinite"
-        />
-      </circle>
     </g>
   );
 }
@@ -253,34 +128,22 @@ function AnimatedArc({ arc, delay }: { arc: Arc; delay: number }) {
 export default function AnimatedWorldMap() {
   return (
     <div className="absolute inset-0 overflow-hidden" style={{ background: "#FFF8E7" }}>
-      <img
-        src={mapImg}
-        alt=""
-        className="absolute inset-0 w-full h-full"
-        style={{ objectFit: "cover", objectPosition: "center" }}
-        draggable={false}
-      />
       <svg
         viewBox={`0 0 ${VB_W} ${VB_H}`}
         preserveAspectRatio="xMidYMid slice"
         className="absolute inset-0 w-full h-full"
       >
-        <defs>
-          <filter id="arc-glow" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="6" result="blur" />
-            <feMerge>
-              <feMergeNode in="blur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-        </defs>
+        <image
+          href={mapImg}
+          x="0"
+          y="0"
+          width={VB_W}
+          height={VB_H}
+          preserveAspectRatio="xMidYMid slice"
+        />
 
         {ARCS.map((arc, i) => (
-          <AnimatedArc key={`${arc.from}-${arc.to}`} arc={arc} delay={i * 0.37} />
-        ))}
-
-        {CITIES.map((city) => (
-          <PulsingDot key={city.name} name={city.name} />
+          <AnimatedArc key={`${arc.from}-${arc.to}`} arc={arc} delay={i * 0.5} />
         ))}
       </svg>
     </div>

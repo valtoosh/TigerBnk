@@ -203,7 +203,7 @@ export default function AuthPage() {
               ) : accountType === null ? (
                 <motion.div key="account-type" variants={pageVariants} initial="initial" animate="animate" exit="exit">
                   <p className="text-sm text-muted-foreground text-center mb-6">Choose your account type</p>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <button
                       onClick={() => setAccountType("individual")}
                       className="p-6 rounded-xl border border-border bg-card text-center transition-all hover:border-[#FF4D00]/50"

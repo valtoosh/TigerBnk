@@ -40,7 +40,7 @@ export function LoadingScreen({ onComplete }: LoadingScreenProps) {
           initial={{ opacity: 1 }}
           exit={{ opacity: 0, y: -30 }}
           transition={{ duration: FADE_DURATION, ease: [0.4, 0, 0.2, 1] }}
-          className="fixed inset-0 z-[9999] flex flex-col items-center justify-center px-8"
+          className="fixed inset-0 z-[9999] flex flex-col items-center justify-center px-4 sm:px-8"
           style={{ background: "#FFF8E7" }}
           data-testid="loading-screen"
         >

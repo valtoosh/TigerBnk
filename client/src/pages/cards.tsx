@@ -191,7 +191,7 @@ function PixelCard() {
   return (
     <canvas
       ref={canvasRef}
-      style={{ width: CARD_W, height: CARD_H }}
+      style={{ width: "100%", height: "auto", aspectRatio: `${CARD_W}/${CARD_H}` }}
       data-testid="canvas-pixel-card"
     />
   );
@@ -329,7 +329,9 @@ export default function Cards() {
           transition={{ duration: 0.4, delay: 0.2 }}
           className="flex-shrink-0 flex flex-col items-center lg:items-end gap-6 w-full lg:w-auto"
         >
-          <PixelCard />
+          <div className="w-full max-w-[380px]">
+            <PixelCard />
+          </div>
 
           <div className="flex items-center gap-5">
             {featureSteps.map((s, i) => (
