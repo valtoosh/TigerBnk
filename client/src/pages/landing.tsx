@@ -153,7 +153,7 @@ function HeroSection() {
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
-          background: "radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.7) 100%)",
+          background: "radial-gradient(ellipse at center, transparent 50%, rgba(255,255,255,0.6) 100%)",
         }}
       />
 
@@ -183,7 +183,7 @@ function HeroSection() {
                 transition={{ duration: 0.8, ease, delay: 0.5 + i * 0.15 }}
               >
                 <h1
-                  className="text-white font-black tracking-tight leading-[1.05]"
+                  className="text-gray-900 font-black tracking-tight leading-[1.05]"
                   style={{ fontSize: "clamp(2.8rem, 6vw, 5rem)" }}
                   data-testid="text-hero-headline"
                 >
@@ -198,7 +198,7 @@ function HeroSection() {
           initial={{ opacity: 0, filter: "blur(10px)" }}
           animate={{ opacity: 1, filter: "blur(0px)" }}
           transition={{ duration: 0.9, ease, delay: 0.9 }}
-          className="text-white/60 text-base sm:text-lg max-w-md leading-relaxed mb-8"
+          className="text-gray-500 text-base sm:text-lg max-w-md leading-relaxed mb-8"
           data-testid="text-hero-subheadline"
         >
           Collect and pay globally with{" "}
@@ -221,17 +221,17 @@ function HeroSection() {
               className="group inline-flex items-center gap-2 px-8 py-3.5 rounded-full font-semibold text-sm transition-all duration-300"
               style={{
                 background: ORANGE,
-                color: "#000",
-                boxShadow: "0 0 20px rgba(255, 77, 0, 0.3), 0 0 60px rgba(255, 77, 0, 0.1)",
+                color: "#fff",
+                boxShadow: "0 4px 20px rgba(255, 77, 0, 0.25)",
               }}
               data-testid="button-hero-cta"
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = "scale(1.05)";
-                e.currentTarget.style.boxShadow = "0 0 30px rgba(255, 77, 0, 0.5), 0 0 80px rgba(255, 77, 0, 0.2)";
+                e.currentTarget.style.boxShadow = "0 6px 30px rgba(255, 77, 0, 0.35)";
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.transform = "scale(1)";
-                e.currentTarget.style.boxShadow = "0 0 20px rgba(255, 77, 0, 0.3), 0 0 60px rgba(255, 77, 0, 0.1)";
+                e.currentTarget.style.boxShadow = "0 4px 20px rgba(255, 77, 0, 0.25)";
               }}
             >
               Get Started <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
@@ -242,7 +242,7 @@ function HeroSection() {
 
       <div
         className="absolute bottom-0 left-0 right-0 h-32 pointer-events-none"
-        style={{ background: "linear-gradient(to top, #f5f5f5, transparent)" }}
+        style={{ background: "linear-gradient(to top, #fff, transparent)" }}
       />
     </section>
   );
