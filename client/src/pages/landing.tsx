@@ -323,7 +323,8 @@ function SettlementCard() {
     const id = setInterval(() => {
       setFeedIdx((i) => {
         const next = (i + 1) % feed.length;
-        setNewestKey(`${feed[next % feed.length].flag}-${feed[next % feed.length].label}-${next}`);
+        const entry = feed[next];
+        setNewestKey(`${entry.flag}-${entry.label}-${next}`);
         return next;
       });
     }, 4000);
@@ -336,10 +337,13 @@ function SettlementCard() {
     return () => clearTimeout(t);
   }, [newestKey]);
 
-  const visibleRows = Array.from({ length: 4 }, (_, i) => ({
-    ...feed[(feedIdx + i) % feed.length],
-    rowKey: `${feed[(feedIdx + i) % feed.length].flag}-${feed[(feedIdx + i) % feed.length].label}-${(feedIdx + i) % feed.length}`,
-  }));
+  const visibleRows = Array.from({ length: 4 }, (_, i) => {
+    const idx = ((feedIdx - i) % feed.length + feed.length) % feed.length;
+    return {
+      ...feed[idx],
+      rowKey: `${feed[idx].flag}-${feed[idx].label}-${idx}`,
+    };
+  });
 
   return (
     <motion.div
