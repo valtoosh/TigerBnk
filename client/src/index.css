@@ -28,9 +28,9 @@
   --popover-border: 0 0% 90%;
   --primary: 18 100% 50%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 0 0% 96%;
+  --secondary: 40 100% 95%;
   --secondary-foreground: 0 0% 15%;
-  --muted: 0 0% 96%;
+  --muted: 40 100% 95%;
   --muted-foreground: 0 0% 45%;
   --accent: 18 100% 97%;
   --accent-foreground: 0 0% 7%;
@@ -49,12 +49,12 @@
   --radius: .625rem;
   --shadow-2xs: 0px 1px 2px 0px hsl(0 0% 0% / 0.04);
   --shadow-xs: 0px 1px 3px 0px hsl(0 0% 0% / 0.05);
-  --shadow-sm: 0px 1px 3px 0px hsl(0 0% 0% / 0.06), 0px 1px 2px -1px hsl(0 0% 0% / 0.04);
-  --shadow: 0px 2px 4px 0px hsl(0 0% 0% / 0.06), 0px 1px 2px -1px hsl(0 0% 0% / 0.04);
-  --shadow-md: 0px 4px 6px -1px hsl(0 0% 0% / 0.07), 0px 2px 4px -2px hsl(0 0% 0% / 0.04);
-  --shadow-lg: 0px 10px 15px -3px hsl(0 0% 0% / 0.08), 0px 4px 6px -4px hsl(0 0% 0% / 0.04);
-  --shadow-xl: 0px 20px 25px -5px hsl(0 0% 0% / 0.10), 0px 8px 10px -6px hsl(0 0% 0% / 0.05);
-  --shadow-2xl: 0px 25px 50px -12px hsl(0 0% 0% / 0.15);
+  --shadow-sm: 0px 1px 3px 0px hsl(0 0% 0% / 0.04), 0px 1px 2px -1px hsl(0 0% 0% / 0.03);
+  --shadow: 0px 2px 4px 0px hsl(0 0% 0% / 0.04), 0px 1px 2px -1px hsl(0 0% 0% / 0.03);
+  --shadow-md: 0px 4px 6px -1px hsl(0 0% 0% / 0.05), 0px 2px 4px -2px hsl(0 0% 0% / 0.03);
+  --shadow-lg: 0px 10px 15px -3px hsl(0 0% 0% / 0.06), 0px 4px 6px -4px hsl(0 0% 0% / 0.03);
+  --shadow-xl: 0px 20px 25px -5px hsl(0 0% 0% / 0.07), 0px 8px 10px -6px hsl(0 0% 0% / 0.04);
+  --shadow-2xl: 0px 25px 50px -12px hsl(0 0% 0% / 0.10);
   --tracking-normal: 0em;
   --spacing: 0.25rem;
 

@@ -81,14 +81,14 @@ function Navbar() {
         <div className="flex items-center justify-between h-16 md:h-20">
           <div className="flex items-center gap-2.5" data-testid="text-logo">
             <img src={logoImg} alt="TigerBnk" className="w-7 h-7 rounded-lg" />
-            <span className={`font-bold text-lg tracking-tight transition-colors duration-300 ${scrolled ? "text-gray-900" : "text-white"}`}>TigerBnk</span>
+            <span className="font-bold text-lg tracking-tight text-gray-900">TigerBnk</span>
           </div>
 
-          <div className={`hidden md:flex items-center gap-8 text-sm transition-colors duration-300 ${scrolled ? "text-gray-500" : "text-white/60"}`}>
-            <a href="#features" className={`transition-colors ${scrolled ? "hover:text-gray-900" : "hover:text-white"}`}>Features</a>
-            <a href="#how-it-works" className={`transition-colors ${scrolled ? "hover:text-gray-900" : "hover:text-white"}`}>How It Works</a>
-            <Link href="/cards" className={`transition-colors ${scrolled ? "hover:text-gray-900" : "hover:text-white"}`}>Cards</Link>
-            <a href="#faq" className={`transition-colors ${scrolled ? "hover:text-gray-900" : "hover:text-white"}`}>FAQ</a>
+          <div className="hidden md:flex items-center gap-8 text-sm text-gray-500">
+            <a href="#features" className="transition-colors hover:text-gray-900">Features</a>
+            <a href="#how-it-works" className="transition-colors hover:text-gray-900">How It Works</a>
+            <Link href="/cards" className="transition-colors hover:text-gray-900">Cards</Link>
+            <a href="#faq" className="transition-colors hover:text-gray-900">FAQ</a>
           </div>
 
           <div className="hidden md:flex items-center gap-3">
@@ -104,7 +104,7 @@ function Navbar() {
             </Button>
           </div>
 
-          <button className={`md:hidden p-2 transition-colors duration-300 ${scrolled ? "text-gray-600" : "text-white/70"}`} onClick={() => setMobileOpen(!mobileOpen)}>
+          <button className="md:hidden p-2 text-gray-600" onClick={() => setMobileOpen(!mobileOpen)}>
             {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
         </div>
@@ -117,13 +117,13 @@ function Navbar() {
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             className="md:hidden overflow-hidden"
-            style={{ background: "rgba(0, 0, 0, 0.85)", backdropFilter: "blur(20px)" }}
+            style={{ background: "rgba(255, 255, 255, 0.95)", backdropFilter: "blur(20px)" }}
           >
             <div className="px-6 py-4 space-y-3">
-              <a href="#features" className="block text-white/60 text-sm py-2" onClick={() => setMobileOpen(false)}>Features</a>
-              <a href="#how-it-works" className="block text-white/60 text-sm py-2" onClick={() => setMobileOpen(false)}>How It Works</a>
-              <Link href="/cards" className="block text-white/60 text-sm py-2" onClick={() => setMobileOpen(false)}>Cards</Link>
-              <a href="#faq" className="block text-white/60 text-sm py-2" onClick={() => setMobileOpen(false)}>FAQ</a>
+              <a href="#features" className="block text-gray-500 text-sm py-2" onClick={() => setMobileOpen(false)}>Features</a>
+              <a href="#how-it-works" className="block text-gray-500 text-sm py-2" onClick={() => setMobileOpen(false)}>How It Works</a>
+              <Link href="/cards" className="block text-gray-500 text-sm py-2" onClick={() => setMobileOpen(false)}>Cards</Link>
+              <a href="#faq" className="block text-gray-500 text-sm py-2" onClick={() => setMobileOpen(false)}>FAQ</a>
               <div className="flex gap-3 pt-2">
                 <Button asChild size="sm" className="flex-1 rounded-full text-gray-900 border-0" style={{ background: ORANGE }}>
                   <Link href="/auth?mode=register">Get Started</Link>
@@ -242,7 +242,7 @@ function HeroSection() {
 
       <div
         className="absolute bottom-0 left-0 right-0 h-32 pointer-events-none"
-        style={{ background: "linear-gradient(to top, #f5f0e8, transparent)" }}
+        style={{ background: "linear-gradient(to top, #FFF8E7, transparent)" }}
       />
     </section>
   );
@@ -275,7 +275,7 @@ function ProblemSection() {
               className="p-8 rounded-2xl bg-white border border-gray-100 hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
               data-testid={`card-problem-${i}`}
             >
-              <div className="w-12 h-12 rounded-xl bg-gray-50 flex items-center justify-center mb-6">
+              <div className="w-12 h-12 rounded-xl bg-[#FFF8E7] flex items-center justify-center mb-6">
                 <p.icon className="w-6 h-6 text-gray-700" />
               </div>
               <h3 className="text-lg font-bold text-gray-900 mb-3" data-testid={`text-problem-title-${i}`}>{p.title}</h3>
@@ -299,7 +299,7 @@ const MARKETS = [
   { flag: "🇷🇺", code: "RUB", country: "Russia",    rate: "92.10",  dir: -1, color: "#2563eb" },
 ];
 
-const INSET_STYLE = "rounded-xl bg-[#f8f8f7]";
+const INSET_STYLE = "rounded-xl bg-white";
 const INSET_SHADOW = { boxShadow: "inset 0 1px 4px rgba(0,0,0,0.05)" } as const;
 
 /* ─── Settlement Pipeline Card ─── */
@@ -379,7 +379,7 @@ function SettlementCard() {
               <div className="flex flex-col items-center gap-1.5 flex-1">
                 <motion.div
                   animate={{
-                    backgroundColor: step >= i ? ORANGE : "#f3f4f6",
+                    backgroundColor: step >= i ? ORANGE : "#e8e0d0",
                     scale: step === i ? 1.08 : 1,
                   }}
                   transition={{ duration: 0.5, ease }}
@@ -397,7 +397,7 @@ function SettlementCard() {
                 </motion.span>
               </div>
               {i < steps.length - 1 && (
-                <div className="flex-1 h-[2px] mb-5 mx-1 rounded-full bg-gray-100 overflow-hidden relative">
+                <div className="flex-1 h-[2px] mb-5 mx-1 rounded-full bg-[#e8e0d0] overflow-hidden relative">
                   <motion.div
                     className="absolute inset-y-0 left-0 h-full rounded-full"
                     style={{ background: ORANGE }}
@@ -624,7 +624,7 @@ function CurrencyCard() {
               transition={{ delay: 0.06 * i, duration: 0.5, ease }}
               className="rounded-lg py-3 flex flex-col items-center gap-1 text-center"
               style={{
-                background: activeIdx === i ? "#fff7f5" : "#fff",
+                background: activeIdx === i ? "#FFF8E7" : "#fff",
                 boxShadow: activeIdx === i
                   ? `inset 0 1px 4px rgba(255,77,0,0.12)`
                   : "inset 0 1px 3px rgba(0,0,0,0.04)",
@@ -668,7 +668,7 @@ function CurrencyCard() {
 /* ─── Feature Bento Grid ─── */
 function FeaturesSection() {
   return (
-    <section id="features" className="py-24 sm:py-32 bg-gray-50">
+    <section id="features" className="py-24 sm:py-32 bg-[#FFF8E7]">
       <div className="max-w-6xl mx-auto px-6">
         <motion.div {...animateIn} className="text-center mb-16">
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-gray-900 tracking-tight">
@@ -724,18 +724,18 @@ function SolutionsSection() {
             <div
               className="absolute inset-0"
               style={{
-                background: "linear-gradient(135deg, #374151 0%, #111827 50%, #374151 100%)",
+                background: "#FFF8E7",
               }}
             />
-            <div className="absolute inset-0 flex items-center justify-center">
+            <div className="absolute inset-0 border border-gray-200/60 rounded-2xl flex items-center justify-center">
               <div className="text-center">
-                <div className="w-16 h-16 rounded-2xl bg-white/10 flex items-center justify-center mx-auto mb-4">
+                <div className="w-16 h-16 rounded-2xl bg-white flex items-center justify-center mx-auto mb-4" style={{ boxShadow: "inset 0 1px 4px rgba(0,0,0,0.05)" }}>
                   {(() => {
                     const Icon = industries[active].icon;
-                    return <Icon className="w-8 h-8 text-white/60" />;
+                    return <Icon className="w-8 h-8 text-gray-400" />;
                   })()}
                 </div>
-                <p className="text-white/40 text-sm font-medium">{industries[active].title}</p>
+                <p className="text-gray-400 text-sm font-medium">{industries[active].title}</p>
               </div>
             </div>
           </motion.div>
@@ -750,7 +750,7 @@ function SolutionsSection() {
                   style={{
                     borderLeft: i === active ? `3px solid ${ORANGE}` : "3px solid transparent",
                     paddingLeft: "24px",
-                    borderBottom: "1px solid #f3f4f6",
+                    borderBottom: "1px solid #e8e0d0",
                   }}
                   onClick={() => setActive(i)}
                   onViewportEnter={() => setActive(i)}
@@ -783,7 +783,7 @@ function HowItWorksSection() {
   ];
 
   return (
-    <section id="how-it-works" className="py-24 sm:py-32 bg-gray-50" data-testid="section-how-it-works">
+    <section id="how-it-works" className="py-24 sm:py-32 bg-[#FFF8E7]" data-testid="section-how-it-works">
       <div className="max-w-6xl mx-auto px-6">
         <motion.div {...animateIn} className="text-center mb-16">
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-gray-900 tracking-tight" data-testid="text-hiw-headline">
@@ -800,8 +800,8 @@ function HowItWorksSection() {
               className="relative p-7 rounded-2xl bg-white border border-gray-100 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group"
               data-testid={`card-step-${i}`}
             >
-              <span className="text-5xl font-black text-gray-100 absolute top-4 right-4 select-none">{s.num}</span>
-              <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center mb-5">
+              <span className="text-5xl font-black text-[#e8e0d0] absolute top-4 right-4 select-none">{s.num}</span>
+              <div className="w-10 h-10 rounded-xl bg-[#FFF8E7] flex items-center justify-center mb-5">
                 <s.icon className="w-5 h-5 text-gray-700" />
               </div>
               <h3 className="text-base font-bold text-gray-900 mb-2" data-testid={`text-step-title-${i}`}>{s.title}</h3>

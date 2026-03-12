@@ -256,7 +256,7 @@ function AnimatedArc({ arc, delay }: { arc: Arc; delay: number }) {
 
 export default function AnimatedWorldMap() {
   return (
-    <div className="absolute inset-0 overflow-hidden" style={{ background: "#f5f0e8" }}>
+    <div className="absolute inset-0 overflow-hidden" style={{ background: "#FFF8E7" }}>
       <img
         src={mapImg}
         alt=""
