@@ -145,8 +145,6 @@ function Navbar() {
 
 /* ─── Hero ─── */
 function HeroSection() {
-  const tpv = useCounter(20000000, 2400, 0, true);
-
   const clipReveal = {
     hidden: { y: "100%", opacity: 0, filter: "blur(8px)" },
     visible: { y: "0%", opacity: 1, filter: "blur(0px)" },
@@ -160,34 +158,19 @@ function HeroSection() {
         <div
           className="absolute inset-0 pointer-events-none z-[1]"
           style={{
-            background: "radial-gradient(ellipse at center, transparent 50%, rgba(255,255,255,0.5) 100%)",
+            background: "linear-gradient(to right, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.3) 40%, transparent 70%)",
           }}
         />
 
         <div className="relative z-10 flex flex-col justify-end h-full px-8 md:px-14 pb-14 pt-20 min-h-[60vh] md:min-h-[78vh]">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6, ease, delay: 0.3 }}
-            className="mb-6"
-          >
-            <span
-              className="inline-block px-4 py-1.5 rounded-md text-sm font-semibold tabular-nums"
-              style={{ background: ORANGE, color: "#000" }}
-              data-testid="badge-tpv"
-            >
-              ${tpv.toLocaleString()}+ TPV
-            </span>
-          </motion.div>
-
           <div className="mb-6 max-w-3xl">
-            {["Global Payments,", "Simplified."].map((line, i) => (
+            {["The Payment Infrastructure", "for Global Business."].map((line, i) => (
               <div key={i} className="overflow-hidden">
                 <motion.div
                   variants={clipReveal}
                   initial="hidden"
                   animate="visible"
-                  transition={{ duration: 0.8, ease, delay: 0.5 + i * 0.15 }}
+                  transition={{ duration: 0.8, ease, delay: 0.3 + i * 0.15 }}
                 >
                   <h1
                     className="text-gray-900 font-black tracking-tight leading-[1.05]"
@@ -204,24 +187,36 @@ function HeroSection() {
           <motion.p
             initial={{ opacity: 0, filter: "blur(10px)" }}
             animate={{ opacity: 1, filter: "blur(0px)" }}
-            transition={{ duration: 0.9, ease, delay: 0.9 }}
-            className="text-gray-500 text-base sm:text-lg max-w-md leading-relaxed mb-8"
+            transition={{ duration: 0.9, ease, delay: 0.6 }}
+            className="text-gray-600 text-base sm:text-lg font-semibold max-w-lg leading-relaxed"
             data-testid="text-hero-subheadline"
           >
-            Collect and pay globally with{" "}
-            <span
-              className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold"
-              style={{ background: "#C9A84C", color: "#1a1a1a", border: "1px solid rgba(201, 168, 76, 0.5)" }}
-            >
-              T+0 settlement
-            </span>
-            , powered by TigerBnk.
+            Accept payments in local currencies, settle globally in real-time, and build your business credit from day one.
           </motion.p>
+
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6, ease, delay: 0.75 }}
+            className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs font-semibold text-gray-600 mt-5 mb-8"
+          >
+            <span className="flex items-center gap-1.5">
+              <Globe className="w-3.5 h-3.5" /> 15+ Countries
+            </span>
+            <span className="hidden sm:block w-px h-3 bg-gray-200" />
+            <span className="flex items-center gap-1.5">
+              <Zap className="w-3.5 h-3.5" /> Same-Day Settlement
+            </span>
+            <span className="hidden sm:block w-px h-3 bg-gray-200" />
+            <span className="flex items-center gap-1.5">
+              <Lock className="w-3.5 h-3.5" /> Bank-Grade Security
+            </span>
+          </motion.div>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease, delay: 1.2 }}
+            transition={{ duration: 0.6, ease, delay: 0.9 }}
           >
             <Link href="/auth?mode=register">
               <button
@@ -248,8 +243,8 @@ function HeroSection() {
         </div>
 
         <div
-          className="absolute bottom-0 left-0 right-0 h-20 md:h-32 pointer-events-none z-[2]"
-          style={{ background: "linear-gradient(to top, rgba(255,255,255,0.8), transparent)" }}
+          className="absolute bottom-0 left-0 right-0 h-12 md:h-20 pointer-events-none z-[2]"
+          style={{ background: "linear-gradient(to top, rgba(255,255,255,0.5), transparent)" }}
         />
       </div>
     </section>
@@ -555,7 +550,7 @@ function ProblemSection() {
         <motion.div {...animateIn} className="text-center mb-16">
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-gray-900 tracking-tight" data-testid="text-problem-headline">
             Global Commerce.{" "}
-            <span className="text-gray-300">Broken Finance.</span>
+            <span style={{ color: ORANGE }}>Broken Finance.</span>
           </h2>
         </motion.div>
 
@@ -1312,8 +1307,8 @@ function FAQSection() {
               You got questions?<br />We got your back.
             </h2>
             {/* FAQ visual */}
-            <div className="rounded-2xl overflow-hidden">
-              <img src={faqImg} alt="Guidance to the Future" className="w-full object-cover rounded-2xl" />
+            <div className="flex justify-center">
+              <img src={faqImg} alt="Guidance to the Future" className="w-3/4 object-contain rounded-2xl" />
             </div>
           </motion.div>
 
@@ -1416,7 +1411,7 @@ export default function LandingPage() {
 
     let meta = document.querySelector('meta[name="description"]');
     if (!meta) { meta = document.createElement("meta"); meta.setAttribute("name", "description"); document.head.appendChild(meta); }
-    meta.setAttribute("content", "Turn payment flow into instant settlement, portable credit, and programmable capital. Join 800+ merchants on TigerBnk.");
+    meta.setAttribute("content", "Cross-border payment infrastructure with same-day settlement, multi-currency collections, and business credit scoring. Built for global commerce.");
 
     let ogTitle = document.querySelector('meta[property="og:title"]');
     if (!ogTitle) { ogTitle = document.createElement("meta"); ogTitle.setAttribute("property", "og:title"); document.head.appendChild(ogTitle); }
@@ -1424,7 +1419,7 @@ export default function LandingPage() {
 
     let ogDesc = document.querySelector('meta[property="og:description"]');
     if (!ogDesc) { ogDesc = document.createElement("meta"); ogDesc.setAttribute("property", "og:description"); document.head.appendChild(ogDesc); }
-    ogDesc.setAttribute("content", "Turn payment flow into instant settlement, portable credit, and programmable capital.");
+    ogDesc.setAttribute("content", "Cross-border payment infrastructure with same-day settlement, multi-currency collections, and business credit scoring. Built for global commerce.");
 
     return () => { document.title = "TigerBnk"; };
   }, []);
