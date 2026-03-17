@@ -137,7 +137,10 @@ function AppContent() {
 }
 
 function App() {
-  const [showLoading, setShowLoading] = useState(true);
+  const [showLoading, setShowLoading] = useState(() => {
+    if (sessionStorage.getItem("tigerbnk_loaded")) return false;
+    return true;
+  });
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -145,7 +148,7 @@ function App() {
         <ThemeProvider>
           <AuthProvider>
             <AppContent />
-            {showLoading && <LoadingScreen onComplete={() => setShowLoading(false)} />}
+            {showLoading && <LoadingScreen onComplete={() => { sessionStorage.setItem("tigerbnk_loaded", "true"); setShowLoading(false); }} />}
           </AuthProvider>
         </ThemeProvider>
         <Toaster />

@@ -40,13 +40,6 @@ export const contacts = pgTable("contacts", {
   nickname: text("nickname"),
 });
 
-export const passwordResetCodes = pgTable("password_reset_codes", {
-  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
-  userId: integer("user_id").notNull(),
-  code: text("code").notNull(),
-  expiresAt: timestamp("expires_at").notNull(),
-});
-
 export const earlyAccessSubmissions = pgTable("early_access_submissions", {
   id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
   name: text("name").notNull(),

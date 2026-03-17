@@ -1,47 +1,47 @@
-import { useState, useEffect, useRef, useCallback } from "react";
-import { motion, useMotionValue, useSpring, useTransform, useInView, AnimatePresence } from "framer-motion";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { insertEarlyAccessSchema } from "@shared/schema";
-import {
-  ArrowRight, Clock, Globe, Lock, CreditCard, TrendingUp, Repeat,
-  DollarSign, CheckCircle2, Zap, BarChart3, Menu, X,
-  ShoppingCart, Users, Ship, Monitor, Store, Plus,
-  CircleDollarSign, Building2, Smartphone, Landmark, IndianRupee
-} from "lucide-react";
-import { apiRequest } from "@/lib/queryClient";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
+import { useState, useEffect, useRef } from "react";
+import { motion, useScroll, useTransform, AnimatePresence, useInView } from "framer-motion";
+import { ArrowRight, CheckCircle2, Menu, X, Globe, Zap, Lock, CreditCard, Shield, BellRing } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { apiRequest } from "@/lib/queryClient";
 import { Link } from "wouter";
 import logoImg from "@assets/tigerbnklogo.png";
-import faqImg from "@assets/faq.png";
+import heroBgImg from "@assets/hero-bg.png";
+import featureSettlementImg from "@assets/feature-settlement.png";
+import featureCreditImg from "@assets/feature-credit.png";
 import ecommerceImg from "@assets/ecommerce.png";
 import freelancersImg from "@assets/freelancers.png";
-import crossborderImg from "@assets/crossborder.png";
 import saasImg from "@assets/saas.png";
-import marketplacesImg from "@assets/marketplaces.png";
-import AnimatedWorldMap from "@/components/animated-world-map";
+import crossborderImg from "@assets/crossborder.png";
 
 const ORANGE = "#FF4D00";
+const DARK = "#0f0f0f";
 const ease = [0.16, 1, 0.3, 1] as const;
 
-const earlyAccessFormSchema = insertEarlyAccessSchema.extend({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  email: z.string().email("Please enter a valid email"),
-  country: z.string().min(2, "Country is required"),
-  monthlyVolume: z.string().min(1, "Monthly volume is required"),
-});
-type EarlyAccessForm = z.infer<typeof earlyAccessFormSchema>;
+/* ─── Hooks ─── */
+function useScrollDirection() {
+  const [visible, setVisible] = useState(true);
+  const [atHero, setAtHero] = useState(true);
+  const lastY = useRef(0);
 
-const animateIn = {
-  initial: { opacity: 0, y: 24 },
-  whileInView: { opacity: 1, y: 0 },
-  viewport: { once: true, amount: 0.15 },
-  transition: { duration: 0.6, ease },
-};
+  useEffect(() => {
+    const handler = () => {
+      const y = window.scrollY;
+      setAtHero(y < window.innerHeight * 0.75);
+      if (y < 80) {
+        setVisible(true);
+      } else if (y > lastY.current + 8) {
+        setVisible(false);
+      } else if (y < lastY.current - 8) {
+        setVisible(true);
+      }
+      lastY.current = y;
+    };
+    window.addEventListener("scroll", handler, { passive: true });
+    return () => window.removeEventListener("scroll", handler);
+  }, []);
+
+  return { visible, atHero };
+}
 
 function useCounter(target: number, duration = 2000, start = 0, trigger = false) {
   const [value, setValue] = useState(start);
@@ -62,55 +62,71 @@ function useCounter(target: number, duration = 2000, start = 0, trigger = false)
 
 /* ─── Navbar ─── */
 function Navbar() {
-  const [scrolled, setScrolled] = useState(false);
+  const { visible, atHero } = useScrollDirection();
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 40);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+  const scrollTo = (id: string) => {
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: "smooth" });
+  };
 
-  // Navbar sits inside the hero — dark transparent overlay
   return (
     <nav
-      className="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
       style={{
-        background: scrolled ? "rgba(255, 255, 255, 0.95)" : "transparent",
-        backdropFilter: scrolled ? "blur(20px)" : "none",
-        WebkitBackdropFilter: scrolled ? "blur(20px)" : "none",
-        borderBottom: scrolled ? "1px solid rgba(0,0,0,0.06)" : "none",
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 50,
+        transform: visible ? "translateY(0)" : "translateY(-100%)",
+        transition: "transform 0.3s ease, background-color 0.3s ease, backdrop-filter 0.3s ease",
+        backgroundColor: atHero ? "transparent" : "rgba(255,255,255,0.95)",
+        backdropFilter: atHero ? "none" : "blur(20px)",
+        borderBottom: atHero ? "none" : "1px solid rgba(0,0,0,0.06)",
       }}
-      data-testid="nav-landing"
     >
       <div className="max-w-7xl mx-auto px-6 md:px-10">
         <div className="flex items-center justify-between h-16 md:h-20">
-          <Link href="/" className="flex items-center gap-2.5" data-testid="text-logo">
+          <Link href="/" className="flex items-center gap-2.5">
             <img src={logoImg} alt="TigerBnk" className="w-7 h-7 rounded-lg" />
-            <span className="font-bold text-lg tracking-tight text-gray-900">TigerBnk</span>
+            <span
+              className="font-bold text-lg tracking-tight"
+              style={{ color: atHero ? "#fff" : "#111" }}
+            >
+              TigerBnk
+            </span>
           </Link>
 
-          <div className="hidden md:flex items-center gap-8 text-sm text-gray-500">
-            <Link href="/" className="transition-colors hover:text-gray-900">Home</Link>
-            <a href="#features" className="transition-colors hover:text-gray-900">Features</a>
-            <Link href="/cards" className="transition-colors hover:text-gray-900">Cards</Link>
-            <a href="#faq" className="transition-colors hover:text-gray-900">FAQ</a>
+          <div
+            className="hidden md:flex items-center gap-8 text-sm font-medium"
+            style={{ color: atHero ? "rgba(255,255,255,0.75)" : "#505A63" }}
+          >
+            <Link href="/" className="hover:opacity-100 opacity-80 transition-opacity">Home</Link>
+            <button onClick={() => scrollTo("features")} className="hover:opacity-100 opacity-80 transition-opacity cursor-pointer bg-transparent border-none text-sm font-medium" style={{ color: "inherit" }}>Features</button>
+            <Link href="/cards" className="hover:opacity-100 opacity-80 transition-opacity">Cards</Link>
+            <button onClick={() => scrollTo("faq")} className="hover:opacity-100 opacity-80 transition-opacity cursor-pointer bg-transparent border-none text-sm font-medium" style={{ color: "inherit" }}>FAQ</button>
           </div>
 
-          <div className="hidden md:flex items-center gap-3">
-            <Button
-              asChild size="sm"
-              className="rounded-full px-6 py-2 font-medium text-gray-900 border-0 h-auto"
-              style={{ background: ORANGE }}
-              data-testid="link-nav-signup"
-            >
-              <Link href="/auth?mode=register" className="inline-flex items-center gap-1.5">
-                Get Started <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
-            </Button>
+          <div className="hidden md:block">
+            <Link href="/auth?mode=register">
+              <button
+                className="px-6 py-2.5 rounded-full text-sm font-semibold transition-all duration-200"
+                style={{
+                  background: atHero ? "rgba(255,255,255,0.15)" : DARK,
+                  color: "#fff",
+                  border: atHero ? "1px solid rgba(255,255,255,0.3)" : "none",
+                }}
+              >
+                Get Started
+              </button>
+            </Link>
           </div>
 
-          <button className="md:hidden p-2 text-gray-600" onClick={() => setMobileOpen(!mobileOpen)}>
+          <button
+            className="md:hidden p-2"
+            style={{ color: atHero ? "#fff" : "#111" }}
+            onClick={() => setMobileOpen(!mobileOpen)}
+          >
             {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
         </div>
@@ -123,17 +139,19 @@ function Navbar() {
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             className="md:hidden overflow-hidden"
-            style={{ background: "rgba(255, 255, 255, 0.95)", backdropFilter: "blur(20px)" }}
+            style={{ background: "rgba(255,255,255,0.97)", backdropFilter: "blur(20px)" }}
           >
-            <div className="px-6 py-4 space-y-3">
-              <Link href="/" className="block text-gray-500 text-sm py-2" onClick={() => setMobileOpen(false)}>Home</Link>
-              <a href="#features" className="block text-gray-500 text-sm py-2" onClick={() => setMobileOpen(false)}>Features</a>
-              <Link href="/cards" className="block text-gray-500 text-sm py-2" onClick={() => setMobileOpen(false)}>Cards</Link>
-              <a href="#faq" className="block text-gray-500 text-sm py-2" onClick={() => setMobileOpen(false)}>FAQ</a>
-              <div className="flex gap-3 pt-2">
-                <Button asChild size="sm" className="flex-1 rounded-full text-gray-900 border-0" style={{ background: ORANGE }}>
-                  <Link href="/auth?mode=register">Get Started</Link>
-                </Button>
+            <div className="px-6 py-4 space-y-1 border-t border-gray-100">
+              <Link href="/" className="block text-gray-700 text-sm py-2.5 font-medium" onClick={() => setMobileOpen(false)}>Home</Link>
+              <button onClick={() => { setMobileOpen(false); scrollTo("features"); }} className="block text-gray-700 text-sm py-2.5 font-medium w-full text-left bg-transparent border-none cursor-pointer">Features</button>
+              <Link href="/cards" className="block text-gray-700 text-sm py-2.5 font-medium" onClick={() => setMobileOpen(false)}>Cards</Link>
+              <button onClick={() => { setMobileOpen(false); scrollTo("faq"); }} className="block text-gray-700 text-sm py-2.5 font-medium w-full text-left bg-transparent border-none cursor-pointer">FAQ</button>
+              <div className="pt-3">
+                <Link href="/auth?mode=register" onClick={() => setMobileOpen(false)}>
+                  <button className="w-full py-3 rounded-full text-sm font-semibold text-white" style={{ background: DARK }}>
+                    Get Started
+                  </button>
+                </Link>
               </div>
             </div>
           </motion.div>
@@ -143,1141 +161,600 @@ function Navbar() {
   );
 }
 
-/* ─── Hero ─── */
-function HeroSection() {
-  const clipReveal = {
-    hidden: { y: "100%", opacity: 0, filter: "blur(8px)" },
-    visible: { y: "0%", opacity: 1, filter: "blur(0px)" },
-  };
-
-  return (
-    <section className="bg-white pt-24 pb-12 px-4 sm:px-6 lg:px-8" data-testid="section-hero">
-      <div className="max-w-[1320px] mx-auto rounded-3xl overflow-hidden border border-gray-200/50 relative min-h-[60vh] md:min-h-[78vh]">
-        <AnimatedWorldMap />
-
-        <div
-          className="absolute inset-0 pointer-events-none z-[1]"
-          style={{
-            background: "linear-gradient(to right, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.3) 40%, transparent 70%)",
-          }}
-        />
-
-        <div className="relative z-10 flex flex-col justify-end h-full px-8 md:px-14 pb-14 pt-20 min-h-[60vh] md:min-h-[78vh]">
-          <div className="mb-6 max-w-3xl">
-            {["The Payment Infrastructure", "for Global Business."].map((line, i) => (
-              <div key={i} className="overflow-hidden">
-                <motion.div
-                  variants={clipReveal}
-                  initial="hidden"
-                  animate="visible"
-                  transition={{ duration: 0.8, ease, delay: 0.3 + i * 0.15 }}
-                >
-                  <h1
-                    className="text-gray-900 font-black tracking-tight leading-[1.05]"
-                    style={{ fontSize: "clamp(2.2rem, 6vw, 5rem)" }}
-                    data-testid="text-hero-headline"
-                  >
-                    {line}
-                  </h1>
-                </motion.div>
-              </div>
-            ))}
-          </div>
-
-          <motion.p
-            initial={{ opacity: 0, filter: "blur(10px)" }}
-            animate={{ opacity: 1, filter: "blur(0px)" }}
-            transition={{ duration: 0.9, ease, delay: 0.6 }}
-            className="text-gray-600 text-base sm:text-lg font-semibold max-w-lg leading-relaxed"
-            data-testid="text-hero-subheadline"
-          >
-            Accept payments in local currencies, settle globally in real-time, and build your business credit from day one.
-          </motion.p>
-
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, ease, delay: 0.75 }}
-            className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs font-semibold text-gray-600 mt-5 mb-8"
-          >
-            <span className="flex items-center gap-1.5">
-              <Globe className="w-3.5 h-3.5" /> 15+ Countries
-            </span>
-            <span className="hidden sm:block w-px h-3 bg-gray-200" />
-            <span className="flex items-center gap-1.5">
-              <Zap className="w-3.5 h-3.5" /> Same-Day Settlement
-            </span>
-            <span className="hidden sm:block w-px h-3 bg-gray-200" />
-            <span className="flex items-center gap-1.5">
-              <Lock className="w-3.5 h-3.5" /> Bank-Grade Security
-            </span>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease, delay: 0.9 }}
-          >
-            <Link href="/auth?mode=register">
-              <button
-                className="group inline-flex items-center gap-2 px-8 py-3.5 rounded-full font-semibold text-sm transition-all duration-300"
-                style={{
-                  background: ORANGE,
-                  color: "#fff",
-                  boxShadow: "0 4px 20px rgba(255, 77, 0, 0.25)",
-                }}
-                data-testid="button-hero-cta"
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = "scale(1.05)";
-                  e.currentTarget.style.boxShadow = "0 6px 30px rgba(255, 77, 0, 0.35)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = "scale(1)";
-                  e.currentTarget.style.boxShadow = "0 4px 20px rgba(255, 77, 0, 0.25)";
-                }}
-              >
-                Get Started <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
-              </button>
-            </Link>
-          </motion.div>
-        </div>
-
-        <div
-          className="absolute bottom-0 left-0 right-0 h-12 md:h-20 pointer-events-none z-[2]"
-          style={{ background: "linear-gradient(to top, rgba(255,255,255,0.5), transparent)" }}
-        />
-      </div>
-    </section>
-  );
-}
-
-/* ─── Problem Section ─── */
-
-function CurrencyRoutingCard() {
-  const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: true, amount: 0.3 });
-  const currencies = [
-    { code: "INR", flag: "🇮🇳", color: "#FF9933" },
-    { code: "BRL", flag: "🇧🇷", color: "#009739" },
-    { code: "PHP", flag: "🇵🇭", color: "#0038A8" },
-    { code: "NGN", flag: "🇳🇬", color: "#008751" },
-  ];
-
-  return (
-    <motion.div
-      ref={ref}
-      {...animateIn}
-      transition={{ duration: 0.5, ease, delay: 0 }}
-      className="p-8 bg-white border border-gray-100 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col overflow-hidden"
-      data-testid="card-problem-0"
-    >
-      <div className="flex-1 flex flex-col items-center">
-        <div className="flex justify-between w-full mb-6">
-          {currencies.map((c, i) => (
-            <motion.div
-              key={c.code}
-              initial={{ opacity: 0, scale: 0.5, y: -16 }}
-              animate={inView ? { opacity: 1, scale: 1, y: 0 } : {}}
-              transition={{ duration: 0.5, delay: 0.15 + i * 0.12, type: "spring", stiffness: 200, damping: 15 }}
-              className="flex flex-col items-center gap-1.5"
-            >
-              <motion.div
-                className="w-11 h-11 bg-white border-2 flex items-center justify-center text-lg shadow-sm"
-                style={{ borderColor: c.color }}
-                animate={inView ? { boxShadow: [`0 0 0px ${c.color}00`, `0 0 12px ${c.color}30`, `0 0 4px ${c.color}15`] } : {}}
-                transition={{ duration: 1.5, delay: 0.8 + i * 0.12 }}
-              >
-                {c.flag}
-              </motion.div>
-              <span className="text-[10px] font-bold text-gray-500 tracking-wide">{c.code}</span>
-            </motion.div>
-          ))}
-        </div>
-
-        <svg width="100%" height="130" viewBox="0 0 240 130" className="mb-2">
-          <defs>
-            <linearGradient id="lineGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#E5E7EB" />
-              <stop offset="100%" stopColor={ORANGE} stopOpacity={0.4} />
-            </linearGradient>
-            <filter id="hubGlow">
-              <feGaussianBlur stdDeviation="3" result="blur" />
-              <feMerge>
-                <feMergeNode in="blur" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
-          </defs>
-          {[0, 1, 2, 3].map((i) => (
-            <motion.path
-              key={`line-top-${i}`}
-              d={`M${30 + i * 60},0 Q${30 + i * 60 + (120 - (30 + i * 60)) * 0.3},25 120,55`}
-              stroke="url(#lineGrad)"
-              strokeWidth={1.5}
-              fill="none"
-              initial={{ pathLength: 0, opacity: 0 }}
-              animate={inView ? { pathLength: 1, opacity: 1 } : {}}
-              transition={{ duration: 0.8, delay: 0.5 + i * 0.15, ease: [0.4, 0, 0.2, 1] }}
-            />
-          ))}
-          {[0, 1, 2, 3].map((i) => (
-            <motion.circle
-              key={`dot-${i}`}
-              r={2.5}
-              fill={ORANGE}
-              initial={{ opacity: 0 }}
-              animate={inView ? {
-                opacity: [0, 1, 1, 0],
-                cx: [30 + i * 60, 30 + i * 60 + (120 - (30 + i * 60)) * 0.5, 120, 120],
-                cy: [0, 25, 50, 55],
-              } : {}}
-              transition={{ duration: 1.2, delay: 1.3 + i * 0.2, ease: "easeInOut" }}
-            />
-          ))}
-          <motion.circle
-            cx={120}
-            cy={55}
-            r={20}
-            fill="#FFF8E7"
-            stroke={ORANGE}
-            strokeWidth={2}
-            filter="url(#hubGlow)"
-            initial={{ scale: 0, opacity: 0 }}
-            animate={inView ? { scale: 1, opacity: 1 } : {}}
-            transition={{ duration: 0.6, delay: 1.0, type: "spring", stiffness: 180, damping: 12 }}
-          />
-          <motion.text
-            x={120}
-            y={59}
-            textAnchor="middle"
-            fontSize={9}
-            fontWeight={800}
-            fill={ORANGE}
-            letterSpacing="1"
-            initial={{ opacity: 0 }}
-            animate={inView ? { opacity: 1 } : {}}
-            transition={{ duration: 0.4, delay: 1.4 }}
-          >
-            HUB
-          </motion.text>
-          <motion.line
-            x1={120}
-            y1={75}
-            x2={120}
-            y2={115}
-            stroke="url(#lineGrad)"
-            strokeWidth={1.5}
-            initial={{ pathLength: 0 }}
-            animate={inView ? { pathLength: 1 } : {}}
-            transition={{ duration: 0.6, delay: 1.6, ease: [0.4, 0, 0.2, 1] }}
-          />
-          <motion.circle
-            r={2.5}
-            fill={ORANGE}
-            initial={{ opacity: 0 }}
-            animate={inView ? {
-              opacity: [0, 1, 1, 0],
-              cx: [120, 120, 120, 120],
-              cy: [75, 90, 105, 115],
-            } : {}}
-            transition={{ duration: 0.8, delay: 2.0, ease: "easeInOut" }}
-          />
-          <motion.g
-            initial={{ opacity: 0, scale: 0 }}
-            animate={inView ? { opacity: 1, scale: 1 } : {}}
-            transition={{ duration: 0.5, delay: 2.1, type: "spring", stiffness: 200, damping: 14 }}
-          >
-            <circle cx={120} cy={118} r={12} fill="#FFF8E7" stroke={ORANGE} strokeWidth={1.5} strokeOpacity={0.5} />
-            <g transform="translate(112, 110)">
-              <rect x="1" y="3" width="14" height="10" rx="1" stroke={ORANGE} strokeWidth="1.2" fill="none" strokeOpacity={0.7} />
-              <path d="M3 3V2a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v1" stroke={ORANGE} strokeWidth="1.2" fill="none" strokeOpacity={0.7} />
-              <circle cx="11" cy="8" r="1" fill={ORANGE} fillOpacity={0.7} />
-            </g>
-          </motion.g>
-        </svg>
-      </div>
-      <h3 className="text-lg font-bold text-gray-900 mb-3" data-testid="text-problem-title-0">2–7 Day Settlement Delays</h3>
-      <p className="text-gray-400 text-sm leading-relaxed" data-testid="text-problem-desc-0">Revenue sits in limbo while your business needs it now.</p>
-    </motion.div>
-  );
-}
-
-function LiveBalanceCard() {
-  const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: true, amount: 0.3 });
-  const balance = useCounter(284930, 2200, 0, inView);
-  const payoutRails = [
-    { icon: Building2, label: "Bank" },
-    { icon: Smartphone, label: "Smartphone" },
-    { icon: Landmark, label: "Landmark" },
-    { icon: IndianRupee, label: "Rupee" },
-  ];
-
-  return (
-    <motion.div
-      ref={ref}
-      {...animateIn}
-      transition={{ duration: 0.5, ease, delay: 0.1 }}
-      className="p-8 bg-white border border-gray-100 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col overflow-hidden"
-      data-testid="card-problem-1"
-    >
-      <div className="flex-1 flex flex-col items-center justify-center">
-        <motion.div
-          initial={{ scale: 0, rotate: -30 }}
-          animate={inView ? { scale: 1, rotate: 0 } : {}}
-          transition={{ duration: 0.7, delay: 0.2, type: "spring", stiffness: 160, damping: 12 }}
-          className="mb-5 relative"
-        >
-          <motion.div
-            animate={inView ? { boxShadow: [`0 0 0px ${ORANGE}00`, `0 0 30px ${ORANGE}25`, `0 0 15px ${ORANGE}15`] } : {}}
-            transition={{ duration: 2, delay: 0.8 }}
-            className="rounded-full p-3"
-          >
-            <CircleDollarSign className="w-14 h-14" style={{ color: ORANGE }} />
-          </motion.div>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 16, scale: 0.9 }}
-          animate={inView ? { opacity: 1, y: 0, scale: 1 } : {}}
-          transition={{ duration: 0.6, delay: 0.5, type: "spring", stiffness: 120 }}
-          className="text-center mb-6"
-        >
-          <span className="text-3xl font-black text-gray-900 tabular-nums" data-testid="text-balance-counter">
-            ${balance.toLocaleString()}
-          </span>
-          <motion.div
-            initial={{ width: 0 }}
-            animate={inView ? { width: "60%" } : {}}
-            transition={{ duration: 0.8, delay: 1.2, ease: [0.4, 0, 0.2, 1] }}
-            className="h-[2px] mx-auto mt-2 mb-1"
-            style={{ background: `linear-gradient(90deg, transparent, ${ORANGE}40, transparent)` }}
-          />
-          <p className="text-xs text-gray-400 mt-1">Available Balance</p>
-        </motion.div>
-
-        <div className="flex justify-between w-full mb-4 gap-2">
-          {payoutRails.map((r, i) => (
-            <motion.div
-              key={r.label}
-              initial={{ opacity: 0, y: 16, scale: 0.8 }}
-              animate={inView ? { opacity: 1, y: 0, scale: 1 } : {}}
-              transition={{ duration: 0.5, delay: 0.8 + i * 0.12, type: "spring", stiffness: 180, damping: 14 }}
-              className="flex flex-col items-center gap-1.5 flex-1"
-            >
-              <motion.div
-                className="w-9 h-9 bg-white border border-gray-200 flex items-center justify-center shadow-sm"
-                whileHover={{ scale: 1.1, borderColor: ORANGE }}
-                transition={{ duration: 0.2 }}
-              >
-                <r.icon className="w-4 h-4 text-gray-500" />
-              </motion.div>
-              <span className="text-[9px] font-semibold text-gray-400">{r.label}</span>
-            </motion.div>
-          ))}
-        </div>
-
-        <motion.p
-          initial={{ opacity: 0, y: 8 }}
-          animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.5, delay: 1.4 }}
-          className="text-[11px] text-gray-400 text-center leading-snug"
-        >
-          Payout in 30+ currencies across Americas, Asia, Africa & Europe.
-        </motion.p>
-      </div>
-      <h3 className="text-lg font-bold text-gray-900 mb-3 mt-6" data-testid="text-problem-title-1">No Portable Credit Across Borders</h3>
-      <p className="text-gray-400 text-sm leading-relaxed" data-testid="text-problem-desc-1">Your track record doesn't travel with you.</p>
-    </motion.div>
-  );
-}
-
-function AccountLedgerCard() {
-  const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: true, amount: 0.3 });
-  const balance1 = useCounter(42500, 2200, 0, inView);
-  const balance2 = useCounter(180200, 2800, 0, inView);
-
-  const accounts = [
-    { name: "Roar.Finance", type: "IBAN", masked: "•••• 4821", balance: balance1, accent: ORANGE },
-    { name: "Solana", type: "Wallet", masked: "•••• 8296", balance: balance2, accent: "#9945FF" },
-  ];
-
-  return (
-    <motion.div
-      ref={ref}
-      {...animateIn}
-      transition={{ duration: 0.5, ease, delay: 0.2 }}
-      className="p-8 bg-white border border-gray-100 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col overflow-hidden"
-      data-testid="card-problem-2"
-    >
-      <div className="flex-1 flex flex-col justify-center gap-3 mb-6">
-        {accounts.map((acc, i) => (
-          <motion.div
-            key={acc.name}
-            initial={{ opacity: 0, x: -20, scale: 0.95 }}
-            animate={inView ? { opacity: 1, x: 0, scale: 1 } : {}}
-            transition={{ duration: 0.6, delay: 0.3 + i * 0.25, type: "spring", stiffness: 120, damping: 14 }}
-            className="bg-gray-50 border border-gray-100 p-4 flex items-center justify-between relative overflow-hidden"
-          >
-            <motion.div
-              className="absolute left-0 top-0 bottom-0 w-[3px]"
-              style={{ backgroundColor: acc.accent }}
-              initial={{ scaleY: 0 }}
-              animate={inView ? { scaleY: 1 } : {}}
-              transition={{ duration: 0.4, delay: 0.6 + i * 0.25 }}
-            />
-            <div className="flex flex-col pl-2">
-              <span className="text-sm font-bold text-gray-900">{acc.name}</span>
-              <span className="text-[11px] text-gray-400">{acc.type} {acc.masked}</span>
-            </div>
-            <span className="text-lg font-black text-gray-900 tabular-nums" data-testid={`text-ledger-balance-${i}`}>
-              ${acc.balance.toLocaleString()}
-            </span>
-          </motion.div>
-        ))}
-      </div>
-      <h3 className="text-lg font-bold text-gray-900 mb-3" data-testid="text-problem-title-2">Working Capital Locked in Transit</h3>
-      <p className="text-gray-400 text-sm leading-relaxed" data-testid="text-problem-desc-2">Funds trapped in payment pipelines, unavailable when needed.</p>
-    </motion.div>
-  );
-}
-
-function ProblemSection() {
-  return (
-    <section className="py-24 sm:py-32 bg-white" data-testid="section-problem">
-      <div className="max-w-6xl mx-auto px-6">
-        <motion.div {...animateIn} className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-gray-900 tracking-tight" data-testid="text-problem-headline">
-            Global Commerce.{" "}
-            <span style={{ color: ORANGE }}>Broken Finance.</span>
-          </h2>
-        </motion.div>
-
-        <div className="grid md:grid-cols-3 gap-6">
-          <CurrencyRoutingCard />
-          <LiveBalanceCard />
-          <AccountLedgerCard />
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ─── Shared focus-market data ─── */
-const MARKETS = [
-  { flag: "🇦🇪", code: "AED", country: "UAE",       rate: "3.6725", dir: 1,  color: "#16a34a" },
-  { flag: "🇮🇳", code: "INR", country: "India",     rate: "83.42",  dir: 1,  color: "#2563eb" },
-  { flag: "🇵🇰", code: "PKR", country: "Pakistan",  rate: "278.50", dir: -1, color: "#059669" },
-  { flag: "🇭🇰", code: "HKD", country: "Hong Kong", rate: "7.8210", dir: 1,  color: "#dc2626" },
-  { flag: "🇮🇩", code: "IDR", country: "Indonesia", rate: "15820",  dir: -1, color: "#d97706" },
-  { flag: "🇨🇳", code: "CNY", country: "China",     rate: "7.2340", dir: 1,  color: "#dc2626" },
-  { flag: "🇷🇺", code: "RUB", country: "Russia",    rate: "92.10",  dir: -1, color: "#2563eb" },
-];
-
-const CARD_STYLE = "rounded-sm bg-white border border-gray-200/80 hover:border-gray-300 transition-colors duration-300 overflow-hidden";
-
-/* ─── Settlement Card — Animated Receipt ─── */
-function SettlementCard() {
-  const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: false, amount: 0.3 });
-  const [txIdx, setTxIdx] = useState(0);
-  const [step, setStep] = useState(0);
-  const [settled, setSettled] = useState(false);
-
-  const txs = [
-    { from: "\u{1F1F5}\u{1F1F0} PKR 250,000",    to: "\u{1F1E6}\u{1F1EA} AED 3,312",   rate: "PKR/AED 0.01325",  time: "14:32:07" },
-    { from: "\u{1F1EE}\u{1F1F3} INR 1,200,000",   to: "\u{1F1ED}\u{1F1F0} HKD 11,320",  rate: "INR/HKD 0.00943",  time: "14:38:51" },
-    { from: "\u{1F1E8}\u{1F1F3} CNY 80,000",      to: "\u{1F1E6}\u{1F1EA} AED 40,360",   rate: "CNY/AED 0.5045",   time: "14:45:22" },
-    { from: "\u{1F1EE}\u{1F1E9} IDR 50,000,000",  to: "\u{1F1EE}\u{1F1F3} INR 266,120",  rate: "IDR/INR 0.005322", time: "14:52:09" },
-  ];
-
-  useEffect(() => {
-    if (!inView) { setStep(0); setSettled(false); return; }
-
-    const delays = [0, 400, 700, 1000, 1300, 1700, 2100, 3400];
-    const timers: ReturnType<typeof setTimeout>[] = [];
-
-    delays.forEach((d, i) => {
-      timers.push(setTimeout(() => setStep(i + 1), d));
-    });
-
-    timers.push(setTimeout(() => setSettled(true), 3400));
-
-    timers.push(setTimeout(() => {
-      setStep(0);
-      setSettled(false);
-      setTxIdx((prev) => (prev + 1) % txs.length);
-    }, 5200));
-
-    return () => timers.forEach(clearTimeout);
-  }, [inView, txIdx]);
-
-  const tx = txs[txIdx];
-
-  const lineVariants = {
-    hidden: { opacity: 0, x: -12 },
-    visible: { opacity: 1, x: 0 },
-  } as const;
-
-  return (
-    <motion.div
-      ref={ref}
-      {...animateIn}
-      className={`md:col-span-2 ${CARD_STYLE}`}
-    >
-      <div className="p-8 pb-4">
-        <h3 className="text-2xl lg:text-3xl font-black text-gray-900 leading-tight tracking-tight" data-testid="text-settlement-title">
-          Instant Settlement.
-        </h3>
-        <p className="text-gray-400 text-sm leading-relaxed mt-2">
-          Real-time cross-border settlement across 7 markets.
-        </p>
-      </div>
-
-      <div className="px-8 pb-8">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={txIdx}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0, y: 8 }}
-            transition={{ duration: 0.35, ease }}
-            className="rounded-sm border border-gray-100 p-5"
-            style={{ backgroundColor: "#f9f7f2" }}
-          >
-            <motion.p
-              variants={lineVariants}
-              initial="hidden"
-              animate={step >= 1 ? "visible" : "hidden"}
-              transition={{ duration: 0.3, ease }}
-              className="font-mono text-[10px] text-gray-400 mb-4"
-            >
-              {tx.time} UTC
-            </motion.p>
-
-            <div className="space-y-2.5">
-              <motion.div
-                variants={lineVariants}
-                initial="hidden"
-                animate={step >= 2 ? "visible" : "hidden"}
-                transition={{ duration: 0.3, ease }}
-                className="flex items-baseline gap-3"
-              >
-                <span className="text-xs text-gray-400 font-medium w-10 flex-shrink-0">From</span>
-                <span className="text-sm font-semibold text-gray-900">{tx.from}</span>
-              </motion.div>
-
-              <motion.div
-                variants={lineVariants}
-                initial="hidden"
-                animate={step >= 3 ? "visible" : "hidden"}
-                transition={{ duration: 0.3, ease }}
-                className="flex items-baseline gap-3"
-              >
-                <span className="text-xs text-gray-400 font-medium w-10 flex-shrink-0">To</span>
-                <span className="text-sm font-semibold text-gray-900">{tx.to}</span>
-              </motion.div>
-
-              <motion.div
-                variants={lineVariants}
-                initial="hidden"
-                animate={step >= 4 ? "visible" : "hidden"}
-                transition={{ duration: 0.3, ease }}
-                className="flex items-baseline gap-3"
-              >
-                <span className="text-xs text-gray-400 font-medium w-10 flex-shrink-0">Rate</span>
-                <span className="text-sm font-mono text-gray-700">{tx.rate}</span>
-              </motion.div>
-
-              <motion.div
-                variants={lineVariants}
-                initial="hidden"
-                animate={step >= 5 ? "visible" : "hidden"}
-                transition={{ duration: 0.3, ease }}
-                className="flex items-baseline gap-3"
-              >
-                <span className="text-xs text-gray-400 font-medium w-10 flex-shrink-0">Fee</span>
-                <span className="text-sm font-mono text-gray-700">0.00 <span className="text-gray-400">(waived)</span></span>
-              </motion.div>
-            </div>
-
-            <motion.div
-              initial={{ scaleX: 0 }}
-              animate={{ scaleX: step >= 6 ? 1 : 0 }}
-              transition={{ duration: 0.4, ease }}
-              className="h-px my-4"
-              style={{ backgroundColor: "#e0dbd0", transformOrigin: "left" }}
-            />
-
-            <div className="flex items-center gap-3">
-              <motion.span
-                variants={lineVariants}
-                initial="hidden"
-                animate={step >= 7 ? "visible" : "hidden"}
-                transition={{ duration: 0.2, ease }}
-                className="text-xs text-gray-400 font-medium w-10 flex-shrink-0"
-              >
-                Status
-              </motion.span>
-              <div className="flex-1 flex items-center gap-3">
-                <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: "#e8e3d8" }}>
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: step >= 7 ? "100%" : "0%" }}
-                    transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-                    className="h-full rounded-full"
-                    style={{ backgroundColor: settled ? "#16a34a" : ORANGE, transition: "background-color 0.4s ease" }}
-                  />
-                </div>
-                <AnimatePresence mode="wait">
-                  {step >= 8 && (
-                    <motion.span
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.3, ease }}
-                      className="text-xs font-bold flex-shrink-0"
-                      style={{ color: "#16a34a" }}
-                    >
-                      SETTLED ✓
-                    </motion.span>
-                  )}
-                </AnimatePresence>
-              </div>
-            </div>
-          </motion.div>
-        </AnimatePresence>
-
-        <div className="flex items-center justify-between mt-4 pt-3" style={{ borderTop: "1px solid #f0ebe0" }}>
-          <div className="flex items-center gap-2">
-            <span className="relative flex h-1.5 w-1.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-green-500" />
-            </span>
-            <span className="text-[10px] text-gray-400 font-medium">Live</span>
-          </div>
-          <span className="text-[10px] text-gray-400 font-mono">Avg: 12s · Last: 8.2s · 99.9% uptime</span>
-        </div>
-      </div>
-    </motion.div>
-  );
-}
-
-/* ─── Transaction Transparency Card — Continuous Scroller ─── */
-function TransparencyCard() {
-  const ref = useRef<HTMLDivElement>(null);
-
-  const rows = [
-    { icon: "AE", iconBg: "#16a34a", title: "AED Deposit",       sub: "Al Maktoum Corp",        status: "Settled",    positive: true  },
-    { icon: "IN", iconBg: "#2563eb", title: "INR Collection",    sub: "via Razorpay",            status: "Credited",   positive: true  },
-    { icon: "PK", iconBg: "#059669", title: "PKR Transfer",      sub: "to HBL Karachi",         status: "Sent",       positive: true  },
-    { icon: "HK", iconBg: "#dc2626", title: "HKD Payment",       sub: "from HSBC HK",           status: "Completed",  positive: true  },
-    { icon: "ID", iconBg: "#d97706", title: "IDR Payout",        sub: "to BCA Jakarta",         status: "Confirming", positive: false },
-    { icon: "CN", iconBg: "#dc2626", title: "CNY Exchange",      sub: "via UnionPay",           status: "Processing", positive: false },
-    { icon: "RU", iconBg: "#2563eb", title: "RUB Settlement",    sub: "to Sberbank",            status: "Pending",    positive: false },
-    { icon: "KY", iconBg: "#0891b2", title: "KYC Submitted",     sub: "Steven Kirk, London UK", status: "Completed",  positive: true  },
-    { icon: "US", iconBg: "#7c3aed", title: "USD Deposit (ACH)", sub: "$500,000 from J. Kirk",  status: "Credited",   positive: true  },
-    { icon: "PY", iconBg: "#0284c7", title: "+$500 PYUSD",       sub: "from U80a\u20267D0a",     status: "Confirming", positive: false },
-  ];
-
-  const allRows = [...rows, ...rows];
-
-  return (
-    <motion.div
-      ref={ref}
-      {...animateIn}
-      transition={{ duration: 0.6, ease, delay: 0.1 }}
-      className={CARD_STYLE}
-    >
-      <div className="p-8 pb-4">
-        <h3 className="text-2xl lg:text-3xl font-black text-gray-900 leading-tight tracking-tight">
-          Transaction<br />Transparency.
-        </h3>
-        <p className="text-gray-400 text-sm leading-relaxed mt-2">
-          Track payments, customers and onchain transactions.
-        </p>
-      </div>
-      <div
-        className="px-8 pb-2 overflow-hidden"
-        style={{
-          height: "260px",
-          maskImage: "linear-gradient(to bottom, transparent 0%, black 12%, black 88%, transparent 100%)",
-          WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, black 12%, black 88%, transparent 100%)",
-        }}
-      >
-        <motion.div
-          animate={{ y: ["0%", "-50%"] }}
-          transition={{ duration: 20, ease: "linear", repeat: Infinity }}
-        >
-          {allRows.map((row, i) => (
-            <div
-              key={`${row.icon}-${i}`}
-              className="flex items-center justify-between py-3 px-1"
-              style={{ borderBottom: "1px solid #f0ebe0" }}
-            >
-              <div className="flex items-center gap-3">
-                <div
-                  className="w-9 h-9 rounded-full flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0"
-                  style={{ backgroundColor: row.iconBg }}
-                >
-                  {row.icon}
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-gray-900 leading-tight">{row.title}</p>
-                  <p className="text-[11px] text-gray-400 mt-0.5">{row.sub}</p>
-                </div>
-              </div>
-              <span
-                className="text-[10px] font-semibold px-2.5 py-1 rounded-full flex-shrink-0"
-                style={{
-                  backgroundColor: row.positive ? "#dcfce7" : "#f3f4f6",
-                  color: row.positive ? "#16a34a" : "#6b7280",
-                }}
-              >
-                {row.positive ? "✓ " : "⟳ "}{row.status}
-              </span>
-            </div>
-          ))}
-        </motion.div>
-      </div>
-    </motion.div>
-  );
-}
-
-/* ─── Roar Score Card ─── */
-function RoarScoreCard() {
-  const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: false, amount: 0.3 });
-
-  const profiles = [
-    { name: "Dubai Exports LLC",  country: "🇦🇪", score: 812, notches: 8 },
-    { name: "Mumbai Tech Pvt.",   country: "🇮🇳", score: 756, notches: 7 },
-    { name: "HK Capital Ltd.",    country: "🇭🇰", score: 891, notches: 9 },
-    { name: "Jakarta Retail Co.", country: "🇮🇩", score: 634, notches: 5 },
-  ];
-  const [idx, setIdx] = useState(0);
-
-  useEffect(() => {
-    if (!inView) return;
-    const id = setInterval(() => setIdx((i) => (i + 1) % profiles.length), 5000);
-    return () => clearInterval(id);
-  }, [inView]);
-
-  const profile = profiles[idx];
-  const score = useCounter(profile.score, 1800, 300, inView);
-  const label = profile.notches >= 8 ? "Excellent" : profile.notches >= 7 ? "Good" : "Fair";
-
-  return (
-    <motion.div
-      ref={ref}
-      {...animateIn}
-      transition={{ duration: 0.6, ease, delay: 0.15 }}
-      className={CARD_STYLE}
-    >
-      <div className="p-8 pb-4">
-        <h3 className="text-2xl lg:text-3xl font-black text-gray-900 leading-tight tracking-tight">
-          Roar Score<br />Credit.
-        </h3>
-        <p className="text-gray-400 text-sm leading-relaxed mt-2">
-          Business credit built from payment activity.
-        </p>
-      </div>
-      <div className="px-8 pb-8">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={idx}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.5, ease }}
-          >
-            <div className="flex items-center gap-2 mb-3">
-              <span className="text-base">{profile.country}</span>
-              <span className="text-xs text-gray-400 font-medium">{profile.name}</span>
-            </div>
-            <div className="flex items-end justify-between mb-5">
-              <div className="text-6xl font-black text-gray-900 tabular-nums leading-none tracking-tight">
-                {Math.min(score, profile.score)}
-              </div>
-              <span
-                className="text-[10px] font-bold px-2.5 py-1 rounded-sm border"
-                style={{
-                  borderColor: profile.notches >= 8 ? "#16a34a" : profile.notches >= 7 ? "#d97706" : "#dc2626",
-                  color: profile.notches >= 8 ? "#16a34a" : profile.notches >= 7 ? "#d97706" : "#dc2626",
-                }}
-              >
-                {label}
-              </span>
-            </div>
-            <div className="flex gap-1.5">
-              {Array.from({ length: 10 }, (_, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ scaleY: 0 }}
-                  animate={{ scaleY: 1 }}
-                  transition={{ duration: 0.4, ease, delay: i * 0.06 }}
-                  className="flex-1 h-3 rounded-[2px]"
-                  style={{
-                    backgroundColor: i < profile.notches ? ORANGE : "#f0ebe0",
-                    transformOrigin: "bottom",
-                  }}
-                />
-              ))}
-            </div>
-            <div className="flex justify-between mt-2">
-              <span className="text-[10px] text-gray-300 font-medium">300</span>
-              <span className="text-[10px] text-gray-300 font-medium">900</span>
-            </div>
-          </motion.div>
-        </AnimatePresence>
-      </div>
-    </motion.div>
-  );
-}
-
-/* ─── Multi-Currency Card ─── */
-function CurrencyCard() {
-  const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: false, amount: 0.3 });
-  const [highlightIdx, setHighlightIdx] = useState(-1);
-
-  useEffect(() => {
-    if (!inView) return;
-    const id = setInterval(() => {
-      const next = Math.floor(Math.random() * MARKETS.length);
-      setHighlightIdx(next);
-      setTimeout(() => setHighlightIdx(-1), 1500);
-    }, 3000);
-    return () => { clearInterval(id); };
-  }, [inView]);
-
-  const features = [
-    "T+0 Settlement",
-    "7 Target Markets",
-    "Same-day Liquidity",
-    "Competitive FX",
-    "Multi-currency Wallets",
-  ];
-
-  return (
-    <motion.div
-      ref={ref}
-      {...animateIn}
-      transition={{ duration: 0.6, ease, delay: 0.2 }}
-      className={`md:col-span-2 ${CARD_STYLE}`}
-    >
-      <div className="p-8 pb-4">
-        <h3 className="text-2xl lg:text-3xl font-black text-gray-900 leading-tight tracking-tight">
-          Settlement in 7 Markets.
-        </h3>
-        <p className="text-gray-400 text-sm leading-relaxed mt-2">
-          Receive settlement on-chain or to bank with competitive FX and same-day liquidity.
-        </p>
-      </div>
-
-      <div className="px-8 pb-8">
-        <div className="grid md:grid-cols-2 gap-8">
-          <div>
-            {MARKETS.map((m, i) => (
-              <motion.div
-                key={m.code}
-                initial={{ backgroundColor: "rgba(255,255,255,0)" }}
-                animate={{
-                  backgroundColor: highlightIdx === i ? "rgba(255,77,0,0.03)" : "rgba(255,255,255,0)",
-                }}
-                transition={{ duration: 0.3, ease }}
-                className="flex items-center justify-between py-2.5 px-2 -mx-2 rounded-sm"
-                style={{ borderBottom: i < MARKETS.length - 1 ? "1px solid #f0ebe0" : "none" }}
-              >
-                <div className="flex items-center gap-2.5">
-                  <span className="text-base leading-none">{m.flag}</span>
-                  <span className="text-sm font-semibold text-gray-900">{m.code}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-mono text-gray-500">{m.rate}</span>
-                  <span style={{ color: m.dir > 0 ? "#16a34a" : "#ef4444" }} className="text-xs">
-                    {m.dir > 0 ? "▲" : "▼"}
-                  </span>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-
-          <div className="flex flex-col justify-center">
-            {features.map((f, i) => (
-              <motion.div
-                key={f}
-                initial={{ opacity: 0, x: 8 }}
-                animate={inView ? { opacity: 1, x: 0 } : { opacity: 0, x: 8 }}
-                transition={{ delay: 0.08 * i, duration: 0.5, ease }}
-                className="flex items-center gap-2.5 py-2"
-              >
-                <CheckCircle2 className="w-4 h-4 flex-shrink-0" style={{ color: ORANGE }} />
-                <span className="text-sm font-medium text-gray-700">{f}</span>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </motion.div>
-  );
-}
-
-/* ─── Feature Bento Grid ─── */
-function FeaturesSection() {
-  return (
-    <section id="features" className="py-24 sm:py-32 bg-white">
-      <div className="max-w-6xl mx-auto px-6">
-        <motion.div {...animateIn} className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-gray-900 tracking-tight">
-            Built for modern commerce.
-          </h2>
-          <p className="text-gray-400 text-lg mt-4 max-w-lg mx-auto">
-            Built to power global payments across industries with seamless cross-border infrastructure and liquidity.
-          </p>
-        </motion.div>
-
-        {/* Bento grid */}
-        <div className="grid md:grid-cols-3 gap-4">
-          <SettlementCard />
-          <TransparencyCard />
-          <RoarScoreCard />
-          <CurrencyCard />
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ─── Solutions / Industries ─── */
-
-function IndustryRow({ ind, index, isActive, onActivate }: {
-  ind: { icon: any; title: string; desc: string };
-  index: number;
-  isActive: boolean;
-  onActivate: (index: number) => void;
+/* ─── Revolut-style Card ─── */
+function RevolutCard({
+  img,
+  label,
+  balance,
+  toastLabel,
+  toastTime,
+  toastAmount,
+  toastColor,
+}: {
+  img: string;
+  label: string;
+  balance: string;
+  toastLabel: string;
+  toastTime: string;
+  toastAmount: string;
+  toastColor: string;
 }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { amount: 0.6 });
-
-  useEffect(() => {
-    if (inView) onActivate(index);
-  }, [inView, onActivate, index]);
-
-  const Icon = ind.icon;
-
   return (
-    <div
-      ref={ref}
-      className="relative cursor-pointer"
-      style={{ paddingLeft: "28px", borderBottom: "1px solid #e8e0d0" }}
-      onClick={() => onActivate(index)}
-      data-testid={`industry-row-${index}`}
-    >
-      <motion.div
-        className="absolute left-0 top-0 bottom-0 w-[3px] origin-top"
-        style={{ backgroundColor: ORANGE }}
-        initial={{ scaleY: 0 }}
-        animate={{ scaleY: isActive ? 1 : 0 }}
-        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+    <div className="relative rounded-2xl overflow-hidden w-full" style={{ aspectRatio: "4/5" }}>
+      <img src={img} alt={label} className="absolute inset-0 w-full h-full object-cover" />
+      <div
+        className="absolute inset-0"
+        style={{ background: "linear-gradient(to top, rgba(0,0,0,0.3) 0%, transparent 50%)" }}
       />
-      <motion.div
-        className="py-6"
-        animate={{ opacity: isActive ? 1 : 0.35 }}
-        transition={{ type: "spring", stiffness: 200, damping: 25 }}
-      >
-        <div className="flex items-start gap-3">
-          <motion.div
-            animate={{ color: isActive ? ORANGE : "#d1d5db" }}
-            transition={{ duration: 0.3 }}
-            className="mt-0.5 flex-shrink-0"
+      <div className="absolute bottom-16 left-0 right-0 flex flex-col items-center gap-1.5 z-10">
+        <span className="text-white/70 text-xs font-medium">{label}</span>
+        <span className="text-white text-2xl font-bold tracking-tight">{balance}</span>
+        <span className="mt-0.5 px-4 py-1 rounded-full text-[11px] font-semibold bg-white text-gray-900">
+          Accounts
+        </span>
+      </div>
+      <div className="absolute bottom-3 left-3 right-3 z-10">
+        <div
+          className="flex items-center gap-2.5 px-3 py-2.5"
+          style={{
+            background: "rgba(255,255,255,0.95)",
+            borderRadius: "14px",
+            boxShadow: "0 2px 12px rgba(0,0,0,0.08)",
+          }}
+        >
+          <div
+            className="flex items-center justify-center flex-shrink-0"
+            style={{ width: 28, height: 28, borderRadius: "50%", background: toastColor }}
           >
-            <Icon className="w-5 h-5" />
-          </motion.div>
-          <div>
-            <motion.h4
-              className="font-bold"
-              animate={{ color: isActive ? "#111827" : "#9ca3af" }}
-              transition={{ duration: 0.3 }}
-            >
-              {ind.title}
-            </motion.h4>
-            <motion.p
-              className="text-sm leading-relaxed mt-1"
-              animate={{ color: isActive ? "#6b7280" : "#9ca3af" }}
-              transition={{ duration: 0.3 }}
-            >
-              {ind.desc}
-            </motion.p>
+            <CheckCircle2 className="w-3.5 h-3.5" style={{ color: "#fff" }} />
           </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-[11px] font-semibold text-gray-800">{toastLabel}</div>
+            <div className="text-[10px] text-gray-400">{toastTime}</div>
+          </div>
+          <div className="text-xs font-semibold text-gray-900">{toastAmount}</div>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }
 
-function SolutionsSection() {
-  const industries = [
-    {
-      icon: ShoppingCart,
-      title: "E-commerce",
-      desc: "Accept payments globally and settle instantly to fuel your growth.",
-      image: ecommerceImg,
-    },
-    {
-      icon: Users,
-      title: "Freelancers",
-      desc: "Get paid from anywhere without delays or hidden FX fees.",
-      image: freelancersImg,
-    },
-    {
-      icon: Ship,
-      title: "Cross-border Trade",
-      desc: "Settle international trade payments with competitive FX and same-day liquidity.",
-      image: crossborderImg,
-    },
-    {
-      icon: Monitor,
-      title: "SaaS Platforms",
-      desc: "Monetize global users instantly with local collections and real-time payouts.",
-      image: saasImg,
-    },
-    {
-      icon: Store,
-      title: "Marketplaces",
-      desc: "Collect locally and pay out globally with high approval rates and instant settlement.",
-      image: marketplacesImg,
-    },
-  ];
+/* ─── Hero + Section 2 — Full-screen shrinks to card (Revolut effect) ─── */
+function HeroAndFeatures() {
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({ target: wrapperRef, offset: ["start start", "end start"] });
 
-  const [active, setActive] = useState(0);
-  const timerRef = useRef<ReturnType<typeof setInterval>>();
-
-  const startAutoRotate = useCallback(() => {
-    clearInterval(timerRef.current);
-    timerRef.current = setInterval(() => {
-      setActive((prev) => (prev + 1) % industries.length);
-    }, 3000);
-  }, [industries.length]);
-
+  // Viewport dimensions for pixel-accurate transforms
+  const [dims, setDims] = useState({ w: 1440, h: 900 });
+  const [mounted, setMounted] = useState(false);
   useEffect(() => {
-    startAutoRotate();
-    return () => clearInterval(timerRef.current);
-  }, [startAutoRotate]);
+    const update = () => setDims({ w: window.innerWidth, h: window.innerHeight });
+    update();
+    setMounted(true);
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
 
-  const handleActivate = useCallback((index: number) => {
-    setActive(index);
-    startAutoRotate();
-  }, [startAutoRotate]);
+  // Card grid math — 3 cards in a centered container
+  const containerW = Math.min(1100, dims.w * 0.84);
+  const gap = 20;
+  const cardW = (containerW - gap * 2) / 3;
+  const cardH = cardW * 1.25; // aspect 4:5
+  const containerLeft = (dims.w - containerW) / 2;
+  const cardsTop = dims.h * 0.42;
+
+  // Absolute positions for each card
+  const middleCardLeft = containerLeft + cardW + gap;
+  const leftCardLeft = containerLeft;
+  const rightCardLeft = containerLeft + (cardW + gap) * 2;
+
+  // Scale to fill viewport from card size
+  const scaleX = dims.w / cardW;
+  const scaleY = dims.h / cardH;
+  const fullScale = Math.max(scaleX, scaleY);
+
+  // --- Scroll-driven transforms (GPU-accelerated) ---
+
+  // Card shrink: fullScale → 1
+  const cardScale = useTransform(scrollYProgress, [0, 0.15, 0.55], [fullScale, fullScale, 1]);
+  const cardRadius = useTransform(scrollYProgress, [0, 0.15, 0.55], [0, 0, 16]);
+
+  // Dark gradient on card (for hero text readability)
+  const gradientOpacity = useTransform(scrollYProgress, [0, 0.15, 0.40], [1, 1, 0]);
+
+  // Hero text
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.15, 0.30], [1, 1, 0]);
+  const heroY = useTransform(scrollYProgress, [0, 0.30], [0, -60]);
+
+  // Card content (label, balance, toast) — hidden at full scale, fades in at card size
+  const cardContentOpacity = useTransform(scrollYProgress, [0.40, 0.55], [0, 1]);
+
+  // Section 2 heading
+  const headingOpacity = useTransform(scrollYProgress, [0.45, 0.60], [0, 1]);
+  const headingY = useTransform(scrollYProgress, [0.45, 0.60], [30, 0]);
+
+  // Side cards (slide in from sides)
+  const leftOpacity = useTransform(scrollYProgress, [0.50, 0.65], [0, 1]);
+  const leftX = useTransform(scrollYProgress, [0.50, 0.65], [-60, 0]);
+  const rightOpacity = useTransform(scrollYProgress, [0.53, 0.68], [0, 1]);
+  const rightX = useTransform(scrollYProgress, [0.53, 0.68], [60, 0]);
+
+  const clipReveal = {
+    hidden: { y: "105%", opacity: 0 },
+    visible: { y: "0%", opacity: 1 },
+  };
 
   return (
-    <section className="py-24 sm:py-32 bg-white" data-testid="solutions-section">
-      <div className="max-w-6xl mx-auto px-6">
-        <motion.div {...animateIn} className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-gray-900 tracking-tight">
-            Built for every industry.
-          </h2>
-          <p className="text-gray-400 text-lg mt-4 max-w-lg mx-auto">
-            Built to power global payments across industries with seamless cross-border infrastructure and liquidity.
-          </p>
-        </motion.div>
+    <div ref={wrapperRef} id="features" style={{ minHeight: "300vh" }}>
+      <div className="sticky top-0 h-screen overflow-hidden bg-white">
 
-        <div className="grid md:grid-cols-2 gap-16 items-start">
-          {/* Left — sticky image panel */}
-          <motion.div
-            {...animateIn}
-            className="hidden md:block"
-          >
-            <div className="sticky top-24 rounded-2xl overflow-hidden bg-gray-900" style={{ height: "420px" }}>
-              <AnimatePresence mode="wait">
+        {mounted && (
+          <>
+            {/* === LAYER 1: The scaling card (IS the hero background) === */}
+            <div
+              className="absolute z-10 hidden md:block"
+              style={{
+                top: cardsTop,
+                left: middleCardLeft,
+                width: cardW,
+                height: cardH,
+              }}
+            >
+              <motion.div
+                className="w-full h-full will-change-transform overflow-hidden"
+                style={{
+                  scale: cardScale,
+                  borderRadius: cardRadius,
+                }}
+              >
+                {/* Background image — always visible, object-cover */}
+                <img
+                  src={heroBgImg}
+                  alt="Business"
+                  className="absolute inset-0 w-full h-full object-cover"
+                  style={{ objectPosition: "center right 20%" }}
+                />
+
+                {/* Dark gradient for hero text readability — fades during shrink */}
                 <motion.div
-                  key={active}
                   className="absolute inset-0"
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -12 }}
-                  transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                >
-                  <img
-                    src={industries[active].image}
-                    alt={industries[active].title}
-                    className="w-full h-full object-cover"
-                    style={{ filter: "grayscale(40%) contrast(1.1)" }}
-                    data-testid={`industry-image-${active}`}
-                  />
+                  style={{
+                    opacity: gradientOpacity,
+                    background:
+                      "linear-gradient(to right, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0.5) 55%, rgba(0,0,0,0.18) 100%)",
+                  }}
+                />
+
+                {/* Card content overlay (label, balance, toast) — fades in at card size */}
+                <motion.div className="absolute inset-0 z-10" style={{ opacity: cardContentOpacity }}>
                   <div
                     className="absolute inset-0"
-                    style={{
-                      background: "linear-gradient(to top, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.25) 100%)",
-                    }}
+                    style={{ background: "linear-gradient(to top, rgba(0,0,0,0.3) 0%, transparent 50%)" }}
                   />
-                  <div className="absolute bottom-6 left-6 right-6">
-                    <motion.p
-                      className="text-white/90 text-lg font-bold"
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.15, duration: 0.4 }}
+                  <div className="absolute bottom-16 left-0 right-0 flex flex-col items-center gap-1.5 z-10">
+                    <span className="text-white/70 text-xs font-medium">Multi-currency</span>
+                    <span className="text-white text-2xl font-bold tracking-tight">AED 45,200</span>
+                    <span className="mt-0.5 px-4 py-1 rounded-full text-[11px] font-semibold bg-white text-gray-900">
+                      Accounts
+                    </span>
+                  </div>
+                  <div className="absolute bottom-3 left-3 right-3 z-10">
+                    <div
+                      className="flex items-center gap-2.5 px-3 py-2.5"
+                      style={{
+                        background: "rgba(255,255,255,0.95)",
+                        borderRadius: "14px",
+                        boxShadow: "0 2px 12px rgba(0,0,0,0.08)",
+                      }}
                     >
-                      {industries[active].title}
-                    </motion.p>
+                      <div
+                        className="flex items-center justify-center flex-shrink-0"
+                        style={{ width: 28, height: 28, borderRadius: "50%", background: "#6366f1" }}
+                      >
+                        <CheckCircle2 className="w-3.5 h-3.5" style={{ color: "#fff" }} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-[11px] font-semibold text-gray-800">Deposit</div>
+                        <div className="text-[10px] text-gray-400">Today, 11:28</div>
+                      </div>
+                      <div className="text-xs font-semibold text-gray-900">+AED 5,000</div>
+                    </div>
                   </div>
                 </motion.div>
-              </AnimatePresence>
+              </motion.div>
             </div>
-          </motion.div>
 
-          {/* Right — list */}
-          <motion.div {...animateIn} transition={{ duration: 0.5, ease, delay: 0.1 }}>
-            {industries.map((ind, i) => (
-              <IndustryRow
-                key={ind.title}
-                ind={ind}
-                index={i}
-                isActive={i === active}
-                onActivate={handleActivate}
+            {/* === LAYER 2: Hero text (centered left, fades out early) === */}
+            <motion.div
+              className="absolute z-20 hidden md:flex items-center h-full left-0 right-0 will-change-transform"
+              style={{ opacity: heroOpacity, y: heroY }}
+            >
+              <div className="max-w-7xl mx-auto px-6 md:px-10 w-full">
+                <div className="max-w-2xl">
+                  <div className="mb-7">
+                    {["Your money should", "move as fast as", "your business."].map((line, i) => (
+                      <div key={i} className="overflow-hidden">
+                        <motion.div
+                          variants={clipReveal}
+                          initial="hidden"
+                          animate="visible"
+                          transition={{ duration: 0.9, ease, delay: 0.15 + i * 0.14 }}
+                        >
+                          <h1
+                            className="font-semibold text-white leading-[1.04]"
+                            style={{ fontSize: "clamp(2.8rem, 6vw, 4.8rem)", letterSpacing: "-2.5px" }}
+                          >
+                            {line}
+                          </h1>
+                        </motion.div>
+                      </div>
+                    ))}
+                  </div>
+                  <motion.p
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.8, delay: 0.55 }}
+                    className="text-lg leading-relaxed mb-10 max-w-md"
+                    style={{ color: "rgba(255,255,255,0.72)", fontWeight: 400 }}
+                  >
+                    Near-instant cross-border transfers across 4 countries. Multi-currency accounts. Build your credit score from day one.
+                  </motion.p>
+                  <motion.div
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, ease, delay: 0.75 }}
+                    className="flex flex-wrap items-center gap-3"
+                  >
+                    <Link href="/auth?mode=register">
+                      <button
+                        className="px-8 py-4 rounded-full text-base font-semibold text-gray-900 bg-white hover:bg-gray-100 transition-colors duration-200"
+                        style={{ boxShadow: "0 4px 24px rgba(0,0,0,0.22)" }}
+                      >
+                        Get Started
+                      </button>
+                    </Link>
+                    <Link href="/cards">
+                      <button
+                        className="px-7 py-4 rounded-full text-base font-medium text-white transition-colors duration-200 hover:bg-white/10"
+                        style={{ border: "1px solid rgba(255,255,255,0.28)" }}
+                      >
+                        View Cards
+                      </button>
+                    </Link>
+                  </motion.div>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* === LAYER 3: Section 2 heading (fades in) === */}
+            <motion.div
+              className="absolute z-10 left-0 right-0 text-center px-6 hidden md:block"
+              style={{ opacity: headingOpacity, y: headingY, top: "6vh" }}
+            >
+              <h2
+                className="font-semibold text-gray-900 mb-4"
+                style={{ fontSize: "clamp(2.2rem, 4.5vw, 3.6rem)", letterSpacing: "-1.5px", lineHeight: 1.08 }}
+              >
+                Three tools. One platform.
+              </h2>
+              <p className="text-base text-gray-500 max-w-lg mx-auto leading-relaxed">
+                Everything you need to send money globally, settle locally, and build credit.
+              </p>
+              <Link href="/auth?mode=register">
+                <button
+                  className="mt-6 px-7 py-3.5 rounded-full text-sm font-semibold text-white inline-flex items-center gap-2 hover:opacity-90 transition-opacity cursor-pointer"
+                  style={{ background: DARK }}
+                >
+                  Open an account <ArrowRight className="w-4 h-4" />
+                </button>
+              </Link>
+            </motion.div>
+
+            {/* === LAYER 4: Left card (slides in from left) === */}
+            <motion.div
+              className="absolute z-10 will-change-transform hidden md:block"
+              style={{
+                opacity: leftOpacity,
+                x: leftX,
+                top: cardsTop,
+                left: leftCardLeft,
+                width: cardW,
+              }}
+            >
+              <RevolutCard
+                img={featureSettlementImg}
+                label="Transfers · AED"
+                balance="AED 12,500"
+                toastLabel="Sent to India"
+                toastTime="Today, 09:02"
+                toastAmount="+AED 12,500"
+                toastColor="#6366f1"
               />
-            ))}
-          </motion.div>
+            </motion.div>
+
+            {/* === LAYER 5: Right card (slides in from right) === */}
+            <motion.div
+              className="absolute z-10 will-change-transform hidden md:block"
+              style={{
+                opacity: rightOpacity,
+                x: rightX,
+                top: cardsTop,
+                left: rightCardLeft,
+                width: cardW,
+              }}
+            >
+              <RevolutCard
+                img={featureCreditImg}
+                label="Roar Score"
+                balance="756"
+                toastLabel="Score Updated"
+                toastTime="Today, 14:35"
+                toastAmount="+12 pts"
+                toastColor="#22c55e"
+              />
+            </motion.div>
+          </>
+        )}
+
+      </div>
+
+      {/* Mobile fallback */}
+      <div className="md:hidden bg-white py-16 px-6">
+        <div className="text-center mb-10">
+          <h2
+            className="font-semibold text-gray-900 mb-4"
+            style={{ fontSize: "clamp(2rem, 5vw, 3rem)", letterSpacing: "-1px", lineHeight: 1.1 }}
+          >
+            Three tools. One platform.
+          </h2>
+          <p className="text-base text-gray-500 max-w-sm mx-auto">
+            Everything you need to send money globally, settle locally, and build credit.
+          </p>
+        </div>
+        <div className="grid gap-4 max-w-sm mx-auto">
+          <RevolutCard img={featureSettlementImg} label="Transfers · AED" balance="AED 12,500" toastLabel="Sent to India" toastTime="Today, 09:02" toastAmount="+AED 12,500" toastColor="#6366f1" />
+          <RevolutCard img={heroBgImg} label="Multi-currency" balance="AED 45,200" toastLabel="Deposit" toastTime="Today, 11:28" toastAmount="+AED 5,000" toastColor="#6366f1" />
+          <RevolutCard img={featureCreditImg} label="Roar Score" balance="756" toastLabel="Score Updated" toastTime="Today, 14:35" toastAmount="+12 pts" toastColor="#22c55e" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Credit Section (dark, tabbed) ─── */
+const TABS = [
+  {
+    label: "E-commerce",
+    img: ecommerceImg,
+    headline: "Send money globally, receive in local currency.",
+    desc: "Transfer payments in local currencies across UAE, India, Philippines, and Indonesia. Near-instant settlement with transparent fees.",
+    score: 812,
+    scoreLabel: "Excellent",
+  },
+  {
+    label: "Freelancers",
+    img: freelancersImg,
+    headline: "Get paid from clients abroad, directly to your bank.",
+    desc: "Receive international payments without delays or hidden FX fees. Build your credit history from your first invoice.",
+    score: 756,
+    scoreLabel: "Good",
+  },
+  {
+    label: "Cross-border",
+    img: crossborderImg,
+    headline: "Move money across borders with transparent fees.",
+    desc: "Transfer funds across 4 countries with real exchange rates. AED, INR, PHP, IDR, USD, and GBP — all from one platform.",
+    score: 891,
+    scoreLabel: "Excellent",
+  },
+] as const;
+
+function CreditSection() {
+  const [active, setActive] = useState(0);
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: true, amount: 0.15 });
+  const tab = TABS[active];
+
+  return (
+    <section ref={ref} className="relative overflow-hidden" style={{ minHeight: "100svh", background: DARK }}>
+      {/* Switching background photo */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={active}
+          initial={{ opacity: 0, scale: 1.04 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.65, ease }}
+          className="absolute inset-0"
+        >
+          <img src={tab.img} alt={tab.label} className="w-full h-full object-cover" />
+          <div
+            className="absolute inset-0"
+            style={{
+              background:
+                "linear-gradient(to right, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.65) 55%, rgba(0,0,0,0.28) 100%)",
+            }}
+          />
+        </motion.div>
+      </AnimatePresence>
+
+      {/* Content */}
+      <div className="relative z-10 flex items-center" style={{ minHeight: "100svh" }}>
+        <div className="max-w-7xl mx-auto px-6 md:px-10 w-full py-24">
+          <div className="max-w-lg">
+            {/* Tab pills */}
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={inView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.6, delay: 0.1 }}
+              className="flex gap-2 mb-10 flex-wrap"
+            >
+              {TABS.map((t, i) => (
+                <button
+                  key={t.label}
+                  onClick={() => setActive(i)}
+                  className="px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-200 cursor-pointer"
+                  style={{
+                    background: active === i ? "#fff" : "transparent",
+                    color: active === i ? DARK : "rgba(255,255,255,0.72)",
+                    border: `1px solid ${active === i ? "#fff" : "rgba(255,255,255,0.32)"}`,
+                  }}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </motion.div>
+
+            {/* Headline */}
+            <AnimatePresence mode="wait">
+              <motion.h2
+                key={`h-${active}`}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -16 }}
+                transition={{ duration: 0.38, ease }}
+                className="font-semibold text-white mb-5"
+                style={{
+                  fontSize: "clamp(2rem, 4.5vw, 3.4rem)",
+                  letterSpacing: "-1.2px",
+                  lineHeight: 1.08,
+                }}
+              >
+                {tab.headline}
+              </motion.h2>
+            </AnimatePresence>
+
+            {/* Description */}
+            <AnimatePresence mode="wait">
+              <motion.p
+                key={`d-${active}`}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.35, delay: 0.08 }}
+                className="text-lg mb-9"
+                style={{ color: "rgba(255,255,255,0.68)", lineHeight: 1.65 }}
+              >
+                {tab.desc}
+              </motion.p>
+            </AnimatePresence>
+
+            {/* Roar Score card — Revolut-style */}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={`s-${active}`}
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.38, delay: 0.12 }}
+                className="inline-block"
+                style={{ width: "240px" }}
+              >
+                <RevolutCard
+                  img={tab.img}
+                  label={`Roar Score · ${tab.label}`}
+                  balance={String(tab.score)}
+                  toastLabel={tab.scoreLabel}
+                  toastTime={`${tab.label} score`}
+                  toastAmount={`${tab.score}/900`}
+                  toastColor={tab.score >= 800 ? ORANGE : "#6366f1"}
+                />
+              </motion.div>
+            </AnimatePresence>
+
+            <div className="mt-9">
+              <Link href="/auth?mode=register">
+                <button className="px-7 py-3.5 rounded-full text-sm font-semibold text-gray-900 bg-white hover:bg-gray-100 transition-colors duration-200 cursor-pointer">
+                  Build your Roar Score →
+                </button>
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
     </section>
   );
 }
 
-/* ─── How It Works ─── */
-function HowItWorksSection() {
-  const steps = [
-    { num: "01", title: "Accept Payments", desc: "Receive payments from anywhere. Settled instantly.", icon: CreditCard },
-    { num: "02", title: "Build Credit Automatically", desc: "Every transaction builds your Roar Score.", icon: TrendingUp },
-    { num: "03", title: "Unlock Working Capital", desc: "Access credit based on your real business performance.", icon: DollarSign },
-    { num: "04", title: "Repay From Revenue", desc: "Flexible repayment directly from your payment flow.", icon: Repeat },
-  ];
+/* ─── Stat Item (avoids hooks-in-loop issue) ─── */
+function StatItem({
+  value,
+  suffix,
+  label,
+  isText,
+  inView,
+}: {
+  value: number;
+  suffix: string;
+  label: string;
+  isText?: boolean;
+  inView: boolean;
+}) {
+  const count = useCounter(value, 1600, 0, inView);
+  return (
+    <div className="text-center">
+      <div
+        className="font-bold text-gray-900 mb-1 tabular-nums"
+        style={{ fontSize: "3rem", letterSpacing: "-1.5px", lineHeight: 1 }}
+      >
+        {isText ? suffix : `${count}${suffix}`}
+      </div>
+      <div className="text-sm text-gray-400 mt-2">{label}</div>
+    </div>
+  );
+}
+
+/* ─── Global Section ─── */
+function GlobalSection() {
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: true, amount: 0.15 });
 
   return (
-    <section id="how-it-works" className="py-24 sm:py-32 bg-white" data-testid="section-how-it-works">
-      <div className="max-w-6xl mx-auto px-6">
-        <motion.div {...animateIn} className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-gray-900 tracking-tight" data-testid="text-hiw-headline">
-            Four Steps to Capital.
+    <section ref={ref} className="py-28 sm:py-36 overflow-hidden" style={{ background: "linear-gradient(180deg, #fff 0%, #f8f6f1 100%)" }}>
+      <div className="max-w-7xl mx-auto px-6 md:px-10">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={inView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.7, ease }}
+          className="text-center mb-20"
+        >
+          <h2
+            className="font-semibold text-gray-900 mb-5"
+            style={{ fontSize: "clamp(2.4rem, 5vw, 4rem)", letterSpacing: "-1.5px", lineHeight: 1.08 }}
+          >
+            Global infrastructure, local speed.
           </h2>
+          <p className="text-lg text-gray-500 max-w-lg mx-auto">
+            Near-instant settlement across UAE, India, Philippines, and Indonesia. Transparent fees. No intermediaries.
+          </p>
         </motion.div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {steps.map((s, i) => (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
+          {(
+            [
+              { value: 4, suffix: "", label: "Countries" },
+              { value: 6, suffix: "", label: "Currencies" },
+              { value: 0, suffix: "Near-instant", label: "Settlement Speed", isText: true },
+              { value: 0, suffix: "0.99%", label: "FX Fee", isText: true },
+            ] as const
+          ).map(({ value, suffix, label, isText }, i) => (
             <motion.div
-              key={i}
-              {...animateIn}
-              transition={{ duration: 0.5, ease, delay: i * 0.1 }}
-              className="relative p-7 rounded-2xl bg-white border border-gray-100 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group"
-              data-testid={`card-step-${i}`}
+              key={label}
+              initial={{ opacity: 0, y: 20 }}
+              animate={inView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.6, ease, delay: 0.15 + i * 0.1 }}
+              className="relative"
             >
-              <span className="text-5xl font-black text-[#e8e0d0] absolute top-4 right-4 select-none">{s.num}</span>
-              <div className="w-10 h-10 rounded-xl bg-[#FFF8E7] flex items-center justify-center mb-5">
-                <s.icon className="w-5 h-5 text-gray-700" />
-              </div>
-              <h3 className="text-base font-bold text-gray-900 mb-2" data-testid={`text-step-title-${i}`}>{s.title}</h3>
-              <p className="text-gray-400 text-sm leading-relaxed" data-testid={`text-step-desc-${i}`}>{s.desc}</p>
+              <StatItem
+                value={value}
+                suffix={suffix}
+                label={label}
+                isText={isText}
+                inView={inView}
+              />
+              {i < 3 && (
+                <div className="hidden md:block absolute right-0 top-1/2 -translate-y-1/2 w-px h-12 bg-gray-200" />
+              )}
             </motion.div>
           ))}
         </div>
@@ -1286,118 +763,306 @@ function HowItWorksSection() {
   );
 }
 
-/* ─── FAQ ─── */
-function FAQSection() {
-  const faqs = [
-    { q: "What is TigerBnk?", a: "TigerBnk is a financial operating system for global merchants. We provide instant settlement, portable credit scoring, and working capital — all powered by your real business performance." },
-    { q: "How does instant settlement work?", a: "When your customers pay, we settle funds to your account in real-time instead of the traditional 2–7 day waiting period. No more cash flow gaps." },
-    { q: "What is the Roar Score?", a: "The Roar Score is a 300–900 credit identity built automatically from your transaction history, volume consistency, repayment behavior, and wallet balance. No paperwork or credit bureaus required." },
-    { q: "How do I get started?", a: "Sign up for early access, complete a simple onboarding flow, and start accepting payments. Your Roar Score begins building from day one." },
-    { q: "Is my money safe?", a: "Yes. TigerBnk uses bank-grade encryption and security infrastructure. Your funds are held with licensed financial partners with regulatory compliance across all operating jurisdictions." },
-    { q: "Which countries do you support?", a: "We currently operate across 15+ countries with expanding coverage. Our infrastructure supports multi-currency settlement in USD, EUR, GBP, AED, INR, and more." },
+/* ─── Cards Section (homepage teaser) ─── */
+function CardsSection() {
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: true, amount: 0.15 });
+
+  const features = [
+    { icon: Globe, text: "Real FX rates, no markup" },
+    { icon: Lock, text: "Freeze & unfreeze instantly" },
+    { icon: BellRing, text: "Real-time spending alerts" },
   ];
 
   return (
-    <section id="faq" className="py-24 sm:py-32 bg-white">
-      <div className="max-w-5xl mx-auto px-6">
-        <div className="grid md:grid-cols-2 gap-16 items-center">
-          {/* Left */}
-          <motion.div {...animateIn}>
-            <h2 className="text-3xl sm:text-4xl font-black text-gray-900 tracking-tight leading-tight mb-8">
-              You got questions?<br />We got your back.
-            </h2>
-            {/* FAQ visual */}
-            <div className="flex justify-center">
-              <img src={faqImg} alt="Guidance to the Future" className="w-3/4 object-contain rounded-2xl" />
-            </div>
-          </motion.div>
+    <section ref={ref} className="relative overflow-hidden" style={{ background: DARK, minHeight: "80vh" }}>
+      <div className="relative z-10 flex items-center" style={{ minHeight: "80vh" }}>
+        <div className="max-w-7xl mx-auto px-6 md:px-10 w-full py-24">
+          <div className="grid md:grid-cols-2 gap-16 md:gap-20 items-center">
+            {/* Left: Text */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={inView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.7, ease }}
+            >
+              <span
+                className="inline-block px-4 py-1.5 rounded-full text-xs font-semibold mb-8 tracking-wide"
+                style={{ background: "rgba(255,77,0,0.15)", color: ORANGE }}
+              >
+                COMING SOON
+              </span>
+              <h2
+                className="font-semibold text-white mb-5"
+                style={{ fontSize: "clamp(2.2rem, 4.5vw, 3.6rem)", letterSpacing: "-1.5px", lineHeight: 1.08 }}
+              >
+                The TigerBnk Card
+              </h2>
+              <p className="text-lg mb-10" style={{ color: "rgba(255,255,255,0.6)", lineHeight: 1.65 }}>
+                Spend globally at real exchange rates. Virtual card instant, physical card ships to your door.
+              </p>
 
-          {/* Right — Accordion */}
-          <motion.div {...animateIn} transition={{ duration: 0.5, ease, delay: 0.1 }}>
-            <Accordion type="single" collapsible className="w-full">
-              {faqs.map((faq, i) => (
-                <AccordionItem key={i} value={`faq-${i}`} className="border-b border-gray-100">
-                  <AccordionTrigger className="text-left text-gray-900 font-semibold hover:no-underline py-5">
-                    {faq.q}
-                  </AccordionTrigger>
-                  <AccordionContent className="text-gray-400 leading-relaxed">
-                    {faq.a}
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
-          </motion.div>
+              <div className="space-y-5 mb-10">
+                {features.map((f, i) => (
+                  <motion.div
+                    key={f.text}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={inView ? { opacity: 1, x: 0 } : {}}
+                    transition={{ duration: 0.5, ease, delay: 0.2 + i * 0.1 }}
+                    className="flex items-center gap-4"
+                  >
+                    <div
+                      className="flex items-center justify-center flex-shrink-0"
+                      style={{ width: 40, height: 40, borderRadius: 10, background: "rgba(255,255,255,0.06)" }}
+                    >
+                      <f.icon className="w-4.5 h-4.5" style={{ color: ORANGE }} />
+                    </div>
+                    <span className="text-white text-sm font-medium">{f.text}</span>
+                  </motion.div>
+                ))}
+              </div>
+
+              <Link href="/cards">
+                <button className="px-7 py-3.5 rounded-full text-sm font-semibold text-gray-900 bg-white hover:bg-gray-100 transition-colors duration-200 cursor-pointer inline-flex items-center gap-2">
+                  Join the Waitlist <ArrowRight className="w-4 h-4" />
+                </button>
+              </Link>
+            </motion.div>
+
+            {/* Right: Card visual */}
+            <motion.div
+              initial={{ opacity: 0, y: 40 }}
+              animate={inView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.8, ease, delay: 0.2 }}
+              className="flex justify-center"
+            >
+              <div className="relative w-full max-w-[420px]">
+                {/* Glow */}
+                <div
+                  className="absolute -inset-8 rounded-3xl"
+                  style={{
+                    background: "radial-gradient(ellipse at center, rgba(255,77,0,0.12) 0%, transparent 70%)",
+                    filter: "blur(30px)",
+                  }}
+                />
+                {/* Card */}
+                <div
+                  className="relative rounded-2xl overflow-hidden"
+                  style={{
+                    aspectRatio: "420/260",
+                    background: "linear-gradient(135deg, #F5F0E8 0%, #E8E0D0 100%)",
+                    boxShadow: "0 25px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05)",
+                  }}
+                >
+                  <div className="absolute inset-0 p-7 flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="text-sm font-bold tracking-[3px] text-gray-800">TIGERBNK</div>
+                          <div className="text-[10px] text-gray-400 mt-0.5 tracking-wider">PLATINUM</div>
+                        </div>
+                        <div
+                          className="w-10 h-7 rounded"
+                          style={{ background: "#D4CFC5", border: "1px solid #C0BAB0" }}
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-sm text-gray-400 tracking-[2.5px] font-mono mb-4">
+                        ••••  ••••  ••••  4289
+                      </div>
+                      <div className="flex items-end justify-between">
+                        <div>
+                          <div className="text-[9px] text-gray-400 tracking-[1.5px] mb-0.5">CARDHOLDER</div>
+                          <div className="text-xs font-bold text-gray-800">YOUR NAME</div>
+                        </div>
+                        <div className="flex -space-x-2">
+                          <div className="w-7 h-7 rounded-full" style={{ background: "#E8E0D0" }} />
+                          <div className="w-7 h-7 rounded-full" style={{ background: "#D0C8B8" }} />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                {/* Second card peek */}
+                <div
+                  className="absolute -bottom-4 left-4 right-4 h-12 rounded-b-2xl -z-10"
+                  style={{
+                    background: "linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%)",
+                    boxShadow: "0 15px 40px rgba(0,0,0,0.4)",
+                  }}
+                />
+              </div>
+            </motion.div>
+          </div>
         </div>
       </div>
     </section>
   );
 }
 
-/* ─── Footer (Dark) ─── */
+/* ─── FAQ Section ─── */
+const FAQS = [
+  { q: "What is TigerBnk?", a: "TigerBnk is a cross-border remittance platform for individuals and merchants. Send and receive money across UAE, India, Philippines, and Indonesia with near-instant settlement, transparent FX rates, and a portable credit score that grows with your activity." },
+  { q: "How does settlement work?", a: "When you send money, we convert and settle via stablecoin rails on the backend — you only deal in local fiat currency. Funds arrive near-instantly instead of the traditional 2–7 day waiting period." },
+  { q: "What is the Roar Score?", a: "The Roar Score is a 300–900 credit identity built automatically from your transaction history, volume consistency, repayment behaviour, and wallet balance. No paperwork or credit bureaus required." },
+  { q: "How do I get started?", a: "Sign up, complete KYC verification, and start sending money. Your Roar Score begins building from day one." },
+  { q: "Is my money safe?", a: "Yes. TigerBnk uses bank-grade encryption and security infrastructure. Your funds are held with licensed financial partners with regulatory compliance across all operating jurisdictions." },
+  { q: "Which countries and currencies do you support?", a: "We currently operate across 4 countries — UAE, India, Philippines, and Indonesia. We support 6 currencies: AED, INR, PHP, IDR, USD, and GBP." },
+];
+
+function FAQSection() {
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: true, amount: 0.15 });
+
+  return (
+    <section ref={ref} id="faq" className="py-24 sm:py-32 bg-white">
+      <div className="max-w-2xl mx-auto px-6">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={inView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.7, ease }}
+          className="text-center mb-14"
+        >
+          <h2
+            className="font-semibold text-gray-900 mb-4"
+            style={{ fontSize: "clamp(2.4rem, 5vw, 4rem)", letterSpacing: "-1.5px", lineHeight: 1.08 }}
+          >
+            Questions? We got you.
+          </h2>
+          <p className="text-lg text-gray-500">Everything you need to know about TigerBnk.</p>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={inView ? { opacity: 1 } : {}}
+          transition={{ duration: 0.6, delay: 0.2 }}
+        >
+          <Accordion type="single" collapsible className="w-full">
+            {FAQS.map((faq, i) => (
+              <AccordionItem key={i} value={`faq-${i}`} className="border-b border-gray-100">
+                <AccordionTrigger className="text-left text-gray-900 font-semibold text-base hover:no-underline py-6">
+                  {faq.q}
+                </AccordionTrigger>
+                <AccordionContent className="text-gray-500 leading-relaxed text-[15px] pb-6">
+                  {faq.a}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
+/* ─── Footer ─── */
 function Footer() {
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) return;
+    try {
+      await apiRequest("POST", "/api/early-access", {
+        email,
+        name: "Newsletter",
+        country: "N/A",
+        monthlyVolume: "N/A",
+      });
+      setSubmitted(true);
+    } catch {
+      setSubmitted(true);
+    }
+  };
+
   return (
-    <footer className="bg-gray-950 text-white" data-testid="footer-landing">
-      <div className="max-w-6xl mx-auto px-6 py-16">
+    <footer style={{ background: DARK }} className="text-white">
+      <div className="max-w-7xl mx-auto px-6 md:px-10 py-16">
         <div className="grid md:grid-cols-2 gap-16 mb-16">
-          {/* Left — newsletter */}
           <div>
             <h3 className="text-xl font-bold mb-2">Stay connected</h3>
-            <p className="text-gray-400 text-sm mb-6">Sign up to stay up to-date on the latest announcements.</p>
-            <div className="flex gap-3">
-              <Input
-                type="email"
-                placeholder="jane@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="bg-gray-900 border-gray-800 text-white placeholder:text-gray-500 rounded-lg flex-1"
-              />
-              <Button
-                onClick={() => { if (email) setSubmitted(true); }}
-                className="rounded-lg px-6 font-medium text-black border-0"
-                style={{ background: submitted ? "#22c55e" : ORANGE, color: submitted ? "#fff" : "#000" }}
-              >
-                {submitted ? "Done!" : "Submit"}
-              </Button>
-            </div>
+            <p className="text-sm mb-6" style={{ color: "rgba(255,255,255,0.45)" }}>
+              Get updates on new features, markets, and product launches.
+            </p>
+            {submitted ? (
+              <p className="text-green-400 text-sm font-medium">You're on the list. ✓</p>
+            ) : (
+              <form onSubmit={handleSubmit} className="flex gap-2 max-w-sm">
+                <input
+                  type="email"
+                  placeholder="your@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="flex-1 px-4 py-2.5 rounded-full text-sm text-white placeholder-white/30 outline-none focus:ring-1 focus:ring-white/20"
+                  style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)" }}
+                />
+                <button
+                  type="submit"
+                  className="px-5 py-2.5 rounded-full text-sm font-semibold text-gray-900 bg-white hover:bg-gray-100 transition-colors duration-200"
+                >
+                  Subscribe
+                </button>
+              </form>
+            )}
           </div>
 
-          {/* Right — links */}
           <div className="grid grid-cols-3 gap-8">
-            <div>
-              <h4 className="font-bold mb-4 text-sm">Product</h4>
-              <div className="space-y-3 text-sm text-gray-400">
-                <a href="#features" className="block hover:text-white transition-colors">Payments</a>
-                <a href="#features" className="block hover:text-white transition-colors">Settlement</a>
-                <Link href="/cards" className="block hover:text-white transition-colors">Cards</Link>
+            {[
+              {
+                title: "Product",
+                links: [
+                  { label: "Payments", href: "#features" },
+                  { label: "Settlement", href: "#features" },
+                  { label: "Cards", href: "/cards" },
+                ],
+              },
+              { title: "Resources", links: [{ label: "FAQ", href: "#faq" }] },
+              {
+                title: "Solutions",
+                links: [
+                  { label: "E-commerce", href: "#" },
+                  { label: "Freelancers", href: "#" },
+                  { label: "SaaS", href: "#" },
+                ],
+              },
+            ].map((col) => (
+              <div key={col.title}>
+                <h4
+                  className="text-xs font-semibold uppercase tracking-wider mb-4"
+                  style={{ color: "rgba(255,255,255,0.35)" }}
+                >
+                  {col.title}
+                </h4>
+                <ul className="space-y-3">
+                  {col.links.map((link) => (
+                    <li key={link.label}>
+                      <a
+                        href={link.href}
+                        className="text-sm hover:text-white transition-colors"
+                        style={{ color: "rgba(255,255,255,0.55)" }}
+                      >
+                        {link.label}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
               </div>
-            </div>
-            <div>
-              <h4 className="font-bold mb-4 text-sm">Resources</h4>
-              <div className="space-y-3 text-sm text-gray-400">
-                <a href="#faq" className="block hover:text-white transition-colors">FAQ</a>
-              </div>
-            </div>
-            <div>
-              <h4 className="font-bold mb-4 text-sm">Solutions</h4>
-              <div className="space-y-3 text-sm text-gray-400">
-                <span className="block">E-commerce</span>
-                <span className="block">Freelancers</span>
-                <span className="block">SaaS</span>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
 
-        {/* Bottom */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-8 border-t border-gray-800">
-          <div className="flex items-center gap-2">
-            <img src={logoImg} alt="TigerBnk" className="w-6 h-6 rounded" />
-            <span className="text-gray-400 text-sm font-semibold" data-testid="text-footer-copyright">TigerBnk</span>
+        <div
+          className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-8 border-t"
+          style={{ borderColor: "rgba(255,255,255,0.08)" }}
+        >
+          <div className="flex items-center gap-2.5">
+            <img src={logoImg} alt="TigerBnk" className="w-6 h-6 rounded-md" />
+            <span className="text-sm font-semibold">TigerBnk</span>
           </div>
-          <p className="text-gray-500 text-xs" data-testid="text-footer-tagline">&copy; {new Date().getFullYear()} TigerBnk. Financial infrastructure for global commerce.</p>
+          <p className="text-xs" style={{ color: "rgba(255,255,255,0.28)" }}>
+            © {new Date().getFullYear()} TigerBnk. Financial infrastructure for global commerce.
+          </p>
         </div>
       </div>
     </footer>
@@ -1407,30 +1072,29 @@ function Footer() {
 /* ─── Main Page ─── */
 export default function LandingPage() {
   useEffect(() => {
-    document.title = "TigerBnk — Financial OS for Global Merchants";
-
+    document.title = "TigerBnk — The Payment Infrastructure for Global Business";
     let meta = document.querySelector('meta[name="description"]');
-    if (!meta) { meta = document.createElement("meta"); meta.setAttribute("name", "description"); document.head.appendChild(meta); }
-    meta.setAttribute("content", "Cross-border payment infrastructure with same-day settlement, multi-currency collections, and business credit scoring. Built for global commerce.");
-
-    let ogTitle = document.querySelector('meta[property="og:title"]');
-    if (!ogTitle) { ogTitle = document.createElement("meta"); ogTitle.setAttribute("property", "og:title"); document.head.appendChild(ogTitle); }
-    ogTitle.setAttribute("content", "TigerBnk — Financial OS for Global Merchants");
-
-    let ogDesc = document.querySelector('meta[property="og:description"]');
-    if (!ogDesc) { ogDesc = document.createElement("meta"); ogDesc.setAttribute("property", "og:description"); document.head.appendChild(ogDesc); }
-    ogDesc.setAttribute("content", "Cross-border payment infrastructure with same-day settlement, multi-currency collections, and business credit scoring. Built for global commerce.");
-
-    return () => { document.title = "TigerBnk"; };
+    if (!meta) {
+      meta = document.createElement("meta");
+      meta.setAttribute("name", "description");
+      document.head.appendChild(meta);
+    }
+    meta.setAttribute(
+      "content",
+      "Cross-border remittance platform with near-instant settlement across UAE, India, Philippines, and Indonesia. Multi-currency transfers with transparent fees."
+    );
+    return () => {
+      document.title = "TigerBnk";
+    };
   }, []);
 
   return (
     <div className="min-h-screen bg-white">
       <Navbar />
-      <HeroSection />
-      <ProblemSection />
-      <FeaturesSection />
-      <SolutionsSection />
+      <HeroAndFeatures />
+      <GlobalSection />
+      <CreditSection />
+      <CardsSection />
       <FAQSection />
       <Footer />
     </div>

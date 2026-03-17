@@ -1,5 +1,6 @@
 import { db } from "./db";
-import { users, transactions, contacts, passwordResetCodes, earlyAccessSubmissions } from "@shared/schema";
+import { pool } from "./db";
+import { users, transactions, contacts, earlyAccessSubmissions } from "@shared/schema";
 import type { User, InsertUser, Transaction, InsertTransaction, InsertEarlyAccess, EarlyAccessSubmission } from "@shared/schema";
 import { eq, desc, and, or, sql } from "drizzle-orm";
 
@@ -42,9 +43,22 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateUserBalance(userId: number, amount: string): Promise<void> {
-    await db.update(users)
-      .set({ balance: sql`${users.balance}::numeric + ${amount}::numeric` })
-      .where(eq(users.id, userId));
+    const client = await pool.connect();
+    try {
+      await client.query("BEGIN");
+      // Lock the row to prevent concurrent balance modifications
+      await client.query("SELECT balance FROM users WHERE id = $1 FOR UPDATE", [userId]);
+      await client.query(
+        "UPDATE users SET balance = balance::numeric + $1::numeric WHERE id = $2",
+        [amount, userId]
+      );
+      await client.query("COMMIT");
+    } catch (err) {
+      await client.query("ROLLBACK");
+      throw err;
+    } finally {
+      client.release();
+    }
   }
 
   async updateUser(userId: number, data: Partial<User>): Promise<User | undefined> {

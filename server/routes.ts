@@ -31,6 +31,21 @@ function authenticateToken(req: Request, res: Response, next: NextFunction) {
   }
 }
 
+// KYC enforcement middleware — blocks deposits/withdrawals for unverified users
+async function requireKyc(req: Request, res: Response, next: NextFunction) {
+  try {
+    const userId = (req as any).userId;
+    const user = await storage.getUser(userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+    if (user.kycStatus !== "verified") {
+      return res.status(403).json({ message: "KYC verification required before making transactions" });
+    }
+    next();
+  } catch {
+    return res.status(500).json({ message: "Server error" });
+  }
+}
+
 export async function registerRoutes(
   httpServer: Server,
   app: Express
@@ -216,7 +231,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/transactions/send", authenticateToken, async (req, res) => {
+  app.post("/api/transactions/send", authenticateToken, requireKyc, async (req, res) => {
     try {
       const userId = (req as any).userId;
       const { recipientEmail, amount, currency, toCurrency } = req.body;
@@ -347,7 +362,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/burjx/deposit", authenticateToken, async (req, res) => {
+  app.post("/api/burjx/deposit", authenticateToken, requireKyc, async (req, res) => {
     try {
       const userId = (req as any).userId;
       const { amount } = req.body;
@@ -397,7 +412,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/burjx/withdraw", authenticateToken, async (req, res) => {
+  app.post("/api/burjx/withdraw", authenticateToken, requireKyc, async (req, res) => {
     try {
       const userId = (req as any).userId;
       const { amount, iban, bankName, accountHolderName } = req.body;
@@ -543,7 +558,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/onmeta/deposit", authenticateToken, async (req, res) => {
+  app.post("/api/onmeta/deposit", authenticateToken, requireKyc, async (req, res) => {
     try {
       const userId = (req as any).userId;
       const authToken = req.headers["x-onmeta-token"] as string;
@@ -584,7 +599,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/onmeta/withdraw", authenticateToken, async (req, res) => {
+  app.post("/api/onmeta/withdraw", authenticateToken, requireKyc, async (req, res) => {
     try {
       const userId = (req as any).userId;
       const authToken = req.headers["x-onmeta-token"] as string;
