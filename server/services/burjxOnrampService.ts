@@ -1,9 +1,14 @@
 import { callRpc, ensureConnected, getSession } from "./burjxApexClient";
+import { SETTLEMENT_WALLET_ADDRESS, BRIDGE_TOKEN, BRIDGE_NETWORK } from "./bridgeConfig";
+import crypto from "crypto";
 
 const AED_PRODUCT_ID = 104;
+const AED_TO_USD_RATE = 0.2722; // AED → USD (stablecoin assumed near USD peg)
+const DEPOSIT_COMPLETED_STATUSES = new Set(["completed", "Completed", "FullyProcessed", "Accepted"]);
 
 export interface DepositTicket {
   ticketId: string;
+  accountId?: string;
   status: string;
   amount: number;
   currency: string;
@@ -37,6 +42,7 @@ export async function createDepositTicket(amount: number): Promise<DepositTicket
 
   return {
     ticketId: result.TicketId || result.ticketId || result.RequestCode || "",
+    accountId: result.AccountId || result.accountId || session.accountId || "",
     status: result.Status || result.status || "pending",
     amount,
     currency: "AED",
@@ -63,6 +69,7 @@ export async function getDepositTickets(): Promise<DepositTicket[]> {
 
   return tickets.map((t: any) => ({
     ticketId: t.TicketId || t.ticketId || t.RequestCode || "",
+    accountId: t.AccountId || t.accountId || "",
     status: t.Status || t.status || "unknown",
     amount: parseFloat(t.Amount || t.amount || "0"),
     currency: "AED",
@@ -88,14 +95,17 @@ export async function getDepositStatus(ticketId: string): Promise<{
     return { status: "not_found", amount: 0, received: false };
   }
 
-  const completedStatuses = ["completed", "Completed", "FullyProcessed", "Accepted"];
-  const received = completedStatuses.includes(ticket.status);
+  const received = isDepositCompletedStatus(ticket.status);
 
   return {
     status: ticket.status,
     amount: ticket.amount,
     received,
   };
+}
+
+export function isDepositCompletedStatus(status: string): boolean {
+  return DEPOSIT_COMPLETED_STATUSES.has(status);
 }
 
 export async function getWithdrawTemplate(): Promise<any> {
@@ -149,4 +159,65 @@ export async function pollDepositStatus(
     await new Promise((r) => setTimeout(r, intervalMs));
   }
   return { status: "timeout", received: false, amount: 0 };
+}
+
+// Cross-provider settlement simulation used by transfer settlement only.
+// This is intentionally separate from BurjX AED deposit custody/wallet ownership.
+export interface BridgeResult {
+  bridgeTxHash: string;
+  amountUsdc: number;
+  amountAed: number;
+  wallet: string;
+  token: string;
+  network: string;
+  status: "bridged";
+}
+
+export async function convertAndBridgeToSettlement(amountAed: number): Promise<BridgeResult> {
+  const stablecoinAmount = parseFloat((amountAed * AED_TO_USD_RATE).toFixed(2));
+  const bridgeTxHash = `demo_${crypto.randomBytes(16).toString("hex")}`;
+
+  console.log(
+    `[Bridge] AED ${amountAed} → ${BRIDGE_TOKEN} ${stablecoinAmount} → ${SETTLEMENT_WALLET_ADDRESS} (${bridgeTxHash})`
+  );
+
+  return {
+    bridgeTxHash,
+    amountUsdc: stablecoinAmount,
+    amountAed,
+    wallet: SETTLEMENT_WALLET_ADDRESS,
+    token: BRIDGE_TOKEN,
+    network: BRIDGE_NETWORK,
+    status: "bridged",
+  };
+}
+
+export async function createCustodyConversionForLeanDeposit(params: {
+  amountAed: number;
+  leanPaymentIntentId: string;
+}): Promise<{
+  burjxAccountId: string;
+  burjxDepositTicketId: string;
+  burjxWalletId: string;
+  bridgeTxHash: string;
+  stablecoinAmount: number;
+  stablecoinToken: string;
+  network: string;
+}> {
+  const ticket = await createDepositTicket(params.amountAed);
+  const bridge = await convertAndBridgeToSettlement(params.amountAed);
+
+  const burjxWalletId = ticket.accountId
+    ? `burjx-wallet-${ticket.accountId}`
+    : `burjx-wallet-${params.leanPaymentIntentId}`;
+
+  return {
+    burjxAccountId: ticket.accountId || "",
+    burjxDepositTicketId: ticket.ticketId,
+    burjxWalletId,
+    bridgeTxHash: bridge.bridgeTxHash,
+    stablecoinAmount: bridge.amountUsdc,
+    stablecoinToken: bridge.token,
+    network: bridge.network,
+  };
 }

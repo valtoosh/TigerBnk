@@ -1,7 +1,7 @@
-const ONMETA_PROD_URL = "https://api.platform.onmeta.in";
+import crypto from "crypto";
+import { BRIDGE_TOKEN, BRIDGE_NETWORK, SETTLEMENT_WALLET_ADDRESS } from "./bridgeConfig";
 
-const INTERNAL_SETTLEMENT_TOKEN = "USDT";
-const INTERNAL_SETTLEMENT_NETWORK = "polygon";
+const ONMETA_PROD_URL = "https://api.platform.onmeta.in";
 
 function getBaseUrl(): string {
   return ONMETA_PROD_URL;
@@ -106,8 +106,8 @@ export async function getQuotation(params: {
   const result = await onmetaRequest(endpoint, "POST", {
     fiatCurrency: params.currency,
     fiatAmount: params.amount,
-    cryptoCurrency: INTERNAL_SETTLEMENT_TOKEN,
-    network: INTERNAL_SETTLEMENT_NETWORK,
+    cryptoCurrency: BRIDGE_TOKEN,
+    network: BRIDGE_NETWORK,
   });
 
   const data = result.data || result;
@@ -140,9 +140,10 @@ export async function createDepositOrder(
   const result = await onmetaRequest("/v1/onramp/order", "POST", {
     fiatCurrency: params.currency,
     fiatAmount: params.amount,
-    cryptoCurrency: INTERNAL_SETTLEMENT_TOKEN,
-    network: INTERNAL_SETTLEMENT_NETWORK,
+    cryptoCurrency: BRIDGE_TOKEN,
+    network: BRIDGE_NETWORK,
     paymentMethod: params.paymentMethod,
+    walletAddress: SETTLEMENT_WALLET_ADDRESS,
   }, authToken);
 
   const data = result.data || result;
@@ -174,9 +175,10 @@ export async function createWithdrawalOrder(
   const result = await onmetaRequest("/v1/offramp/order", "POST", {
     fiatCurrency: params.currency,
     fiatAmount: params.amount,
-    cryptoCurrency: INTERNAL_SETTLEMENT_TOKEN,
-    network: INTERNAL_SETTLEMENT_NETWORK,
+    cryptoCurrency: BRIDGE_TOKEN,
+    network: BRIDGE_NETWORK,
     bankAccountId: params.bankAccountId,
+    walletAddress: SETTLEMENT_WALLET_ADDRESS,
   }, authToken);
 
   const data = result.data || result;
@@ -265,3 +267,47 @@ export function getPaymentMethodLabel(method: string): string {
   };
   return labels[method] || method;
 }
+
+// Settlement offramp — converts USDC from settlement wallet to fiat for recipient
+export async function createOfframpForSettlement(
+  authToken: string,
+  params: {
+    recipientCurrency: string;
+    fiatAmount: number;
+    bankAccountId?: string;
+  }
+): Promise<{ orderId: string; status: string }> {
+  const result = await onmetaRequest("/v1/offramp/order", "POST", {
+    fiatCurrency: params.recipientCurrency,
+    fiatAmount: params.fiatAmount,
+    cryptoCurrency: BRIDGE_TOKEN,
+    network: BRIDGE_NETWORK,
+    walletAddress: SETTLEMENT_WALLET_ADDRESS,
+    bankAccountId: params.bankAccountId,
+  }, authToken);
+
+  const data = result.data || result;
+  return {
+    orderId: data.orderId || data.orderCode || data.id || "",
+    status: data.status || "created",
+  };
+}
+
+// Webhook signature verification (HMAC-SHA256)
+// Secret: ONMETA_API_KEY (the API secret from merchant dashboard)
+export function verifyWebhookSignature(body: any, signature: string): boolean {
+  const secret = process.env.ONMETA_API_KEY || "";
+  if (!secret || !signature) return false;
+  const hmac = crypto.createHmac("sha256", secret);
+  hmac.update(JSON.stringify(body));
+  const expected = hmac.digest("hex");
+  try {
+    return crypto.timingSafeEqual(Buffer.from(signature, "hex"), Buffer.from(expected, "hex"));
+  } catch {
+    return false;
+  }
+}
+
+// Webhook status constants
+export const ONRAMP_FINAL_STATUSES = ["completed", "expired"] as const;
+export const OFFRAMP_FINAL_STATUSES = ["PayoutSuccess", "refunded", "completed"] as const;

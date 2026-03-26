@@ -14,7 +14,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { CURRENCIES, formatCurrency } from "@shared/schema";
-import { ArrowRight, ArrowDown, Send, RefreshCw, Check } from "lucide-react";
+import { ArrowRight, ArrowDown, Send, RefreshCw, Check, Copy, ExternalLink } from "lucide-react";
 import { useLocation } from "wouter";
 
 const sendSchema = z.object({
@@ -34,6 +34,13 @@ export default function SendMoney() {
   const { toast } = useToast();
   const [, navigate] = useLocation();
   const [success, setSuccess] = useState(false);
+  const [bridgeData, setBridgeData] = useState<{
+    txHash: string;
+    amountUsdc: number;
+    wallet: string;
+    network: string;
+    token: string;
+  } | null>(null);
 
   const form = useForm<z.infer<typeof sendSchema>>({
     resolver: zodResolver(sendSchema),
@@ -65,7 +72,8 @@ export default function SendMoney() {
       });
       return res.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      if (data.bridge) setBridgeData(data.bridge);
       setSuccess(true);
       queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
@@ -81,19 +89,82 @@ export default function SendMoney() {
   const feePercent = rateData?.feePercent || 0;
   const isSameCurrency = fromCurrency === toCurrency;
 
+  function copyToClipboard(text: string) {
+    navigator.clipboard.writeText(text);
+    toast({ title: "Copied", description: "Copied to clipboard" });
+  }
+
   if (success) {
     return (
-      <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex items-center justify-center min-h-[60vh]">
+      <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="space-y-6 max-w-lg mx-auto">
         <Card>
           <CardContent className="p-8 text-center">
             <div className="w-16 h-16 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto mb-4">
               <Check className="w-8 h-8 text-emerald-600" />
             </div>
             <h2 className="text-xl font-semibold mb-2">Transfer Sent</h2>
-            <p className="text-sm text-muted-foreground mb-6">
+            <p className="text-sm text-muted-foreground mb-4">
               {formatCurrency(numAmount, fromCurrency)} has been sent successfully
             </p>
-            <Button onClick={() => navigate("/dashboard")} data-testid="button-back-home">Back to Home</Button>
+
+            {bridgeData && (
+              <div className="mt-6 text-left space-y-4">
+                <div className="h-px bg-border" />
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Settlement Bridge</p>
+
+                {/* Step visualization */}
+                <div className="flex items-center justify-between gap-1 text-xs">
+                  <div className="flex flex-col items-center gap-1 flex-1">
+                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                      <span className="text-[10px] font-bold text-primary">{fromCurrency}</span>
+                    </div>
+                    <span className="font-medium">{formatCurrency(numAmount, fromCurrency)}</span>
+                  </div>
+                  <ArrowRight className="w-3 h-3 text-muted-foreground shrink-0" />
+                  <div className="flex flex-col items-center gap-1 flex-1">
+                    <div className="w-8 h-8 rounded-full bg-violet-500/10 flex items-center justify-center">
+                      <span className="text-[10px] font-bold text-violet-600">USDC</span>
+                    </div>
+                    <span className="font-medium">${bridgeData.amountUsdc.toFixed(2)}</span>
+                  </div>
+                  <ArrowRight className="w-3 h-3 text-muted-foreground shrink-0" />
+                  <div className="flex flex-col items-center gap-1 flex-1">
+                    <div className="w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center">
+                      <span className="text-[10px] font-bold text-emerald-600">{toCurrency}</span>
+                    </div>
+                    <span className="font-medium">{formatCurrency(convertedAmount, toCurrency)}</span>
+                  </div>
+                </div>
+
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between gap-2 items-center">
+                    <span className="text-muted-foreground">Network</span>
+                    <Badge variant="secondary" className="text-xs">Solana</Badge>
+                  </div>
+                  <div className="flex justify-between gap-2 items-center">
+                    <span className="text-muted-foreground">Wallet</span>
+                    <button onClick={() => copyToClipboard(bridgeData.wallet)} className="flex items-center gap-1 font-mono text-xs">
+                      {bridgeData.wallet.slice(0, 8)}...{bridgeData.wallet.slice(-4)}
+                      <Copy className="w-3 h-3 text-muted-foreground" />
+                    </button>
+                  </div>
+                  <div className="flex justify-between gap-2 items-center">
+                    <span className="text-muted-foreground">Tx Hash</span>
+                    <a
+                      href={`https://explorer.solana.com/tx/${bridgeData.txHash}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1 font-mono text-xs text-primary hover:underline"
+                    >
+                      {bridgeData.txHash.slice(0, 12)}...
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <Button onClick={() => navigate("/dashboard")} className="mt-6" data-testid="button-back-home">Back to Home</Button>
           </CardContent>
         </Card>
       </motion.div>

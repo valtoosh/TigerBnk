@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { useTheme } from "@/components/theme-provider";
 import { motion } from "framer-motion";
@@ -7,7 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { COUNTRIES, getRoarTier } from "@shared/schema";
-import { Mail, Phone, Globe, Shield, Bell, Moon, Sun, LogOut } from "lucide-react";
+import { Mail, Phone, Globe, Shield, Bell, Moon, Sun, LogOut, CheckCircle, Loader2, Clock } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 const fadeUp = {
   initial: { opacity: 0, y: 16 },
@@ -19,8 +21,10 @@ const stagger = {
 };
 
 export default function Profile() {
-  const { user, logout } = useAuth();
+  const { user, logout, refetchUser } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const { toast } = useToast();
+  const [verifying, setVerifying] = useState(false);
 
   if (!user) return null;
 
@@ -95,19 +99,63 @@ export default function Profile() {
           <CardContent className="p-2">
             <div className="flex items-center gap-3 p-3 rounded-md hover-elevate">
               <div className="w-9 h-9 rounded-md bg-muted flex items-center justify-center">
-                <Shield className="w-4 h-4 text-muted-foreground" />
+                {user.kycStatus === "verified" ? (
+                  <CheckCircle className="w-4 h-4 text-green-500" />
+                ) : user.kycStatus === "submitted" ? (
+                  <Clock className="w-4 h-4 text-amber-500" />
+                ) : (
+                  <Shield className="w-4 h-4 text-muted-foreground" />
+                )}
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium">KYC Verification</p>
-                <p className="text-xs text-muted-foreground">Identity verification status</p>
+                <p className="text-xs text-muted-foreground">
+                  {user.kycStatus === "verified"
+                    ? "Identity verified"
+                    : user.kycStatus === "submitted"
+                    ? "Your documents are being reviewed"
+                    : "Verify your identity to unlock all features"}
+                </p>
               </div>
-              <Badge
-                variant={user.kycStatus === "verified" ? "default" : "secondary"}
-                className="text-xs capitalize"
-                data-testid="badge-kyc-status"
-              >
-                {user.kycStatus}
-              </Badge>
+              {user.kycStatus === "verified" ? (
+                <Badge variant="default" className="text-xs bg-green-500 hover:bg-green-600" data-testid="badge-kyc-status">
+                  Verified
+                </Badge>
+              ) : user.kycStatus === "submitted" ? (
+                <Badge variant="outline" className="text-xs border-amber-500 text-amber-500" data-testid="badge-kyc-status">
+                  Under Review
+                </Badge>
+              ) : (
+                <Button
+                  size="sm"
+                  onClick={async () => {
+                    setVerifying(true);
+                    try {
+                      const res = await fetch("/api/kyc/verify", {
+                        method: "POST",
+                        credentials: "include",
+                      });
+                      const data = await res.json();
+                      if (data.submitted) {
+                        toast({ title: "KYC Submitted", description: data.message });
+                        await refetchUser();
+                      } else if (data.verified) {
+                        toast({ title: "KYC Verified", description: data.message });
+                        await refetchUser();
+                      }
+                    } catch {
+                      toast({ title: "Error", description: "Submission failed. Please try again.", variant: "destructive" });
+                    } finally {
+                      setVerifying(false);
+                    }
+                  }}
+                  disabled={verifying}
+                  data-testid="button-kyc-verify"
+                >
+                  {verifying ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : null}
+                  {verifying ? "Submitting..." : "Verify Now"}
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>

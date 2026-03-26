@@ -9,6 +9,7 @@ type AuthContextType = {
   login: (email: string, password: string) => Promise<void>;
   register: (data: { fullName: string; email: string; phone?: string; password: string; country: string; accountType?: string }) => Promise<void>;
   logout: () => Promise<void>;
+  refetchUser: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -48,8 +49,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     queryClient.clear();
   }, []);
 
+  const refetchUser = useCallback(async () => {
+    await queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ user: user ?? null, isLoading, login, register, logout }}>
+    <AuthContext.Provider value={{ user: user ?? null, isLoading, login, register, logout, refetchUser }}>
       {children}
     </AuthContext.Provider>
   );

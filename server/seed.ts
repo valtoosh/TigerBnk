@@ -17,7 +17,7 @@ export async function seedDatabase() {
     fullName: "Ahmad Al Rashid",
     passwordHash: hash,
     country: "AE",
-    balance: "12450.75",
+    balance: "0.00",
     currency: "AED",
     roarScore: 620,
     role: "individual",
@@ -31,7 +31,7 @@ export async function seedDatabase() {
     fullName: "Priya Sharma",
     passwordHash: hash,
     country: "IN",
-    balance: "85000.00",
+    balance: "0.00",
     currency: "INR",
     roarScore: 480,
     role: "individual",
@@ -45,7 +45,7 @@ export async function seedDatabase() {
     fullName: "Marco Santos",
     passwordHash: hash,
     country: "PH",
-    balance: "25000.00",
+    balance: "0.00",
     currency: "PHP",
     roarScore: 350,
     role: "individual",
@@ -59,7 +59,7 @@ export async function seedDatabase() {
     fullName: "Sarah Johnson",
     passwordHash: hash,
     country: "AE",
-    balance: "8200.50",
+    balance: "0.00",
     currency: "AED",
     roarScore: 720,
     role: "individual",
@@ -67,18 +67,5 @@ export async function seedDatabase() {
     avatarInitials: "SJ",
   }).returning();
 
-  const now = new Date();
-  const seedTxs = [
-    { userId: demoUser.id, type: "deposit", amount: "5000.00", currency: "AED", source: "Bank Transfer", description: "Initial deposit via Bank Transfer", status: "completed", createdAt: new Date(now.getTime() - 7 * 86400000) },
-    { userId: demoUser.id, type: "deposit", amount: "3000.00", currency: "AED", source: "Card Payment", description: "Deposit via Card", status: "completed", createdAt: new Date(now.getTime() - 5 * 86400000) },
-    { userId: demoUser.id, type: "send", amount: "500.00", currency: "AED", recipientId: user2.id, recipientName: "Priya Sharma", source: "TigerPayX", description: "Sent to Priya Sharma", status: "completed", createdAt: new Date(now.getTime() - 3 * 86400000) },
-    { userId: demoUser.id, type: "receive", amount: "1200.00", currency: "AED", recipientId: user4.id, recipientName: "Sarah Johnson", source: "TigerPayX", description: "Received from Sarah Johnson", status: "completed", createdAt: new Date(now.getTime() - 2 * 86400000) },
-    { userId: demoUser.id, type: "send", amount: "250.00", currency: "AED", recipientId: user3.id, recipientName: "Marco Santos", source: "TigerPayX", description: "Sent to Marco Santos", status: "completed", createdAt: new Date(now.getTime() - 1 * 86400000) },
-    { userId: demoUser.id, type: "deposit", amount: "4000.75", currency: "AED", source: "Bank Transfer", description: "Salary deposit", status: "completed", createdAt: new Date(now.getTime() - 12 * 3600000) },
-    { userId: demoUser.id, type: "send", amount: "100.00", currency: "AED", recipientId: user4.id, recipientName: "Sarah Johnson", source: "TigerPayX", description: "Sent to Sarah Johnson", status: "pending", createdAt: new Date(now.getTime() - 3600000) },
-  ];
-
-  await db.insert(transactions).values(seedTxs);
-
-  console.log("Database seeded successfully");
+  console.log("Database seeded successfully (zero balances)");
 }

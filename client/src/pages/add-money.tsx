@@ -39,6 +39,7 @@ function PaymentMethodIcon({ method }: { method: string }) {
   switch (method) {
     case "upi": return <Smartphone className="w-5 h-5" />;
     case "gcash": case "paymaya": case "grabpay": return <Wallet className="w-5 h-5" />;
+    case "lean_open_banking": return <Building2 className="w-5 h-5" />;
     case "bank_transfer": case "imps": case "neft": return <Landmark className="w-5 h-5" />;
     default: return <Globe className="w-5 h-5" />;
   }
@@ -50,6 +51,7 @@ function getMethodDescription(method: string): string {
     case "gcash": return "Via GCash wallet";
     case "paymaya": return "Via PayMaya";
     case "grabpay": return "Via GrabPay";
+    case "lean_open_banking": return "Instant via Open Banking";
     case "bank_transfer": return "1-2 business days";
     case "imps": return "Instant bank transfer";
     case "neft": return "Within 2 hours";
@@ -106,25 +108,10 @@ export default function AddMoney() {
 
   const onmetaDepositMutation = useMutation({
     mutationFn: async () => {
-      const loginRes = await apiRequest("POST", "/api/onmeta/login", {});
-      const loginData = await loginRes.json();
-
-      const res = await fetch("/api/onmeta/deposit", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-onmeta-token": loginData.token,
-        },
-        credentials: "include",
-        body: JSON.stringify({
-          amount: parseFloat(amount),
-          paymentMethod: selectedMethod,
-        }),
+      const res = await apiRequest("POST", "/api/onmeta/deposit", {
+        amount: parseFloat(amount),
+        paymentMethod: selectedMethod,
       });
-      if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.message || "Deposit failed");
-      }
       return res.json();
     },
     onSuccess: (data) => {
@@ -138,17 +125,21 @@ export default function AddMoney() {
     },
   });
 
-  const manualDepositMutation = useMutation({
+  const tazapayDepositMutation = useMutation({
     mutationFn: async () => {
-      const res = await apiRequest("POST", "/api/user/deposit", {
+      const res = await apiRequest("POST", "/api/tazapay/deposit", {
         amount: parseFloat(amount),
-        source: selectedMethod === "card" ? "Card Payment" : "Bank Transfer",
-        description: `Deposit via ${selectedMethod === "card" ? "Card" : "Bank Transfer"}`,
+        currency,
+        paymentMethod: selectedMethod,
       });
       return res.json();
     },
-    onSuccess: () => {
-      setStep("success");
+    onSuccess: (data) => {
+      if (data.checkoutUrl) {
+        window.open(data.checkoutUrl, "_blank");
+      }
+      setDepositResult(data);
+      setStep("processing");
       queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
     },
@@ -157,8 +148,93 @@ export default function AddMoney() {
     },
   });
 
+  const { data: leanPaymentSources } = useQuery<any[]>({
+    queryKey: ["/api/v1/lean/payment-sources"],
+    enabled: selectedMethod === "lean_open_banking",
+  });
+
+  const leanCreateBankMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", "/api/v1/lean/create-bank-account");
+      return res.json();
+    },
+  });
+
+  const leanDepositMutation = useMutation({
+    mutationFn: async (params: { customerId: string }) => {
+      const res = await apiRequest("POST", "/api/v1/lean/deposit", {
+        amount: parseFloat(amount),
+        currency,
+        customerId: params.customerId,
+      });
+      return res.json();
+    },
+  });
+
+  async function proceedToLeanDeposit(customerId: string) {
+    try {
+      const data = await leanDepositMutation.mutateAsync({ customerId });
+      window.Lean.pay({
+        app_token: data.appToken,
+        payment_intent_id: data.paymentIntentId,
+        access_token: data.accessToken,
+        callback: (response) => {
+          if (response.status === "SUCCESS") {
+            setStep("success");
+            queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
+            queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+          } else {
+            toast({ title: "Payment failed", description: response.message || "Please try again", variant: "destructive" });
+          }
+        },
+      });
+    } catch (err: any) {
+      toast({ title: "Deposit failed", description: err.message, variant: "destructive" });
+    }
+  }
+
+  async function leanDepositFlow() {
+    const sources = leanPaymentSources || [];
+    if (sources.length === 0) {
+      try {
+        const data = await leanCreateBankMutation.mutateAsync();
+        window.Lean.link({
+          app_token: data.appToken,
+          customer_id: data.customerId,
+          permissions: ["payments"],
+          access_token: data.accessToken,
+          callback: (response) => {
+            if (response.status === "SUCCESS") {
+              proceedToLeanDeposit(data.customerId);
+            } else {
+              toast({ title: "Bank linking failed", description: response.message || "Please try again", variant: "destructive" });
+            }
+          },
+        });
+      } catch (err: any) {
+        toast({ title: "Failed to link bank", description: err.message, variant: "destructive" });
+      }
+    } else {
+      const customerId = sources[0].leanCustomerId || sources[0].customer_id;
+      proceedToLeanDeposit(customerId);
+    }
+  }
+
+  const manualDepositMutation = useMutation({
+    mutationFn: async () => {
+      throw new Error("Manual deposits are disabled. Please use a supported payment provider.");
+    },
+    onError: (err: any) => {
+      toast({ title: "Deposit failed", description: err.message, variant: "destructive" });
+    },
+  });
+
   function handleDeposit() {
-    if (provider === "burjx") {
+    if (selectedMethod === "lean_open_banking") {
+      leanDepositFlow();
+    } else if (provider === "tazapay") {
+      tazapayDepositMutation.mutate();
+    } else if (provider === "burjx") {
       burjxDepositMutation.mutate();
     } else if (provider === "onmeta") {
       onmetaDepositMutation.mutate();
@@ -167,7 +243,7 @@ export default function AddMoney() {
     }
   }
 
-  const isPending = burjxDepositMutation.isPending || onmetaDepositMutation.isPending || manualDepositMutation.isPending;
+  const isPending = burjxDepositMutation.isPending || onmetaDepositMutation.isPending || tazapayDepositMutation.isPending || manualDepositMutation.isPending || leanCreateBankMutation.isPending || leanDepositMutation.isPending;
 
   function copyToClipboard(text: string) {
     navigator.clipboard.writeText(text);
@@ -272,10 +348,10 @@ export default function AddMoney() {
               </>
             )}
 
-            {order?.paymentUrl && (
+            {(order?.paymentUrl || depositResult?.checkoutUrl) && (
               <>
                 <div className="h-px bg-border" />
-                <Button className="w-full" onClick={() => window.open(order.paymentUrl, "_blank")} data-testid="button-open-payment">
+                <Button className="w-full" onClick={() => window.open(order?.paymentUrl || depositResult?.checkoutUrl, "_blank")} data-testid="button-open-payment">
                   Complete Payment
                 </Button>
               </>
@@ -318,6 +394,32 @@ export default function AddMoney() {
           </CardContent>
         </Card>
 
+        {(provider === "burjx" || selectedMethod === "lean_open_banking") && (
+          <Card className="overflow-visible border-violet-200 dark:border-violet-800">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-5 h-5 rounded-full bg-violet-500/10 flex items-center justify-center">
+                  <span className="text-[8px] font-bold text-violet-600">USDC</span>
+                </div>
+                <p className="text-xs font-medium">Solana USDC Bridge</p>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Your AED deposit converts to USDC on Solana and settles to the bridge wallet.
+              </p>
+              <div className="flex items-center justify-between mt-2 text-xs">
+                <span className="text-muted-foreground">Settlement Wallet</span>
+                <button
+                  onClick={() => copyToClipboard("6Gy3RAHJCg325TPURWfq6kYy8Qy6GpnjUAi1HRKjii31")}
+                  className="flex items-center gap-1 font-mono text-[10px]"
+                >
+                  6Gy3RAH...ii31
+                  <Copy className="w-3 h-3 text-muted-foreground" />
+                </button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         <div className="text-center">
           <p className="text-xs text-muted-foreground">Your balance will be updated once the payment is confirmed</p>
           <Button variant="outline" className="mt-4" onClick={() => navigate("/dashboard")} data-testid="button-done-processing">
@@ -358,7 +460,7 @@ export default function AddMoney() {
             <div className="flex items-center justify-between gap-4 flex-wrap">
               <span className="text-sm text-muted-foreground">Provider</span>
               <Badge variant="secondary" className="text-xs" data-testid="badge-provider">
-                {provider === "burjx" ? "Secure Banking (UAE)" : provider === "onmeta" ? "Secure Payment" : "TigerPayX"}
+                {selectedMethod === "lean_open_banking" ? "Open Banking (UAE)" : provider === "tazapay" ? "Tazapay (Business)" : provider === "burjx" ? "Secure Banking (UAE)" : provider === "onmeta" ? "Secure Payment" : "TigerPayX"}
               </Badge>
             </div>
             <div className="h-px bg-border" />

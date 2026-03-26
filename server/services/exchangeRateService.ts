@@ -32,16 +32,8 @@ export async function getExchangeRates(baseCurrency: string = "AED"): Promise<Re
   return cache.rates && Object.keys(cache.rates).length > 0 ? cache.rates : FALLBACK_RATES;
 }
 
-export function getFeePercent(from: string, to: string): number {
-  if (from === to) return 0;
-  const majorCorridors = [
-    ["USD", "INR"], ["AED", "INR"], ["GBP", "INR"],
-    ["AED", "PHP"], ["USD", "PHP"], ["AED", "IDR"],
-  ];
-  for (const [a, b] of majorCorridors) {
-    if ((from === a && to === b) || (from === b && to === a)) return 0.99;
-  }
-  return 1.5;
+export function getFeePercent(_from: string, _to: string): number {
+  return 0;
 }
 
 export async function convertCurrency(
@@ -53,9 +45,7 @@ export async function convertCurrency(
   const fromRate = rates[from] || 1;
   const toRate = rates[to] || 1;
   const rate = toRate / fromRate;
-  const feePercent = getFeePercent(from, to);
-  const fee = amount * (feePercent / 100);
-  const convertedAmount = (amount - fee) * rate;
+  const convertedAmount = amount * rate;
 
-  return { convertedAmount, rate, fee, feePercent };
+  return { convertedAmount, rate, fee: 0, feePercent: 0 };
 }
